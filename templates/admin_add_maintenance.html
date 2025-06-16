@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    --blue-border: #4facfe;
+    --orange-border: #ff9a8b;
+    --green-border: #00b894;
+    --cyan-border: #0abde3;
+    --purple-border: #28a745;
+    --red-border: #fd7979;
+    --yellow-border: #feca57;
+    --pink-border: #ff6b9d;
+    --teal-border: #26d0ce;
+    --indigo-border: #6c5ce7;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="tools" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="40" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23tools)"/></svg>');
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .breadcrumb-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-body {
+    padding: 0;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid var(--blue-border);
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-card:nth-child(2) {
+    border-left-color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) {
+    border-left-color: var(--orange-border);
+  }
+
+  .section-card:nth-child(4) {
+    border-left-color: var(--red-border);
+  }
+
+  .section-card:nth-child(5) {
+    border-left-color: var(--cyan-border);
+  }
+
+  .section-card:nth-child(6) {
+    border-left-color: var(--purple-border);
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-3px);
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-card:nth-child(1) .section-title i {
+    color: var(--blue-border);
+  }
+
+  .section-card:nth-child(2) .section-title i {
+    color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) .section-title i {
+    color: var(--orange-border);
+  }
+
+  .section-card:nth-child(4) .section-title i {
+    color: var(--red-border);
+  }
+
+  .section-card:nth-child(5) .section-title i {
+    color: var(--cyan-border);
+  }
+
+  .section-card:nth-child(6) .section-title i {
+    color: var(--purple-border);
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .priority-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .priority-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .priority-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .priority-option.selected {
+    color: white;
+  }
+
+  .priority-option.high.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);
+  }
+
+  .priority-option.medium.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    box-shadow: 0 3px 12px rgba(255, 193, 7, 0.3);
+  }
+
+  .priority-option.low.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .type-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .type-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .type-option.selected {
+    border-color: #667eea;
+    background: var(--primary-gradient);
+    color: white;
+  }
+
+  .type-option input[type="radio"] {
+    display: none;
+  }
+
+  .type-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .date-time-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) { animation-delay: 0.1s; }
+  .section-card:nth-child(3) { animation-delay: 0.2s; }
+  .section-card:nth-child(4) { animation-delay: 0.3s; }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .form-section {
+      padding: 1rem;
+    }
+    
+    .type-selector {
+      grid-template-columns: 1fr;
+    }
+    
+    .priority-selector {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .date-time-selector {
+      grid-template-columns: 1fr;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .estimated-duration {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 1.25rem;
+    display: inline-block;
+    margin-top: 1rem;
+    font-weight: 500;
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-tools me-3"></i>添加维护计划
+              </h2>
+              <p class="mb-0 text-white-50">
+                维护管理 / 添加维护计划
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('admin_maintenance') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="alert alert-info alert-custom alert-dismissible fade show">
+              <i class="fas fa-info-circle me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 表单主体 -->
+  <div class="form-body">
+    <form method="POST" id="addMaintenanceForm">
+      <!-- 基本信息 -->
+      <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-info-circle text-primary"></i>
+            基本信息
+          </h4>
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="title" name="title" 
+                   required placeholder="维护标题" autocomplete="off">
+            <label for="title">
+              <i class="fas fa-tag me-2"></i>维护标题
+            </label>
+          </div>
+          
+          <div class="form-floating">
+            <textarea class="form-control" id="description" name="description" 
+                      style="height: 120px;" placeholder="详细描述"></textarea>
+            <label for="description">
+              <i class="fas fa-file-alt me-2"></i>维护详细描述
+            </label>
+          </div>
+        </div>
+
+        <!-- 会议室选择 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-door-open text-success"></i>
+            会议室选择
+          </h4>
+          <div class="form-floating">
+            <select class="form-select" id="room_id" name="room_id" required>
+              <option value="">请选择会议室</option>
+              {% for room in rooms %}
+              <option value="{{ room.id }}">{{ room.RoomName }} ({{ room.Location }})</option>
+              {% endfor %}
+            </select>
+            <label for="room_id">
+              <i class="fas fa-door-open me-2"></i>选择需要维护的会议室
+            </label>
+          </div>
+        </div>
+
+        <!-- 维护类型 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-cogs text-warning"></i>
+            维护类型
+          </h4>
+          <div class="type-selector">
+            <div class="type-option selected" onclick="selectMaintenanceType('Preventive')">
+              <input type="radio" name="maintenance_type" value="Preventive" checked>
+              <i class="fas fa-shield-alt type-icon"></i>
+              <div><strong>预防性维护</strong></div>
+              <small>定期检查和保养</small>
+            </div>
+            <div class="type-option" onclick="selectMaintenanceType('Corrective')">
+              <input type="radio" name="maintenance_type" value="Corrective">
+              <i class="fas fa-tools type-icon"></i>
+              <div><strong>纠正性维护</strong></div>
+              <small>故障修复和处理</small>
+            </div>
+            <div class="type-option" onclick="selectMaintenanceType('Emergency')">
+              <input type="radio" name="maintenance_type" value="Emergency">
+              <i class="fas fa-exclamation-triangle type-icon"></i>
+              <div><strong>紧急维护</strong></div>
+              <small>紧急故障处理</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- 优先级 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-exclamation-circle text-danger"></i>
+            优先级设置
+          </h4>
+          <div class="priority-selector">
+            <div class="priority-option high" onclick="setPriority('High')">
+              <i class="fas fa-fire"></i>
+              <div>高</div>
+              <small>紧急处理</small>
+            </div>
+            <div class="priority-option medium selected" onclick="setPriority('Medium')">
+              <i class="fas fa-clock"></i>
+              <div>中</div>
+              <small>正常处理</small>
+            </div>
+            <div class="priority-option low" onclick="setPriority('Low')">
+              <i class="fas fa-turtle"></i>
+              <div>低</div>
+              <small>计划处理</small>
+            </div>
+          </div>
+          <input type="hidden" id="priority" name="priority" value="Medium">
+        </div>
+
+        <!-- 时间安排 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-calendar-alt text-info"></i>
+            时间安排
+          </h4>
+          <div class="date-time-selector">
+            <div class="form-floating">
+              <input type="datetime-local" class="form-control" id="scheduled_date" 
+                     name="scheduled_date" required>
+              <label for="scheduled_date">
+                <i class="fas fa-calendar me-2"></i>计划开始时间
+              </label>
+            </div>
+            <div class="form-floating">
+              <input type="number" class="form-control" id="estimated_duration" 
+                     name="estimated_duration" min="1" max="480" value="60" placeholder="预估时长">
+              <label for="estimated_duration">
+                <i class="fas fa-hourglass-half me-2"></i>预估时长(分钟)
+              </label>
+            </div>
+          </div>
+          <div class="estimated-duration">
+            <i class="fas fa-info-circle me-1"></i>
+            预计完成时间：<span id="estimated_end_time">请选择开始时间</span>
+          </div>
+        </div>
+
+        <!-- 责任人 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-user-tie text-secondary"></i>
+            责任人分配
+          </h4>
+          <div class="form-floating">
+            <select class="form-select" id="assigned_to" name="assigned_to">
+              <option value="">请选择责任人</option>
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.UserName }} ({{ user.Email }})</option>
+              {% endfor %}
+            </select>
+            <label for="assigned_to">
+              <i class="fas fa-user me-2"></i>分配给
+            </label>
+          </div>
+        </div>
+
+        <div class="submit-section">
+          <a href="{{ url_for('admin_maintenance') }}" class="back-btn">
+            <i class="fas fa-times me-2"></i>
+            取消
+          </a>
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-calendar-plus me-2"></i>
+            创建维护计划
+          </button>
+        </div>
+      </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 设置最小日期为当前时间
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('scheduled_date').min = now.toISOString().slice(0, 16);
+    
+    // 监听时间和时长变化
+    document.getElementById('scheduled_date').addEventListener('change', updateEstimatedEndTime);
+    document.getElementById('estimated_duration').addEventListener('input', updateEstimatedEndTime);
+    
+    // 表单提交处理
+    document.getElementById('addMaintenanceForm').addEventListener('submit', function(e) {
+      if (!validateForm()) {
+        e.preventDefault();
+        return false;
+      }
+
+      const submitBtn = this.querySelector('.submit-btn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>创建中...';
+      submitBtn.disabled = true;
+
+      // 如果验证通过，让表单正常提交
+      setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }, 3000);
+    });
+    
+    // 初始化预计完成时间
+    updateEstimatedEndTime();
+  });
+
+  function selectMaintenanceType(type) {
+    // 更新类型选择器样式
+    document.querySelectorAll('.type-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+    
+    // 更新单选按钮
+    document.querySelector(`input[value="${type}"]`).checked = true;
+  }
+
+  function setPriority(priority) {
+    // 更新优先级选择器样式
+    document.querySelectorAll('.priority-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+    
+    // 更新隐藏字段
+    document.getElementById('priority').value = priority;
+  }
+
+  function updateEstimatedEndTime() {
+    const startDate = document.getElementById('scheduled_date').value;
+    const duration = parseInt(document.getElementById('estimated_duration').value) || 60;
+    
+    if (startDate) {
+      const start = new Date(startDate);
+      const end = new Date(start.getTime() + duration * 60000);
+      
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      
+      document.getElementById('estimated_end_time').textContent = 
+        end.toLocaleDateString('zh-CN', options);
+    } else {
+      document.getElementById('estimated_end_time').textContent = '请选择开始时间';
+    }
+  }
+
+  function validateForm() {
+    let isValid = true;
+    const errors = [];
+
+    // 检查基本信息
+    const title = document.getElementById('title').value.trim();
+    const roomId = document.getElementById('room_id').value;
+    const scheduledDate = document.getElementById('scheduled_date').value;
+
+    if (!title) {
+      errors.push('请输入维护标题');
+      isValid = false;
+    }
+
+    if (!roomId) {
+      errors.push('请选择需要维护的会议室');
+      isValid = false;
+    }
+
+    if (!scheduledDate) {
+      errors.push('请选择计划开始时间');
+      isValid = false;
+    } else {
+      const selectedDate = new Date(scheduledDate);
+      const now = new Date();
+      if (selectedDate < now) {
+        errors.push('计划开始时间不能早于当前时间');
+        isValid = false;
+      }
+    }
+
+    if (!isValid) {
+      showNotification(errors.join('<br>'), 'danger');
+    }
+
+    return isValid;
+  }
+
+  // 显示通知
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-custom alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 5000);
+  }
+
+  // 添加键盘快捷键支持
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case 's':
+          e.preventDefault();
+          if (validateForm()) {
+            document.getElementById('addMaintenanceForm').submit();
+          }
+          break;
+        case 'Escape':
+          window.location.href = "{{ url_for('admin_maintenance') }}";
+          break;
+      }
+    }
+  });
+</script>
+{% endblock %}

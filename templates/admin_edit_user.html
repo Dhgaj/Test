@@ -1,0 +1,571 @@
+{% extends "base.html" %} {% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="users" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="40" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23users)"/></svg>');
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .breadcrumb-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #667eea;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+  }
+
+  /* 不同卡片的边框色 */
+  .section-card.basic-info {
+    border-left-color: #667eea; /* 蓝色 - 基本信息 */
+  }
+
+  .section-card.password {
+    border-left-color: #ff9800; /* 橙色 - 密码设置 */
+  }
+
+  .section-card.permissions {
+    border-left-color: #28a745; /* 绿色 - 权限管理 */
+  }
+
+  .section-card.user-info {
+    border-left-color: #17a2b8; /* 青色 - 用户信息 */
+  }
+
+  /* 悬停时的边框色变暗 */
+  .section-card.basic-info:hover {
+    border-left-color: #5a6ecd;
+  }
+
+  .section-card.password:hover {
+    border-left-color: #e68a00;
+  }
+
+  .section-card.permissions:hover {
+    border-left-color: #218838;
+  }
+
+  .section-card.user-info:hover {
+    border-left-color: #138496;
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control,
+  .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.85rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.85rem;
+    transition: var(--transition);
+  }
+
+  .checkbox-group:hover {
+    background: #e9ecef;
+  }
+
+  .checkbox-wrapper {
+    position: relative;
+    margin-right: 1rem;
+  }
+
+  .checkbox-wrapper input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+  }
+
+  .checkbox-custom {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checkbox-wrapper input[type="checkbox"]:checked + .checkbox-custom {
+    background: #667eea;
+    border-color: #667eea;
+  }
+
+  .checkbox-wrapper input[type="checkbox"]:checked + .checkbox-custom::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .checkbox-label {
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  .section-card:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  .section-card:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-user-edit me-3"></i>编辑用户信息
+              </h2>
+              <p class="mb-0 text-white-50">用户管理 / 编辑用户</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('admin_users') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 消息提示 -->
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="alert alert-info alert-custom alert-dismissible fade show">
+        <i class="fas fa-info-circle me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  {% if error %}
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="alert alert-danger alert-custom alert-dismissible fade show">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 主要内容区域 -->
+  <div class="row">
+    <div class="col-12">
+      <form method="POST" action="{{ url_for('admin_edit_user', id=user.id) }}">
+        
+        <!-- 当前用户信息 -->
+        <div class="section-card user-info">
+          <h4 class="section-title">
+            <i class="fas fa-info-circle" style="color: #17a2b8"></i>
+            当前编辑用户
+          </h4>
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <!-- 用户头像显示 -->
+              <div class="text-center">
+                <div class="position-relative d-inline-block">
+                  <img id="profileImage" 
+                       src="{% if user.Avatar %}{{ user.Avatar }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128{% endif %}"
+                       alt="用户头像" 
+                       class="rounded-circle img-thumbnail" 
+                       style="width: 128px; height: 128px; object-fit: cover; cursor: pointer;">
+                  <div class="position-absolute bottom-0 end-0">
+                    <label for="avatarUpload" class="btn btn-sm btn-primary rounded-circle mb-0" title="更换头像" style="cursor: pointer;">
+                      <i class="fas fa-camera"></i>
+                      <input type="file" id="avatarUpload" class="d-none" accept="image/*">
+                    </label>
+                  </div>
+                </div>
+                <p class="text-muted small mt-2">点击头像或相机图标更换</p>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>用户ID:</strong> {{ user.id }}</p>
+                  <p><strong>用户名:</strong> {{ user.username }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>邮箱:</strong> {{ user.Email }}</p>
+                  <p><strong>管理员权限:</strong> 
+                    {% if user.is_admin %}
+                    <span class="badge bg-warning text-dark">管理员</span>
+                    {% else %}
+                    <span class="badge bg-info">普通用户</span>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 基本信息编辑 -->
+        <div class="section-card basic-info">
+          <h4 class="section-title">
+            <i class="fas fa-user" style="color: #667eea"></i>
+            基本信息
+          </h4>
+          
+          <div class="form-floating">
+            <input type="text" 
+                   id="username" 
+                   name="username" 
+                   class="form-control" 
+                   value="{{ user.username }}" 
+                   required 
+                   placeholder="请输入用户名">
+            <label for="username">用户名</label>
+          </div>
+
+          <div class="form-floating">
+            <input type="email" 
+                   id="email" 
+                   name="email" 
+                   class="form-control" 
+                   value="{{ user.Email }}" 
+                   required 
+                   placeholder="请输入邮箱地址">
+            <label for="email">邮箱地址</label>
+          </div>
+        </div>
+
+        <!-- 密码修改 -->
+        <div class="section-card password">
+          <h4 class="section-title">
+            <i class="fas fa-key" style="color: #ff9800"></i>
+            密码设置
+          </h4>
+          
+          <div class="form-floating">
+            <input type="password" 
+                   id="password" 
+                   name="password" 
+                   class="form-control" 
+                   placeholder="留空则不修改密码">
+            <label for="password">新密码</label>
+          </div>
+          <small style="color: #6b7280; margin-top: 5px; display: block;">
+            如果不需要修改密码，请留空此字段
+          </small>
+        </div>
+
+        <!-- 权限管理 -->
+        <div class="section-card permissions">
+          <h4 class="section-title">
+            <i class="fas fa-shield-alt" style="color: #28a745"></i>
+            权限管理
+          </h4>
+          
+          <div class="checkbox-group">
+            <div class="checkbox-wrapper">
+              <input type="checkbox" 
+                     id="is_admin" 
+                     name="is_admin" 
+                     {% if user.is_admin %}checked{% endif %}>
+              <div class="checkbox-custom"></div>
+            </div>
+            <label for="is_admin" class="checkbox-label">
+              授予管理员权限
+            </label>
+          </div>
+          <small style="color: #6b7280; margin-top: 10px; display: block;">
+            管理员可以管理所有用户和系统设置
+          </small>
+        </div>
+
+        <!-- 提交区域 -->
+        <div class="section-card">
+          <div class="submit-section">
+            <a href="{{ url_for('admin_users') }}" class="back-btn">
+              <i class="fas fa-arrow-left"></i> 返回列表
+            </a>
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-save"></i> 保存修改
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// 头像上传功能
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarUpload = document.getElementById('avatarUpload');
+    const profileImage = document.getElementById('profileImage');
+    
+    // 点击头像也能触发文件选择
+    profileImage.addEventListener('click', function() {
+        avatarUpload.click();
+    });
+    
+    // 文件选择后处理上传
+    avatarUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // 验证文件类型
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('请选择JPG、PNG或GIF格式的图片文件');
+            avatarUpload.value = '';
+            return;
+        }
+        
+        // 验证文件大小 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('文件大小不能超过5MB');
+            avatarUpload.value = '';
+            return;
+        }
+        
+        // 显示确认对话框
+        if (!confirm('确定要更换这个用户的头像吗？')) {
+            avatarUpload.value = '';
+            return;
+        }
+        
+        // 创建FormData并上传
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        // 显示加载状态
+        const originalSrc = profileImage.src;
+        profileImage.style.opacity = '0.5';
+        
+        // 发送上传请求
+        fetch(`/admin/upload_user_avatar/{{ user.id }}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 更新头像显示
+                profileImage.src = data.avatar_url + '?t=' + Date.now(); // 添加时间戳避免缓存
+                alert('头像更新成功！');
+            } else {
+                alert(data.message || '上传失败，请重试');
+                profileImage.src = originalSrc;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，上传失败');
+            profileImage.src = originalSrc;
+        })
+        .finally(() => {
+            // 恢复头像显示状态
+            profileImage.style.opacity = '1';
+            // 清空文件选择
+            avatarUpload.value = '';
+        });
+    });
+});
+</script>
+
+{% endblock %}

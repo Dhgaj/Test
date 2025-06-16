@@ -1,0 +1,2676 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+  /* 确保与其他管理页面的样式一致 */
+  .bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+    border-radius: 1rem;
+  }
+  
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --info-gradient: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    --success-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    --blue-border: #4facfe;
+    --orange-border: #ff9a8b;
+    --green-border: #00b894;
+    --cyan-border: #0abde3;
+    --purple-border: #28a745;
+    --red-border: #fd7979;
+  }
+    
+  /* 统计卡片样式 */
+  .stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    margin-bottom: 1.5rem;
+    height: 220px; /* 固定高度确保一致性 */
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #495057 !important;
+    margin-top: 0.5rem;
+  }
+  
+  /* 可点击统计卡片样式 */
+  .stats-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: #2c3e50;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: var(--transition);
+    margin-bottom: 1.5rem;
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .stats-card:hover::before {
+    opacity: 1;
+  }
+
+  .stats-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: #667eea;
+  }
+
+  .clickable-stat {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .clickable-stat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .clickable-stat:hover::after {
+    opacity: 1;
+  }
+
+  .clickable-stat:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+  
+  .stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .icon-total { background: var(--info-gradient); }
+  .icon-current { background: var(--primary-gradient); }
+  .icon-showing { background: var(--success-gradient); }
+  
+  .stat-icon {
+    opacity: 0.8;
+    color: #667eea;
+  }
+
+  .stats-number, .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-weight: 500;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* 统计数字脉冲动画 */
+  @keyframes statPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .stat-pulse {
+    animation: statPulse 0.6s ease-in-out;
+  }
+  
+  /* 统计卡片标题样式统一 */
+  .stat-card h3 {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-card .mt-2 {
+    margin-top: 1rem !important;
+  }
+  
+  .stat-card small {
+    opacity: 0.8;
+    display: block;
+    margin-top: 0.4rem;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .filter-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border-left: 5px solid var(--cyan-border);
+  }
+
+  .filter-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .logs-table {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border-left: 5px solid var(--purple-border);
+  }
+
+  .table-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1rem 1.5rem;
+  }
+
+  .log-row {
+    transition: var(--transition);
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .log-row:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+  }
+
+  .action-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .badge-login {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+  }
+
+  .badge-logout {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    color: #ef6c00;
+    border: 1px solid #ff9800;
+  }
+
+  .badge-error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #c62828;
+    border: 1px solid #f44336;
+    animation: pulse-error 2s infinite;
+  }
+
+  .badge-admin {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    color: #3f51b5;
+    border: 1px solid #5c6bc0;
+  }
+
+  .badge-user-action {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #8e24aa;
+    border: 1px solid #9c27b0;
+  }
+
+  .badge-booking {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    color: #0277bd;
+    border: 1px solid #03a9f4;
+  }
+
+  .badge-system {
+    background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+    color: #558b2f;
+    border: 1px solid #8bc34a;
+  }
+
+  .badge-security {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    color: #ad1457;
+    border: 1px solid #e91e63;
+  }
+
+  /* 错误状态的脉冲动画 */
+  @keyframes pulse-error {
+    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+  }
+
+  /* 操作类型图标增强 */
+  .action-icon {
+    font-size: 0.875rem;
+    margin-right: 0.375rem;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+  }
+
+  /* 统计数字脉冲动画 */
+  @keyframes statPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .stat-pulse {
+    animation: statPulse 0.6s ease-in-out;
+  }
+  
+  /* 统计卡片标题样式统一 */
+  .stat-card h3 {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-card .mt-2 {
+    margin-top: 1rem !important;
+  }
+  
+  .stat-card small {
+    opacity: 0.8;
+    display: block;
+    margin-top: 0.4rem;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .filter-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border-left: 5px solid var(--cyan-border);
+  }
+
+  .filter-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .logs-table {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border-left: 5px solid var(--purple-border);
+  }
+
+  .table-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1rem 1.5rem;
+  }
+
+  .log-row {
+    transition: var(--transition);
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .log-row:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+  }
+
+  .action-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 操作类型专用样式 */
+  .badge-login {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+  }
+
+  .badge-logout {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    color: #ef6c00;
+    border: 1px solid #ff9800;
+  }
+
+  .badge-error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #c62828;
+    border: 1px solid #f44336;
+    animation: pulse-error 2s infinite;
+  }
+
+  .badge-admin {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    color: #3f51b5;
+    border: 1px solid #5c6bc0;
+  }
+
+  .badge-user-action {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #8e24aa;
+    border: 1px solid #9c27b0;
+  }
+
+  .badge-booking {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    color: #0277bd;
+    border: 1px solid #03a9f4;
+  }
+
+  .badge-system {
+    background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+    color: #558b2f;
+    border: 1px solid #8bc34a;
+  }
+
+  .badge-security {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    color: #ad1457;
+    border: 1px solid #e91e63;
+  }
+
+  /* 错误状态的脉冲动画 */
+  @keyframes pulse-error {
+    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+  }
+
+  /* 操作类型图标增强 */
+  .action-icon {
+    font-size: 0.875rem;
+    margin-right: 0.375rem;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+  }
+
+  /* 统计数字脉冲动画 */
+  @keyframes statPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .stat-pulse {
+    animation: statPulse 0.6s ease-in-out;
+  }
+  
+  /* 统计卡片标题样式统一 */
+  .stat-card h3 {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-card .mt-2 {
+    margin-top: 1rem !important;
+  }
+  
+  .stat-card small {
+    opacity: 0.8;
+    display: block;
+    margin-top: 0.4rem;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .filter-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border-left: 5px solid var(--cyan-border);
+  }
+
+  .filter-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .logs-table {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border-left: 5px solid var(--purple-border);
+  }
+
+  .table-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1rem 1.5rem;
+  }
+
+  .log-row {
+    transition: var(--transition);
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .log-row:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+  }
+
+  .action-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 操作类型专用样式 */
+  .badge-login {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+  }
+
+  .badge-logout {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    color: #ef6c00;
+    border: 1px solid #ff9800;
+  }
+
+  .badge-error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    color: #c62828;
+    border: 1px solid #f44336;
+    animation: pulse-error 2s infinite;
+  }
+
+  .badge-admin {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    color: #3f51b5;
+    border: 1px solid #5c6bc0;
+  }
+
+  .badge-user-action {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #8e24aa;
+    border: 1px solid #9c27b0;
+  }
+
+  .badge-booking {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    color: #0277bd;
+    border: 1px solid #03a9f4;
+  }
+
+  .badge-system {
+    background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+    color: #558b2f;
+    border: 1px solid #8bc34a;
+  }
+
+  .badge-security {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    color: #ad1457;
+    border: 1px solid #e91e63;
+  }
+
+  /* 错误状态的脉冲动画 */
+  @keyframes pulse-error {
+    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+  }
+
+  /* 操作类型图标增强 */
+  .action-icon {
+    font-size: 0.875rem;
+    margin-right: 0.375rem;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+  }
+
+  /* 刷新按钮样式 */
+  .refresh-logs-btn {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    color: #495057;
+    font-weight: 500;
+    transition: var(--transition);
+  }
+
+  .refresh-logs-btn:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-color: #adb5bd;
+    color: #212529;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 键盘快捷键按钮样式已移除 */
+
+  /* 实时状态指示器 */
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition);
+  }
+
+  .status-indicator:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #28a745;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+
+  /* 增强的搜索框 */
+  .search-enhancement {
+    position: relative;
+  }
+
+  .search-enhancement .search-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+  }
+
+  .search-enhancement input {
+    padding-right: 3rem;
+  }
+
+  /* 增强表格行交互 */
+  .log-row {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .log-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: var(--purple-border);
+    transition: width 0.3s ease;
+  }
+
+  .log-row:hover::before {
+    width: 4px;
+  }
+
+  .log-row:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    transform: translateX(5px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 按钮增强效果 */
+  .btn-enhanced {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-enhanced:hover::before {
+    left: 100%;
+  }
+  
+  /* 加载状态增强 */
+  .form-control.loading, .form-select.loading {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236c757d' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z'/%3E%3Cpath fill='%23007bff' d='M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8z'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 3rem;
+  }
+
+  /* 筛选器状态样式增强 */
+  .filter-changed {
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%) !important;
+    position: relative;
+  }
+  
+  .filter-changed::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ffc107, #ff9800, #ffc107);
+    border-radius: 12px;
+    z-index: -1;
+    animation: borderGlow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes borderGlow {
+    0% {
+      box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    }
+    100% {
+      box-shadow: 0 0 20px rgba(255, 193, 7, 0.8), 0 0 30px rgba(255, 193, 7, 0.6);
+    }
+  }
+  
+  .btn-warning {
+    animation: pulseWarning 2s infinite;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+  }
+  
+  @keyframes pulseWarning {
+    0% { 
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6), 0 0 0 10px rgba(255, 193, 7, 0.1);
+    }
+    100% { 
+      transform: scale(1);
+      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    }
+  }
+
+  /* 加载状态增强 */
+  .form-control.loading, .form-select.loading {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23667eea' d='M12 2a10 10 0 0 1 10 10h-2a8 8 0 0 0-8-8z'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.2rem center;
+    background-size: 1.2rem;
+    padding-right: 3.5rem;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  /* 表单交互增强 */
+  .filter-group {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .filter-group:hover {
+    transform: translateY(-1px);
+  }
+
+  .filter-group:hover .filter-label {
+    color: #667eea;
+  }
+
+  .filter-group:hover .filter-icon {
+    color: white;
+    background: var(--primary-gradient);
+  }
+
+  /* 响应式增强动画 */
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .filter-section {
+    animation: slideInFromLeft 0.6s ease-out;
+  }
+
+  .filter-actions {
+    animation: slideInFromBottom 0.8s ease-out;
+  }
+
+  .quick-filters-section {
+    animation: slideInFromRight 0.7s ease-out;
+  }
+
+  .quick-filter-group:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .quick-filter-group:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .quick-filter-group:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  /* 按钮点击效果 */
+  .filter-apply-btn:active,
+  .filter-reset-btn:active,
+  .quick-filter-btn:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  /* 焦点状态增强 */
+  .filter-select:focus,
+  .filter-input:focus {
+    border-color: #667eea;
+    box-shadow: 
+      0 0 0 0.25rem rgba(102, 126, 234, 0.15),
+      0 4px 20px rgba(102, 126, 234, 0.2);
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  /* 工具提示样式 */
+  .filter-tooltip {
+    position: relative;
+    cursor: help;
+  }
+
+  .filter-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  .filter-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #2c3e50;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .filter-tooltip:hover::after,
+  .filter-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 增强的筛选器样式 */
+  .filter-card {
+    border: none;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .filter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+  }
+
+  .filter-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none;
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .filter-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .filter-header h5 {
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-status-indicator {
+    position: relative;
+    z-index: 1;
+  }
+
+  .filter-status-indicator .badge {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .filter-status-indicator .badge:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .filter-body {
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    position: relative;
+  }
+
+  .filter-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .filter-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+
+  .filter-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--secondary-gradient);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .filter-group {
+    position: relative;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+  }
+
+  .filter-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.6rem;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 50%;
+    padding: 3px;
+    transition: all 0.3s ease;
+  }
+
+  .filter-group:hover .filter-icon {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.1);
+  }
+
+  .filter-select, .filter-input {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.9rem 1.2rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
+  }
+
+  .filter-select:focus, .filter-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .filter-actions {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    position: relative;
+  }
+
+  .filter-actions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--success-gradient);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .filter-apply-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  .filter-apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .filter-apply-btn:active {
+    transform: translateY(0);
+  }
+
+  .filter-reset-btn {
+    border: 2px solid #6c757d;
+    padding: 0.85rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    background: white;
+    color: #6c757d;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  .filter-reset-btn:hover {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+  }
+
+  .filter-summary {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  .filter-summary i {
+    color: #667eea;
+  }
+
+  /* 增强的响应式设计 */
+  @media (max-width: 992px) {
+    .filter-body {
+      padding: 1.5rem;
+    }
+    
+    .filter-section {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .section-card {
+      padding: 1rem;
+    }
+    
+    .stats-card {
+      margin-bottom: 1rem;
+    }
+    
+    .filter-card {
+      border-radius: 12px;
+    }
+    
+    .filter-header {
+      padding: 1rem 1.5rem;
+    }
+    
+    .filter-body {
+      padding: 1rem;
+    }
+    
+    .filter-section {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .quick-filters-section {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .quick-filter-group {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .filter-actions {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .filter-apply-btn,
+    .filter-reset-btn {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    
+    .quick-filter-buttons {
+      justify-content: center;
+    }
+    
+    .quick-filter-btn {
+      flex: 1;
+      min-width: 0;
+      margin: 0.2rem;
+    }
+    
+    .table-responsive {
+      font-size: 0.875rem;
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .stats-card .section-title {
+      font-size: 1.1rem;
+    }
+    
+    /* 移动端按钮优化 */
+    .col-md-4.text-end {
+      text-align: center !important;
+      margin-top: 1rem;
+    }
+    
+    .col-md-4.text-end .d-flex {
+      justify-content: center !important;
+    }
+    
+    .col-md-4.text-end .btn-sm {
+      padding: 0.3rem 0.5rem;
+      font-size: 0.7rem;
+      flex: 1;
+    }
+    
+    .col-md-4.text-end .btn-sm i {
+      margin-right: 0.2rem !important;
+    }
+    
+    .status-indicator {
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+    }
+    
+    /* 移动端筛选器优化 */
+    .filter-status-indicator {
+      margin-top: 0.5rem;
+    }
+    
+    .filter-summary {
+      text-align: center;
+      margin-top: 1rem;
+    }
+  }
+  
+  /* 针对超小屏幕的优化（小于576px） */
+  @media (max-width: 575px) {
+    .col-md-4.text-end .btn-sm {
+      padding: 0.25rem 0.3rem;
+      font-size: 0.65rem;
+    }
+    
+    .col-md-4.text-end .btn-sm i {
+      margin-right: 0.1rem !important;
+    }
+    
+    /* 在超小屏幕上进一步优化按钮文本 */
+    .btn-light.btn-sm {
+      line-height: 1.1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-clipboard-list me-3"></i>系统日志管理
+              </h2>
+              <p class="mb-0 text-white-50">系统管理 / 日志管理 / 查看和分析系统操作记录</p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="d-flex gap-2 justify-content-center nowrap-buttons">
+                <button class="btn btn-light btn-md refresh-logs-btn">
+                  <i class="fas fa-sync-alt me-2" style="font-size: 1.5rem;"></i><span>刷新</span>
+                </button>
+                <button class="btn btn-light btn-md" id="export-logs">
+                  <i class="fas fa-download me-2" style="font-size: 1.5rem;"></i><span>导出日志</span>
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-md">
+                  <i class="fas fa-arrow-left me-2" style="font-size: 1.5rem;"></i><span>返回控制面板</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 闪现消息 -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 0.75rem;">
+          <i class="fas fa-check-circle me-2"></i>{{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 统计信息卡片 -->
+  <div class="card mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0 section-title">
+        <i class="fas fa-chart-bar me-2"></i>日志统计概览
+      </h5>
+    </div>
+    <div class="card-body">
+      <!-- 基础统计信息 -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card text-center clickable-stat">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-database fa-2x"></i>
+            </div>
+            <div class="stat-number text-info">{{ logs.total }}</div>
+            <div class="stat-label">总日志数量</div>
+            <small class="text-muted mt-2 d-block">
+              <i class="fas fa-clock me-1"></i>系统累计记录
+            </small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card text-center clickable-stat">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-file-alt fa-2x"></i>
+            </div>
+            <div class="stat-number text-primary">{{ logs.page }} <span class="small">/ {{ logs.pages }}</span></div>
+            <div class="stat-label">当前页数</div>
+            <small class="text-muted mt-2 d-block">
+              <i class="fas fa-layer-group me-1"></i>共 {{ logs.pages }} 页
+            </small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card text-center clickable-stat">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-eye fa-2x"></i>
+            </div>
+            <div class="stat-number text-success">{{ logs.items|length }}</div>
+            <div class="stat-label">显示记录</div>
+            <small class="text-muted mt-2 d-block">
+              <i class="fas fa-list-ul me-1"></i>本页显示的日志条数
+            </small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card text-center clickable-stat">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-calendar fa-2x text-purple"></i>
+            </div>
+            <div class="stat-number text-purple">{{ logs.items|selectattr('0.Timestamp', 'defined')|map(attribute='0.Timestamp')|list|selectattr('date', 'defined')|map(attribute='date')|unique|list|length }}</div>
+            <div class="stat-label">包含日期</div>
+            <small class="text-muted mt-2 d-block">
+              <i class="fas fa-calendar-alt me-1"></i>日志覆盖天数
+            </small>
+          </div>
+        </div>
+      </div>
+      <!-- 操作类型分析 -->
+      <div class="row">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="stats-card text-center">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-sign-in-alt fa-2x text-success"></i>
+            </div>
+            <div class="stat-number text-success">
+              {{ action_stats.auth_count }}
+            </div>
+            <div class="stat-label">用户认证</div>
+            <small class="text-muted">登录/登出相关</small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="stats-card text-center">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-calendar-plus fa-2x text-primary"></i>
+            </div>
+            <div class="stat-number text-primary">
+              {{ action_stats.booking_count }}
+            </div>
+            <div class="stat-label">预订操作</div>
+            <small class="text-muted">预订管理相关</small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="stats-card text-center">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-user-shield fa-2x text-warning"></i>
+            </div>
+            <div class="stat-number text-warning">
+              {{ action_stats.admin_count }}
+            </div>
+            <div class="stat-label">管理员操作</div>
+            <small class="text-muted">管理功能相关</small>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="stats-card text-center">
+            <div class="stat-icon mb-2">
+              <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+            </div>
+            <div class="stat-number text-danger">
+              {{ action_stats.error_count }}
+            </div>
+            <div class="stat-label">异常操作</div>
+            <small class="text-muted">错误和异常相关</small>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 过滤器卡片 -->
+  <div class="card mb-4 filter-card">
+    <div class="card-header bg-gradient filter-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-white">
+          <i class="fas fa-filter me-2"></i>日志筛选器
+        </h5>
+        <div class="filter-status-indicator">
+          <span class="badge bg-light text-dark" id="filterStatusBadge">
+            <i class="fas fa-sliders-h me-1"></i>待设置
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body filter-body">
+      <form method="GET" id="filterForm">
+        <!-- 主要筛选条件 -->
+        <div class="filter-section">
+          <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+              <div class="filter-group">
+                <label for="action" class="filter-label filter-tooltip" data-tooltip="选择要筛选的操作类型">
+                  <i class="fas fa-cog filter-icon"></i>
+                  <span>操作类型</span>
+                </label>
+                <select class="form-select filter-select shimmer-effect" id="action" name="action">
+                  <option value="">选择操作类型...</option>
+                  {% for action in action_list %}
+                  <option value="{{ action }}" 
+                      {% if current_filters.action == action %}selected{% endif %}>
+                      {{ action }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="filter-group">
+                <label for="user" class="filter-label filter-tooltip" data-tooltip="根据用户名筛选日志记录">
+                  <i class="fas fa-user filter-icon"></i>
+                  <span>用户筛选</span>
+                </label>
+                <select class="form-select filter-select shimmer-effect" id="user" name="user">
+                  <option value="">选择用户...</option>
+                  {% for user in users %}
+                  <option value="{{ user.UserName }}" 
+                      {% if current_filters.user == user.UserName %}selected{% endif %}>
+                      {{ user.UserName }}
+                      {% if user.is_admin %} (管理员){% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="filter-group">
+                <label for="date_from" class="filter-label filter-tooltip" data-tooltip="设置日志记录的开始日期">
+                  <i class="fas fa-calendar-alt filter-icon"></i>
+                  <span>开始日期</span>
+                </label>
+                <input type="date" class="form-control filter-input shimmer-effect" id="date_from" name="date_from" 
+                       value="{{ current_filters.date_from }}" placeholder="选择开始日期">
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="filter-group">
+                <label for="date_to" class="filter-label filter-tooltip" data-tooltip="设置日志记录的结束日期">
+                  <i class="fas fa-calendar-check filter-icon"></i>
+                  <span>结束日期</span>
+                </label>
+                <input type="date" class="form-control filter-input shimmer-effect" id="date_to" name="date_to" 
+                       value="{{ current_filters.date_to }}" placeholder="选择结束日期">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作按钮区域 -->
+        <div class="filter-actions mt-4">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="d-flex gap-3 flex-wrap">
+                <button type="submit" class="btn btn-primary filter-apply-btn btn-3d shimmer-effect">
+                  <i class="fas fa-search me-2"></i>应用筛选
+                </button>
+                <a href="{{ url_for('admin_logs') }}" class="btn btn-outline-secondary filter-reset-btn btn-3d shimmer-effect">
+                  <i class="fas fa-refresh me-1"></i>重置筛选
+                </a>
+                <button type="button" class="btn btn-outline-info btn-3d" id="presetFiltersBtn" 
+                        data-bs-toggle="collapse" data-bs-target="#presetFilters" aria-expanded="false">
+                  <i class="fas fa-magic me-1"></i>预设筛选
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="filter-summary text-muted text-end">
+                <small id="filterSummary">
+                  <i class="fas fa-info-circle me-1"></i>设置筛选条件以过滤日志
+                </small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 预设筛选器折叠面板 -->
+          <div class="collapse mt-3" id="presetFilters">
+            <div class="card card-body glass-effect">
+              <h6 class="mb-3">
+                <i class="fas fa-star me-2 text-warning"></i>常用筛选预设
+              </h6>
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-primary btn-sm w-100 preset-btn" 
+                          data-preset="today-logins">
+                    <i class="fas fa-calendar-day me-1"></i>今日登录
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-success btn-sm w-100 preset-btn" 
+                          data-preset="week-reservations">
+                    <i class="fas fa-calendar-week me-1"></i>本周预订
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-warning btn-sm w-100 preset-btn" 
+                          data-preset="admin-actions">
+                    <i class="fas fa-user-shield me-1"></i>管理员操作
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100 preset-btn" 
+                          data-preset="recent-errors">
+                    <i class="fas fa-exclamation-triangle me-1"></i>异常记录
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 日志表格 -->
+  <div class="card">
+    <div class="card-header bg-gradient">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-white">
+          <i class="fas fa-list me-2"></i>系统操作日志
+        </h5>
+        <div class="d-flex gap-2">
+          <span class="badge bg-light text-dark">
+            <i class="fas fa-info-circle me-1"></i>
+            共找到 {{ logs.total }} 条记录
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    {% if logs.items %}
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-header-modern">
+            <tr>
+              <th width="8%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon id-icon">
+                    <i class="fas fa-hashtag"></i>
+                  </div>
+                  <span class="header-text">ID</span>
+                </div>
+              </th>
+              <th width="15%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon user-icon">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="header-text">用户信息</span>
+                </div>
+              </th>
+              <th width="15%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon equipment-icon">
+                    <i class="fas fa-cog"></i>
+                  </div>
+                  <span class="header-text">操作类型</span>
+                </div>
+              </th>
+              <th width="35%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon file-icon">
+                    <i class="fas fa-file-alt"></i>
+                  </div>
+                  <span class="header-text">操作描述</span>
+                </div>
+              </th>
+              <th width="15%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon time-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <span class="header-text">操作时间</span>
+                </div>
+              </th>
+              <th width="12%" class="header-cell">
+                <div class="header-content">
+                  <div class="header-icon size-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </div>
+                  <span class="header-text">IP地址</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log, user in logs.items %}
+            <tr>
+              <td>
+                <span class="badge bg-secondary">{{ log.ID }}</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <img src="https://ui-avatars.com/api/?name={{ user.UserName }}&background=random&size=40" 
+                       alt="用户头像" class="rounded-circle me-2" width="40">
+                  <div>
+                    <div class="fw-bold">{{ user.UserName }}</div>
+                    {% if user.is_admin %}
+                    <small class="text-warning">
+                      <i class="fas fa-crown me-1"></i>管理员
+                    </small>
+                    {% else %}
+                    <small class="text-info">
+                      <i class="fas fa-user me-1"></i>普通用户
+                    </small>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if log.Action == '登录' or log.Action == 'Login' %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-sign-in-alt me-1"></i>{{ log.Action }}
+                  </span>
+                {% elif log.Action == '登出' or log.Action == 'Logout' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-sign-out-alt me-1"></i>{{ log.Action }}
+                  </span>
+                {% elif log.Action == '登录失败' %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-exclamation-triangle me-1"></i>登录失败
+                  </span>
+                {% elif log.Action == '用户注册' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-user-plus me-1"></i>用户注册
+                  </span>
+                {% elif log.Action == '密码修改' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-key me-1"></i>密码修改
+                  </span>
+                {% elif log.Action == '密码重置' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-unlock-alt me-1"></i>密码重置
+                  </span>
+                {% elif log.Action == '创建预订' %}
+                  <span class="badge bg-primary">
+                    <i class="fas fa-plus me-1"></i>创建预订
+                  </span>
+                {% elif log.Action == '管理员编辑预订' or log.Action == 'Edit Reservation' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-edit me-1"></i>编辑预订
+                  </span>
+                {% elif log.Action == '管理员删除预订' or log.Action == 'Cancel Reservation' %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times me-1"></i>删除预订
+                  </span>
+                {% elif log.Action == '系统自动确认预订' %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-check-circle me-1"></i>自动确认
+                  </span>
+                {% elif log.Action == '管理员添加会议室' %}
+                  <span class="badge bg-primary">
+                    <i class="fas fa-door-open me-1"></i>添加会议室
+                  </span>
+                {% elif log.Action == '管理员编辑会议室' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-door-closed me-1"></i>编辑会议室
+                  </span>
+                {% elif log.Action == '管理员删除会议室' %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-trash me-1"></i>删除会议室
+                  </span>
+                {% elif log.Action == '管理员添加用户' %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-user-shield me-1"></i>添加用户
+                  </span>
+                {% elif log.Action == '管理员编辑用户' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-user-edit me-1"></i>编辑用户
+                  </span>
+                {% elif log.Action == '管理员删除用户' %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-user-times me-1"></i>删除用户
+                  </span>
+                {% elif log.Action == '管理员为用户上传头像' or log.Action == 'upload_avatar' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-image me-1"></i>上传头像
+                  </span>
+                {% elif log.Action == '管理员更新设备数量' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-tools me-1"></i>更新设备
+                  </span>
+                {% elif log.Action == '权限变更' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-user-cog me-1"></i>权限变更
+                  </span>
+                {% elif log.Action == '数据导出' %}
+                  <span class="badge bg-secondary">
+                    <i class="fas fa-download me-1"></i>数据导出
+                  </span>
+                {% elif log.Action == '邮件发送' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-envelope me-1"></i>邮件发送
+                  </span>
+                {% elif log.Action == '系统通知' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-bell me-1"></i>系统通知
+                  </span>
+                {% elif log.Action == '异常登录' %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-exclamation-circle me-1"></i>异常登录
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary">
+                    <i class="fas fa-cog me-1"></i>{{ log.Action }}
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="text-truncate" title="{{ log.Description }}" style="max-width: 350px;">
+                  {{ log.Description }}
+                </div>
+              </td>
+              <td>
+                <div>
+                  <div class="fw-bold">{{ log.Timestamp.strftime('%Y-%m-%d') }}</div>
+                  <small class="text-muted">{{ log.Timestamp.strftime('%H:%M:%S') }}</small>
+                </div>
+              </td>
+              <td>
+                {% if log.IPAddress %}
+                  <code>{{ log.IPAddress }}</code>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="card-body text-center p-5">
+      <i class="fas fa-search" style="color: var(--purple-border);"></i>
+      <h4 style="color: #2c3e50;">没有找到符合条件的日志记录</h4>
+      <p class="text-muted">请尝试调整搜索条件或过滤器设置</p>
+      <div class="mt-3">
+        <a href="{{ url_for('admin_logs') }}" class="btn btn-primary" style="background: var(--primary-gradient); border: none; border-radius: 0.75rem;">
+          <i class="fas fa-refresh me-2"></i>重置筛选条件
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- 分页导航 -->
+  {% if logs.pages > 1 %}
+  <div class="section-card" style="border-left-color: var(--indigo-border);">
+    <div class="section-title">
+      <i class="fas fa-layer-group"></i>
+      分页导航
+    </div>
+    <nav aria-label="日志分页">
+      <ul class="pagination justify-content-center">
+        <!-- 上一页 -->
+        <li class="page-item {{ 'disabled' if not logs.has_prev }}">
+          {% if logs.has_prev %}
+          <a class="page-link" href="{{ url_for('admin_logs', page=logs.prev_num, 
+              action=current_filters.action, user=current_filters.user,
+              date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+            <i class="fas fa-chevron-left"></i> 上一页
+          </a>
+          {% else %}
+          <span class="page-link">
+            <i class="fas fa-chevron-left"></i> 上一页
+          </span>
+          {% endif %}
+        </li>
+
+        <!-- 页码 -->
+        {% for page_num in logs.iter_pages() %}
+          {% if page_num %}
+            {% if page_num != logs.page %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin_logs', page=page_num,
+                  action=current_filters.action, user=current_filters.user,
+                  date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+                {{ page_num }}
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item active">
+              <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% endif %}
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">…</span>
+          </li>
+          {% endif %}
+        {% endfor %}
+
+        <!-- 下一页 -->
+        <li class="page-item {{ 'disabled' if not logs.has_next }}">
+          {% if logs.has_next %}
+          <a class="page-link" href="{{ url_for('admin_logs', page=logs.next_num,
+              action=current_filters.action, user=current_filters.user,
+              date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+            下一页 <i class="fas fa-chevron-right"></i>
+          </a>
+          {% else %}
+          <span class="page-link">
+            下一页 <i class="fas fa-chevron-right"></i>
+          </span>
+          {% endif %}
+        </li>
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// 扩展样式
+const additionalStyles = `
+  /* 增强表格行交互 */
+  .log-row {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .log-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: var(--purple-border);
+    transition: width 0.3s ease;
+  }
+  
+  .log-row:hover::before {
+    width: 4px;
+  }
+`;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化工具提示
+  const tooltips = document.querySelectorAll('.description-tooltip');
+  tooltips.forEach(tooltip => {
+    new bootstrap.Tooltip(tooltip);
+  });
+  
+  // 刷新日志按钮功能
+  const refreshLogsBtn = document.querySelector('.refresh-logs-btn');
+  if (refreshLogsBtn) {
+    refreshLogsBtn.addEventListener('click', function() {
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>刷新中...';
+      this.disabled = true;
+      
+      // 刷新页面
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+  }
+
+  // 导出功能
+  const exportBtn = document.getElementById('export-logs');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function() {
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>导出中...';
+      this.disabled = true;
+      
+      // 模拟导出过程
+      showNotification('开始导出日志数据...', 'info');
+      
+      setTimeout(() => {
+        // 创建导出数据
+        const exportData = generateExportData();
+        downloadCSV(exportData, 'system_logs_' + getCurrentDateString() + '.csv');
+        
+        this.innerHTML = originalText;
+        this.disabled = false;
+        showNotification('日志导出完成！', 'success');
+      }, 2000);
+    });
+  }
+  
+  // 优化筛选体验 - 新的筛选器交互
+  const form = document.getElementById('filterForm');
+  const filterInputs = form.querySelectorAll('.filter-select, .filter-input');
+  const filterStatusBadge = document.getElementById('filterStatusBadge');
+  const filterSummary = document.getElementById('filterSummary');
+  
+  // 初始化筛选器状态
+  updateFilterStatus();
+  
+  // 为筛选控件添加事件监听
+  filterInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      this.classList.add('filter-changed');
+      updateFilterStatus();
+    });
+    
+    input.addEventListener('focus', function() {
+      this.style.borderColor = '#667eea';
+    });
+    
+    input.addEventListener('blur', function() {
+      if (!this.classList.contains('filter-changed')) {
+        this.style.borderColor = '#e9ecef';
+      }
+    });
+  });
+  
+  // 快速筛选按钮事件
+  const quickFilterBtns = document.querySelectorAll('.quick-filter-btn');
+  quickFilterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // 移除其他按钮的激活状态
+      if (this.dataset.filter) {
+        const sameGroupBtns = document.querySelectorAll(`[data-filter="${this.dataset.filter}"]`);
+        sameGroupBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 设置筛选值
+        setQuickFilter(this.dataset.filter, this.dataset.value);
+      } else if (this.dataset.range) {
+        const rangeBtns = document.querySelectorAll('[data-range]');
+        rangeBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 设置日期范围
+        setDateRange(this.dataset.range);
+      }
+    });
+  });
+  
+  // 预设筛选器按钮事件
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const preset = this.dataset.preset;
+      applyPresetFilter(preset);
+      
+      // 添加视觉反馈
+      this.classList.add('btn-success');
+      this.innerHTML = '<i class="fas fa-check me-1"></i>已应用';
+      
+      setTimeout(() => {
+        this.classList.remove('btn-success');
+        this.innerHTML = this.getAttribute('data-original-text') || this.innerHTML.replace('已应用', this.querySelector('i').nextSibling.textContent);
+      }, 2000);
+    });
+    
+    // 保存原始文本
+    btn.setAttribute('data-original-text', btn.innerHTML);
+  });
+  
+  // 增强的筛选状态更新
+  function updateFilterStatus() {
+    const changedElements = form.querySelectorAll('.filter-changed');
+    const submitBtn = form.querySelector('.filter-apply-btn');
+    const hasActiveFilters = Array.from(filterInputs).some(input => input.value && input.value.trim() !== '');
+    
+    if (changedElements.length > 0) {
+      // 有未应用的更改
+      submitBtn.classList.add('btn-warning');
+      submitBtn.classList.remove('btn-primary');
+      submitBtn.innerHTML = '<i class="fas fa-exclamation-circle me-2 fa-pulse"></i>应用筛选 (' + changedElements.length + ' 项已更改)';
+      
+      filterStatusBadge.innerHTML = '<i class="fas fa-edit me-1"></i>待应用 (' + changedElements.length + ')';
+      filterStatusBadge.className = 'badge bg-warning text-dark glow-effect';
+      
+      filterSummary.innerHTML = '<i class="fas fa-info-circle me-1 text-warning"></i>有 ' + changedElements.length + ' 项筛选条件待应用';
+    } else if (hasActiveFilters) {
+      // 有活跃的筛选条件
+      submitBtn.classList.add('btn-primary');
+      submitBtn.classList.remove('btn-warning');
+      submitBtn.innerHTML = '<i class="fas fa-search me-2"></i>应用筛选';
+      
+      const activeCount = Array.from(filterInputs).filter(input => input.value && input.value.trim() !== '').length;
+      filterStatusBadge.innerHTML = '<i class="fas fa-check me-1"></i>已筛选 (' + activeCount + ')';
+      filterStatusBadge.className = 'badge bg-success text-white glow-effect';
+      
+      filterSummary.innerHTML = '<i class="fas fa-filter me-1 text-success"></i>当前应用了 ' + activeCount + ' 项筛选条件';
+    } else {
+      // 无筛选条件
+      submitBtn.classList.add('btn-primary');
+      submitBtn.classList.remove('btn-warning');
+      submitBtn.innerHTML = '<i class="fas fa-search me-2"></i>应用筛选';
+      
+      filterStatusBadge.innerHTML = '<i class="fas fa-sliders-h me-1"></i>待设置';
+      filterStatusBadge.className = 'badge bg-light text-dark';
+      
+      filterSummary.innerHTML = '<i class="fas fa-info-circle me-1"></i>设置筛选条件以过滤日志';
+    }
+  }
+  
+  // 表单提交时的处理
+  form.addEventListener('submit', function(e) {
+    // 验证筛选条件
+    if (!validateFilters()) {
+      e.preventDefault();
+      return;
+    }
+    
+    const submitBtn = this.querySelector('.filter-apply-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>正在筛选...';
+    
+    // 移除所有筛选更改状态
+    const changedElements = this.querySelectorAll('.filter-changed');
+    changedElements.forEach(element => {
+      element.classList.remove('filter-changed');
+    });
+    
+    // 显示加载提示
+    showNotification('正在应用筛选条件...', 'info');
+  });
+  
+  // 表格行悬停效果增强
+  const logRows = document.querySelectorAll('.log-row');
+  logRows.forEach(row => {
+    row.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = '#f8f9fa';
+      this.style.borderLeft = '4px solid var(--purple-border)';
+    });
+    
+    row.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '';
+      this.style.borderLeft = '';
+    });
+  });
+
+  // 高亮当前激活的过滤器
+  const currentAction = '{{ current_filters.action }}';
+  if (currentAction) {
+    const quickFilters = document.querySelectorAll('.quick-filter');
+    quickFilters.forEach(filter => {
+      if (filter.textContent.trim().includes(currentAction)) {
+        filter.classList.add('active');
+      }
+    });
+  }
+});
+
+// 操作类型分类筛选功能
+function applyActionCategoryFilter(category) {
+  const actionSelect = document.getElementById('action');
+  const actionOptions = Array.from(actionSelect.options);
+  
+  let categoryActions = [];
+  
+  switch(category) {
+    case 'auth':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('登录') || option.value.includes('登出') || 
+        option.value.includes('注册') || option.value.includes('密码')
+      );
+      break;
+      
+    case 'booking':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('预订') || option.value.includes('创建') ||
+        option.value.includes('确认')
+      );
+      break;
+      
+    case 'admin':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('管理员') || option.value.includes('添加') ||
+        option.value.includes('编辑') || option.value.includes('更新')
+      );
+      break;
+      
+    case 'error':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('失败') || option.value.includes('异常') ||
+        option.value.includes('删除') || option.value.includes('错误')
+      );
+      break;
+      
+    case 'system':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('系统') || option.value.includes('自动') ||
+        option.value.includes('邮件') || option.value.includes('通知')
+      );
+      break;
+  }
+  
+  if (categoryActions.length > 0) {
+    // 选择该分类中的第一个操作类型
+    actionSelect.value = categoryActions[0].value;
+    actionSelect.classList.add('filter-changed');
+    
+    const categoryNames = {
+      'auth': '用户认证',
+      'booking': '预订操作', 
+      'admin': '管理员操作',
+      'error': '异常操作',
+      'system': '系统操作'
+    };
+    
+    showNotification(`已筛选${categoryNames[category]}类别`, 'info');
+    updateFilterStatus();
+  } else {
+    showNotification('该分类下暂无相关操作记录', 'warning');
+  }
+}
+
+// 操作类型分类按钮点击事件
+document.addEventListener('DOMContentLoaded', function() {
+  const actionTypeFilters = document.querySelectorAll('.action-type-filter');
+  
+  actionTypeFilters.forEach(button => {
+    button.addEventListener('click', function() {
+      // 移除其他按钮的激活状态
+      actionTypeFilters.forEach(btn => btn.classList.remove('active'));
+      
+      // 激活当前按钮
+      this.classList.add('active');
+      
+      // 应用分类筛选
+      const category = this.dataset.category;
+      applyActionCategoryFilter(category);
+    });
+  });
+
+  // 刷新日志按钮功能
+  const refreshLogsBtn = document.querySelector('.refresh-logs-btn');
+  if (refreshLogsBtn) {
+    refreshLogsBtn.addEventListener('click', function() {
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>刷新中...';
+      this.disabled = true;
+      
+      // 刷新页面
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    });
+  }
+
+  // 导出功能
+  const exportBtn = document.getElementById('export-logs');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function() {
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>导出中...';
+      this.disabled = true;
+      
+      // 模拟导出过程
+      showNotification('开始导出日志数据...', 'info');
+      
+      setTimeout(() => {
+        // 创建导出数据
+        const exportData = generateExportData();
+        downloadCSV(exportData, 'system_logs_' + getCurrentDateString() + '.csv');
+        
+        this.innerHTML = originalText;
+        this.disabled = false;
+        showNotification('日志导出完成！', 'success');
+      }, 2000);
+    });
+  }
+  
+  // 优化筛选体验 - 新的筛选器交互
+  const form = document.getElementById('filterForm');
+  const filterInputs = form.querySelectorAll('.filter-select, .filter-input');
+  const filterStatusBadge = document.getElementById('filterStatusBadge');
+  const filterSummary = document.getElementById('filterSummary');
+  
+  // 初始化筛选器状态
+  updateFilterStatus();
+  
+  // 为筛选控件添加事件监听
+  filterInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      this.classList.add('filter-changed');
+      updateFilterStatus();
+    });
+    
+    input.addEventListener('focus', function() {
+      this.style.borderColor = '#667eea';
+    });
+    
+    input.addEventListener('blur', function() {
+      if (!this.classList.contains('filter-changed')) {
+        this.style.borderColor = '#e9ecef';
+      }
+    });
+  });
+  
+  // 快速筛选按钮事件
+  const quickFilterBtns = document.querySelectorAll('.quick-filter-btn');
+  quickFilterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // 移除其他按钮的激活状态
+      if (this.dataset.filter) {
+        const sameGroupBtns = document.querySelectorAll(`[data-filter="${this.dataset.filter}"]`);
+        sameGroupBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 设置筛选值
+        setQuickFilter(this.dataset.filter, this.dataset.value);
+      } else if (this.dataset.range) {
+        const rangeBtns = document.querySelectorAll('[data-range]');
+        rangeBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 设置日期范围
+        setDateRange(this.dataset.range);
+      }
+    });
+  });
+  
+  // 预设筛选器按钮事件
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const preset = this.dataset.preset;
+      applyPresetFilter(preset);
+      
+      // 添加视觉反馈
+      this.classList.add('btn-success');
+      this.innerHTML = '<i class="fas fa-check me-1"></i>已应用';
+      
+      setTimeout(() => {
+        this.classList.remove('btn-success');
+        this.innerHTML = this.getAttribute('data-original-text') || this.innerHTML.replace('已应用', this.querySelector('i').nextSibling.textContent);
+      }, 2000);
+    });
+    
+    // 保存原始文本
+    btn.setAttribute('data-original-text', btn.innerHTML);
+  });
+  
+  // 增强的筛选状态更新
+  function updateFilterStatus() {
+    const changedElements = form.querySelectorAll('.filter-changed');
+    const submitBtn = form.querySelector('.filter-apply-btn');
+    const hasActiveFilters = Array.from(filterInputs).some(input => input.value && input.value.trim() !== '');
+    
+    if (changedElements.length > 0) {
+      // 有未应用的更改
+      submitBtn.classList.add('btn-warning');
+      submitBtn.classList.remove('btn-primary');
+      submitBtn.innerHTML = '<i class="fas fa-exclamation-circle me-2 fa-pulse"></i>应用筛选 (' + changedElements.length + ' 项已更改)';
+      
+      filterStatusBadge.innerHTML = '<i class="fas fa-edit me-1"></i>待应用 (' + changedElements.length + ')';
+      filterStatusBadge.className = 'badge bg-warning text-dark glow-effect';
+      
+      filterSummary.innerHTML = '<i class="fas fa-info-circle me-1 text-warning"></i>有 ' + changedElements.length + ' 项筛选条件待应用';
+    } else if (hasActiveFilters) {
+      // 有活跃的筛选条件
+      submitBtn.classList.add('btn-primary');
+      submitBtn.classList.remove('btn-warning');
+      submitBtn.innerHTML = '<i class="fas fa-search me-2"></i>应用筛选';
+      
+      const activeCount = Array.from(filterInputs).filter(input => input.value && input.value.trim() !== '').length;
+      filterStatusBadge.innerHTML = '<i class="fas fa-check me-1"></i>已筛选 (' + activeCount + ')';
+      filterStatusBadge.className = 'badge bg-success text-white glow-effect';
+      
+      filterSummary.innerHTML = '<i class="fas fa-filter me-1 text-success"></i>当前应用了 ' + activeCount + ' 项筛选条件';
+    } else {
+      // 无筛选条件
+      submitBtn.classList.add('btn-primary');
+      submitBtn.classList.remove('btn-warning');
+      submitBtn.innerHTML = '<i class="fas fa-search me-2"></i>应用筛选';
+      
+      filterStatusBadge.innerHTML = '<i class="fas fa-sliders-h me-1"></i>待设置';
+      filterStatusBadge.className = 'badge bg-light text-dark';
+      
+      filterSummary.innerHTML = '<i class="fas fa-info-circle me-1"></i>设置筛选条件以过滤日志';
+    }
+  }
+  
+  // 表单提交时的处理
+  form.addEventListener('submit', function(e) {
+    // 验证筛选条件
+    if (!validateFilters()) {
+      e.preventDefault();
+      return;
+    }
+    
+    const submitBtn = this.querySelector('.filter-apply-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>正在筛选...';
+    
+    // 移除所有筛选更改状态
+    const changedElements = this.querySelectorAll('.filter-changed');
+    changedElements.forEach(element => {
+      element.classList.remove('filter-changed');
+    });
+    
+    // 显示加载提示
+    showNotification('正在应用筛选条件...', 'info');
+  });
+  
+  // 表格行悬停效果增强
+  const logRows = document.querySelectorAll('.log-row');
+  logRows.forEach(row => {
+    row.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = '#f8f9fa';
+      this.style.borderLeft = '4px solid var(--purple-border)';
+    });
+    
+    row.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '';
+      this.style.borderLeft = '';
+    });
+  });
+
+  // 高亮当前激活的过滤器
+  const currentAction = '{{ current_filters.action }}';
+  if (currentAction) {
+    const quickFilters = document.querySelectorAll('.quick-filter');
+    quickFilters.forEach(filter => {
+      if (filter.textContent.trim().includes(currentAction)) {
+        filter.classList.add('active');
+      }
+    });
+  }
+});
+
+// 操作类型分类筛选功能
+function applyActionCategoryFilter(category) {
+  const actionSelect = document.getElementById('action');
+  const actionOptions = Array.from(actionSelect.options);
+  
+  let categoryActions = [];
+  
+  switch(category) {
+    case 'auth':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('登录') || option.value.includes('登出') || 
+        option.value.includes('注册') || option.value.includes('密码')
+      );
+      break;
+      
+    case 'booking':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('预订') || option.value.includes('创建') ||
+        option.value.includes('确认')
+      );
+      break;
+      
+    case 'admin':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('管理员') || option.value.includes('添加') ||
+        option.value.includes('编辑') || option.value.includes('更新')
+      );
+      break;
+      
+    case 'error':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('失败') || option.value.includes('异常') ||
+        option.value.includes('删除') || option.value.includes('错误')
+      );
+      break;
+      
+    case 'system':
+      categoryActions = actionOptions.filter(option => 
+        option.value.includes('系统') || option.value.includes('自动') ||
+        option.value.includes('邮件') || option.value.includes('通知')
+      );
+      break;
+  }
+  
+  if (categoryActions.length > 0) {
+    // 选择该分类中的第一个操作类型
+    actionSelect.value = categoryActions[0].value;
+    actionSelect.classList.add('filter-changed');
+    
+    const categoryNames = {
+      'auth': '用户认证',
+      'booking': '预订操作', 
+      'admin': '管理员操作',
+      'error': '异常操作',
+      'system': '系统操作'
+    };
+    
+    showNotification(`已筛选${categoryNames[category]}类别`, 'info');
+    updateFilterStatus();
+  } else {
+    showNotification('该分类下暂无相关操作记录', 'warning');
+  }
+}
+
+// 操作类型分类按钮点击事件
+document.addEventListener('DOMContentLoaded', function() {
+  const actionTypeFilters = document.querySelectorAll('.action-type-filter');
+  
+  actionTypeFilters.forEach(button => {
+    button.addEventListener('click', function() {
+      // 移除其他按钮的激活状态
+      actionTypeFilters.forEach(btn => btn.classList.remove('active'));
+      
+      // 激活当前按钮
+      this.classList.add('active');
+      
+      // 应用分类筛选
+      const category = this.dataset.category;
+      applyActionCategoryFilter(category);
+    });
+  });
+});
+
+// CSV导出功能函数
+function generateExportData() {
+  const table = document.querySelector('.table tbody');
+  
+  if (!table) {
+    console.error('找不到表格tbody元素');
+    alert('错误：找不到表格数据');
+    return [];
+  }
+  
+  const rows = table.querySelectorAll('tr');
+  console.log('找到表格行数:', rows.length);
+  
+  // CSV头部
+  const headers = ['ID', '用户', '操作类型', '详情', '时间', 'IP地址'];
+  const csvData = [headers];
+  
+  // 遍历表格行提取数据
+  rows.forEach((row, index) => {
+    const cells = row.querySelectorAll('td');
+    console.log(`第${index + 1}行有${cells.length}个单元格`);
+    
+    if (cells.length >= 4) {
+      const rowData = [
+        cells[0] ? cells[0].textContent.trim() : '', // ID
+        cells[1] ? cells[1].textContent.trim().replace(/\s+/g, ' ') : '', // 用户
+        cells[2] ? cells[2].textContent.trim().replace(/\s+/g, ' ') : '', // 操作类型
+        cells[3] ? cells[3].textContent.trim() : '', // 详情
+        cells[4] ? cells[4].textContent.trim() : '', // 时间
+        cells[5] ? cells[5].textContent.trim() : 'N/A' // IP地址
+      ];
+      csvData.push(rowData);
+    }
+  });
+  
+  console.log('生成的CSV数据行数:', csvData.length);
+  return csvData;
+}
+
+function downloadCSV(data, filename) {
+  // 将数据转换为CSV格式
+  const csvContent = data.map(row => 
+    row.map(cell => {
+      // 处理包含逗号、引号或换行的单元格
+      if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+        return '"' + cell.replace(/"/g, '""') + '"';
+      }
+      return cell;
+    }).join(',')
+  ).join('\n');
+  
+  // 添加BOM以支持中文显示
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+  
+  // 创建下载链接
+  const link = document.createElement('a');
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+function getCurrentDateString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  return `${year}${month}${day}_${hour}${minute}`;
+}
+
+// 修复导出功能 - 重新绑定事件
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const exportBtn = document.getElementById('export-logs');
+    if (exportBtn) {
+      // 移除现有的事件监听器
+      exportBtn.replaceWith(exportBtn.cloneNode(true));
+      const newExportBtn = document.getElementById('export-logs');
+      
+      newExportBtn.addEventListener('click', function() {
+        console.log('修复后的导出按钮被点击');
+        
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>导出中...';
+        this.disabled = true;
+        
+        try {
+          // 查找表格
+          const table = document.querySelector('.table tbody');
+          if (!table) {
+            alert('没有找到表格数据');
+            this.innerHTML = originalText;
+            this.disabled = false;
+            return;
+          }
+          
+          const rows = table.querySelectorAll('tr');
+          console.log('找到表格行数:', rows.length);
+          
+          if (rows.length === 0) {
+            alert('没有可导出的数据');
+            this.innerHTML = originalText;
+            this.disabled = false;
+            return;
+          }
+          
+          // CSV头部
+          const headers = ['ID', '用户', '操作类型', '详情', '时间', 'IP地址'];
+          const csvData = [headers];
+          
+          // 提取数据
+          rows.forEach((row, index) => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+              const rowData = [
+                cells[0] ? cells[0].textContent.trim() : '',
+                cells[1] ? cells[1].textContent.trim().replace(/\s+/g, ' ') : '',
+                cells[2] ? cells[2].textContent.trim().replace(/\s+/g, ' ') : '',
+                cells[3] ? cells[3].textContent.trim() : '',
+                cells[4] ? cells[4].textContent.trim() : '',
+                cells[5] ? cells[5].textContent.trim() : 'N/A'
+              ];
+              csvData.push(rowData);
+            }
+          });
+          
+          // 生成CSV内容
+          const csvContent = csvData.map(row => 
+            row.map(cell => {
+              if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                return '"' + cell.replace(/"/g, '""') + '"';
+              }
+              return cell;
+            }).join(',')
+          ).join('\n');
+          
+          // 下载文件
+          const BOM = '\uFEFF';
+          const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+          
+          const link = document.createElement('a');
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'system_logs_' + getCurrentDateString() + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('导出成功！');
+          }
+          
+        } catch (error) {
+          console.error('导出错误:', error);
+          alert('导出失败: ' + error.message);
+        }
+        
+        // 恢复按钮状态
+        this.innerHTML = originalText;
+        this.disabled = false;
+      });
+    } else {
+      console.error('找不到导出按钮');
+    }
+  }, 1000);
+});
+
+</script>
+{% endblock %}

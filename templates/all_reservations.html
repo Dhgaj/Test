@@ -1,0 +1,1005 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-calendar-alt me-3"></i>{% if admin_view %}会议室预订管理{% else %}我的预订{% endif %}
+              </h2>
+              <p class="mb-0 text-white-50">{% if admin_view %}全面掌控会议室使用情况，智能管理预订信息{% else %}查看和管理您的会议预订{% endif %}</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('new_reservation') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-plus me-2"></i>新建预订
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 筛选和搜索栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm filter-card">
+        <div class="card-body p-4">
+          <div class="filter-header mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="text-muted mb-0 d-flex align-items-center">
+                <i class="fas fa-sliders-h me-2 text-primary"></i>筛选条件
+              </h6>
+              <small class="text-muted" id="filterResultCount">
+                显示全部预订
+              </small>
+            </div>
+          </div>
+          <div class="row g-3 align-items-center">
+            <div class="col-auto" style="min-width: 180px;">
+              <div class="filter-group">
+                <label for="statusFilter" class="filter-label">
+                  <i class="fas fa-info-circle me-1"></i>状态
+                </label>
+                <select class="form-select filter-select" id="statusFilter">
+                  <option value="">全部状态</option>
+                  <option value="Pending">待确认</option>
+                  <option value="Confirmed">已确认</option>
+                  <option value="Cancelled">已取消</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-auto" style="min-width: 160px;">
+              <div class="filter-group">
+                <label for="dateFilter" class="filter-label">
+                  <i class="fas fa-calendar-alt me-1"></i>日期
+                </label>
+                <input type="date" class="form-control filter-input" id="dateFilter">
+              </div>
+            </div>
+            <div class="col-auto" style="min-width: 140px;">
+              <div class="filter-group">
+                <label for="meetingTypeFilter" class="filter-label">
+                  <i class="fas fa-video me-1"></i>类型
+                </label>
+                <select class="form-select filter-select" id="meetingTypeFilter">
+                  <option value="">全部类型</option>
+                  <option value="Online">线上会议</option>
+                  <option value="Offline">线下会议</option>
+                </select>
+              </div>
+            </div>
+            <div class="col">
+              <div class="filter-group">
+                <label for="searchInput" class="filter-label">
+                  <i class="fas fa-search me-1"></i>搜索
+                </label>
+                <div class="search-wrapper position-relative">
+                  <input type="text" class="form-control filter-input search-input" id="searchInput" placeholder="搜索会议标题、会议室名称...">
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-auto">
+              <div class="filter-group">
+                <label class="filter-label invisible">操作</label>
+                <button type="button" class="btn btn-outline-primary filter-reset-btn" id="resetFilters">
+                  <i class="fas fa-undo me-2"></i>重置
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计概览 -->
+  <div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-primary mb-3">
+            <i class="fas fa-calendar-check fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-primary">{{ reservations|length }}</h3>
+          <p class="text-muted mb-0">总预订数</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-success mb-3">
+            <i class="fas fa-check-circle fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-success">{{ reservations|selectattr("Status", "equalto", "Confirmed")|list|length }}</h3>
+          <p class="text-muted mb-0">已确认</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-warning mb-3">
+            <i class="fas fa-clock fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-warning">{{ reservations|selectattr("Status", "equalto", "Pending")|list|length }}</h3>
+          <p class="text-muted mb-0">待确认</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-danger mb-3">
+            <i class="fas fa-times-circle fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-danger">{{ reservations|selectattr("Status", "equalto", "Cancelled")|list|length }}</h3>
+          <p class="text-muted mb-0">已取消</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-info mb-3">
+            <i class="fas fa-video fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-info">{{ reservations|selectattr("MeetingType", "equalto", "Online")|list|length }}</h3>
+          <p class="text-muted mb-0">线上会议</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-secondary mb-3">
+            <i class="fas fa-users fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-secondary">{{ reservations|selectattr("MeetingType", "equalto", "Offline")|list|length }}</h3>
+          <p class="text-muted mb-0">线下会议</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 预订列表 -->
+  <!-- 卡片视图 -->
+  <div id="reservationCards" class="card">
+    <div class="card-header bg-white border-bottom">
+      <div class="row align-items-center">
+        <div class="col">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>预订详情
+          </h5>
+        </div>
+        <div class="col-auto">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary btn-sm active" id="cardView">
+              <i class="fas fa-th-large me-1"></i>卡片
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="tableView">
+              <i class="fas fa-list me-1"></i>列表
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-4">
+            {% if reservations %}
+            <div class="row g-4" id="reservationGrid">
+              {% for reservation in reservations %}
+              <div class="col-lg-6 col-xl-4 reservation-item" 
+                   data-status="{{ reservation.Status }}" 
+                   data-date="{{ reservation.StartTime.strftime('%Y-%m-%d') }}"
+                   data-meeting-type="{{ reservation.MeetingType }}"
+                   data-search="{{ reservation.Title|lower }} {{ reservation.room.RoomName|lower }}">
+                <div class="reservation-card card border-0 shadow-sm h-100">
+                  <div class="card-header bg-light border-bottom-0">
+                    <div class="row align-items-center">
+                      <div class="col">
+                        <h6 class="mb-0 fw-bold">{{ reservation.Title }}</h6>
+                      </div>
+                      <div class="col-auto">
+                        <span class="status-badge badge bg-{{ 'success' if reservation.Status == 'Confirmed' else 'warning' if reservation.Status == 'Pending' else 'danger' }}">
+                          {% if reservation.Status == 'Confirmed' %}
+                            <i class="fas fa-check me-1"></i>已确认
+                          {% elif reservation.Status == 'Pending' %}
+                            <i class="fas fa-clock me-1"></i>待确认
+                          {% else %}
+                            <i class="fas fa-times me-1"></i>已取消
+                          {% endif %}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="reservation-info">
+                      <div class="info-item mb-2">
+                        <i class="fas fa-door-open text-primary me-2"></i>
+                        <span class="fw-semibold">{{ reservation.room.RoomName }}</span>
+                        <small class="text-muted">(容量: {{ reservation.room.capacity }}人)</small>
+                      </div>
+                      <div class="info-item mb-2">
+                        <i class="fas fa-calendar text-info me-2"></i>
+                        <span>{{ reservation.StartTime.strftime('%Y年%m月%d日') }}</span>
+                      </div>
+                      <div class="info-item mb-2">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        <span>{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%Y-%m-%d %H:%M') }}</span>
+                      </div>
+                      <div class="info-item mb-2">
+                        {% if reservation.MeetingType == 'Online' %}
+                        <i class="fas fa-video text-info me-2"></i>
+                        <span class="badge bg-info">线上会议</span>
+                        {% else %}
+                        <i class="fas fa-users text-secondary me-2"></i>
+                        <span class="badge bg-secondary">线下会议</span>
+                        {% endif %}
+                      </div>
+                      {% if admin_view %}
+                      <div class="info-item mb-2">
+                        <i class="fas fa-user text-success me-2"></i>
+                        <span>{{ reservation.user.UserName }}</span>
+                      </div>
+                      {% endif %}
+                      {% if reservation.Description %}
+                      <div class="info-item">
+                        <i class="fas fa-comment text-secondary me-2"></i>
+                        <span class="small text-muted">{{ reservation.Description[:50] }}{% if reservation.Description|length > 50 %}...{% endif %}</span>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="card-footer bg-white border-top">
+                    <div class="btn-group w-100" role="group">
+                      <a href="{{ url_for('edit_reservation', id=reservation.id) }}" 
+                         class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>编辑
+                      </a>
+                      <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                         class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-file-alt me-1"></i>资料
+                      </a>
+                      {% if reservation.Status != 'Cancelled' %}
+                      <a href="{{ url_for('cancel_reservation', id=reservation.id) }}" 
+                         class="btn btn-outline-danger btn-sm"
+                         onclick="return confirm('确定要取消这个预订吗？')">
+                        <i class="fas fa-times me-1"></i>取消
+                      </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+              <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+              <h5 class="text-muted mb-3">暂无预订记录</h5>
+              <p class="text-muted mb-4">还没有任何会议室预订，快来创建您的第一个预订吧！</p>
+              <a href="{{ url_for('new_reservation') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>立即预订
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- 分页 -->
+        {% if reservations|length > 12 %}
+        <div class="card-footer bg-light">
+          <div class="row align-items-center">
+            <div class="col">
+              <small class="text-muted">
+                显示 1-{{ [reservations|length, 12]|min }} 项，共 {{ reservations|length }} 项
+              </small>
+            </div>
+            <div class="col-auto">
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item disabled">
+                    <span class="page-link">上一页</span>
+                  </li>
+                  <li class="page-item active">
+                    <span class="page-link">1</span>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">2</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">下一页</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+  <!-- 表格视图 -->
+  <div id="reservationTable" class="card d-none">
+    <div class="card-header bg-white border-bottom">
+      <div class="row align-items-center">
+        <div class="col">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>预订列表
+          </h5>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      {% if reservations %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-header-modern">
+            <tr>
+              <th class="border-0 fw-semibold header-cell">
+                <div class="header-content">
+                  <div class="header-icon title-icon">
+                    <i class="fas fa-heading"></i>
+                  </div>
+                  <span class="header-text">会议标题</span>
+                </div>
+              </th>
+                    <th class="border-0 fw-semibold header-cell">
+                      <div class="header-content">
+                        <div class="header-icon room-icon">
+                          <i class="fas fa-door-open"></i>
+                        </div>
+                        <span class="header-text">会议室</span>
+                      </div>
+                    </th>
+                    {% if admin_view %}
+                    <th class="border-0 fw-semibold header-cell">
+                      <div class="header-content">
+                        <div class="header-icon user-icon">
+                          <i class="fas fa-user"></i>
+                        </div>
+                        <span class="header-text">预订人</span>
+                      </div>
+                    </th>
+                    {% endif %}
+                    <th class="border-0 fw-semibold header-cell">
+                      <div class="header-content">
+                        <div class="header-icon time-icon">
+                          <i class="fas fa-calendar"></i>
+                        </div>
+                        <span class="header-text">日期时间</span>
+                      </div>
+                    </th>
+                    <th class="border-0 fw-semibold header-cell">
+                      <div class="header-content">
+                        <div class="header-icon type-icon">
+                          <i class="fas fa-video"></i>
+                        </div>
+                        <span class="header-text">会议类型</span>
+                      </div>
+                    </th>
+                    <th class="border-0 fw-semibold header-cell">
+                      <div class="header-content">
+                        <div class="header-icon status-icon">
+                          <i class="fas fa-info-circle"></i>
+                        </div>
+                        <span class="header-text">状态</span>
+                      </div>
+                    </th>
+                    <th class="border-0 fw-semibold text-center header-cell">
+                      <div class="header-content justify-content-center">
+                        <div class="header-icon action-icon">
+                          <i class="fas fa-cogs"></i>
+                        </div>
+                        <span class="header-text">操作</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for reservation in reservations %}
+                  <tr class="reservation-row" 
+                      data-status="{{ reservation.Status }}" 
+                      data-date="{{ reservation.StartTime.strftime('%Y-%m-%d') }}"
+                      data-meeting-type="{{ reservation.MeetingType }}"
+                      data-search="{{ reservation.Title|lower }} {{ reservation.room.RoomName|lower }}">
+                    <td class="align-middle">
+                      <div>
+                        <div class="fw-semibold">{{ reservation.Title }}</div>
+                        {% if reservation.Description %}
+                        <small class="text-muted">{{ reservation.Description[:30] }}{% if reservation.Description|length > 30 %}...{% endif %}</small>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="align-middle">
+                      <div>
+                        <div class="fw-semibold">{{ reservation.room.RoomName }}</div>
+                        <small class="text-muted">容量: {{ reservation.room.capacity }}人</small>
+                      </div>
+                    </td>
+                    {% if admin_view %}
+                    <td class="align-middle">
+                      <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-2">
+                          <i class="fas fa-user"></i>
+                        </div>
+                        <span>{{ reservation.user.UserName }}</span>
+                      </div>
+                    </td>
+                    {% endif %}
+                    <td class="align-middle">
+                      <div>
+                        <div class="fw-semibold">{{ reservation.StartTime.strftime('%m-%d') }}</div>
+                        <small class="text-muted">{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%Y-%m-%d %H:%M') }}</small>
+                      </div>
+                    </td>
+                    <td class="align-middle">
+                      {% if reservation.MeetingType == 'Online' %}
+                      <span class="badge bg-info">
+                        <i class="fas fa-video me-1"></i>线上会议
+                      </span>
+                      {% else %}
+                      <span class="badge bg-secondary">
+                        <i class="fas fa-users me-1"></i>线下会议
+                      </span>
+                      {% endif %}
+                    </td>
+                    <td class="align-middle">
+                      <span class="badge bg-{{ 'success' if reservation.Status == 'Confirmed' else 'warning' if reservation.Status == 'Pending' else 'danger' }}">
+                        {% if reservation.Status == 'Confirmed' %}
+                          <i class="fas fa-check me-1"></i>已确认
+                        {% elif reservation.Status == 'Pending' %}
+                          <i class="fas fa-clock me-1"></i>待确认
+                        {% else %}
+                          <i class="fas fa-times me-1"></i>已取消
+                        {% endif %}
+                      </span>
+                    </td>
+                    <td class="align-middle text-center">
+                      <div class="btn-group" role="group">
+                        <a href="{{ url_for('edit_reservation', id=reservation.id) }}" 
+                           class="btn btn-outline-primary btn-sm"
+                           data-bs-toggle="tooltip" title="编辑预订">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                           class="btn btn-outline-info btn-sm"
+                           data-bs-toggle="tooltip" title="会议资料">
+                          <i class="fas fa-file-alt"></i>
+                        </a>
+                        {% if reservation.Status != 'Cancelled' %}
+                        <a href="{{ url_for('cancel_reservation', id=reservation.id) }}" 
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('确定要取消这个预订吗？')"
+                           data-bs-toggle="tooltip" title="取消预订">
+                          <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- 分页 -->
+        {% if reservations|length > 12 %}
+        <div class="card-footer bg-light">
+          <div class="row align-items-center">
+            <div class="col">
+              <small class="text-muted">
+                显示 1-{{ [reservations|length, 12]|min }} 项，共 {{ reservations|length }} 项
+              </small>
+            </div>
+            <div class="col-auto">
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item disabled">
+                    <span class="page-link">上一页</span>
+                  </li>
+                  <li class="page-item active">
+                    <span class="page-link">1</span>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">2</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">下一页</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 筛选卡片样式 */
+.filter-card {
+  border-radius: 1rem !important;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa) !important;
+  border: 1px solid rgba(102, 126, 234, 0.1) !important;
+}
+
+.filter-header {
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.75rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.filter-select, .filter-input {
+  border: 2px solid #e9ecef;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.filter-select:focus, .filter-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+  outline: none;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-input {
+  padding-right: 2.5rem;
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.filter-reset-btn {
+  border: 2px solid #667eea;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  color: #667eea;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.filter-reset-btn:hover {
+  background-color: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 确保与控制面板和预订页面的样式一致 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.stat-card {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1) !important;
+}
+
+.stat-card:nth-child(1) { border-left-color: #007bff; }
+.stat-card:nth-child(2) { border-left-color: #28a745; }
+.stat-card:nth-child(3) { border-left-color: #ffc107; }
+.stat-card:nth-child(4) { border-left-color: #dc3545; }
+
+.reservation-card {
+  border-radius: 1rem !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.reservation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+}
+
+.reservation-card .card-header {
+  border-radius: 1rem 1rem 0 0 !important;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.info-item i {
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem;
+}
+
+.btn-group .btn {
+  border-radius: 0.5rem !important;
+  margin: 0 1px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  transform: translateX(5px);
+}
+
+.empty-state {
+  padding: 4rem 2rem;
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reservation-item {
+  animation: fadeInUp 0.6s ease;
+}
+
+.reservation-item:nth-child(2) { animation-delay: 0.1s; }
+.reservation-item:nth-child(3) { animation-delay: 0.2s; }
+.reservation-item:nth-child(4) { animation-delay: 0.3s; }
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+/* 按钮交互效果 */
+.btn-light {
+  transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-light:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .reservation-card .btn-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .reservation-card .btn-group .btn {
+    margin: 0;
+    border-radius: 0.375rem !important;
+  }
+  
+  .col-md-4.text-end {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+  
+  .d-flex.gap-2 {
+    justify-content: center !important;
+  }
+  
+  .btn-group[role="group"] {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 360px) {
+  /* 在最小屏幕上减少按钮之间的间距 */
+  .d-flex.gap-2 {
+    gap: 0.25rem !important;
+  }
+  
+  .btn-lg {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* 筛选动画 */
+.fade-out {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.3s ease;
+}
+
+.fade-in {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+
+/* 加载状态 */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化工具提示
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+  // 视图切换
+  const cardViewBtn = document.getElementById('cardView');
+  const tableViewBtn = document.getElementById('tableView');
+  const cardViewContainer = document.getElementById('reservationCards');
+  const tableViewContainer = document.getElementById('reservationTable');
+  
+  cardViewBtn.addEventListener('click', function() {
+    cardViewBtn.classList.add('active');
+    tableViewBtn.classList.remove('active');
+    cardViewContainer.classList.remove('d-none');
+    tableViewContainer.classList.add('d-none');
+    localStorage.setItem('reservationView', 'card');
+  });
+  
+  tableViewBtn.addEventListener('click', function() {
+    tableViewBtn.classList.add('active');
+    cardViewBtn.classList.remove('active');
+    tableViewContainer.classList.remove('d-none');
+    cardViewContainer.classList.add('d-none');
+    localStorage.setItem('reservationView', 'table');
+  });
+  
+  // 恢复用户偏好的视图
+  const savedView = localStorage.getItem('reservationView');
+  if (savedView === 'table') {
+    tableViewBtn.click();
+  }
+  
+  // 筛选功能
+  const statusFilter = document.getElementById('statusFilter');
+  const dateFilter = document.getElementById('dateFilter');
+  const meetingTypeFilter = document.getElementById('meetingTypeFilter');
+  const searchInput = document.getElementById('searchInput');
+  const resetBtn = document.getElementById('resetFilters');
+  
+  function filterReservations() {
+    const statusValue = statusFilter.value;
+    const dateValue = dateFilter.value;
+    const meetingTypeValue = meetingTypeFilter.value;
+    const searchValue = searchInput.value.toLowerCase();
+    
+    console.log('筛选条件:', { statusValue, dateValue, meetingTypeValue, searchValue });
+    
+    // 卡片视图筛选
+    const cardItems = document.querySelectorAll('.reservation-item');
+    let visibleCardCount = 0;
+    
+    cardItems.forEach(item => {
+      const status = item.dataset.status;
+      const date = item.dataset.date;
+      const meetingType = item.dataset.meetingType;
+      const searchText = item.dataset.search;
+      
+      let show = true;
+      
+      // 状态筛选
+      if (statusValue && status !== statusValue) {
+        show = false;
+      }
+      
+      // 日期筛选
+      if (dateValue && date !== dateValue) {
+        show = false;
+      }
+      
+      // 会议类型筛选
+      if (meetingTypeValue && meetingType !== meetingTypeValue) {
+        show = false;
+      }
+      
+      // 搜索筛选
+      if (searchValue && !searchText.includes(searchValue)) {
+        show = false;
+      }
+      
+      if (show) {
+        item.style.display = 'block';
+        visibleCardCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+    
+    // 表格视图筛选
+    const tableRows = document.querySelectorAll('.reservation-row');
+    let visibleRowCount = 0;
+    
+    tableRows.forEach(row => {
+      const status = row.dataset.status;
+      const date = row.dataset.date;
+      const meetingType = row.dataset.meetingType;
+      const searchText = row.dataset.search;
+      
+      let show = true;
+      
+      // 状态筛选
+      if (statusValue && status !== statusValue) {
+        show = false;
+      }
+      
+      // 日期筛选
+      if (dateValue && date !== dateValue) {
+        show = false;
+      }
+      
+      // 会议类型筛选
+      if (meetingTypeValue && meetingType !== meetingTypeValue) {
+        show = false;
+      }
+      
+      // 搜索筛选
+      if (searchValue && !searchText.includes(searchValue)) {
+        show = false;
+      }
+      
+      if (show) {
+        row.style.display = '';
+        visibleRowCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    
+    console.log('显示数量:', { visibleCardCount, visibleRowCount });
+    
+    // 更新筛选结果计数显示
+    const resultCount = document.getElementById('filterResultCount');
+    const totalCards = document.querySelectorAll('.reservation-item').length;
+    const totalRows = document.querySelectorAll('.reservation-row').length;
+    const total = Math.max(totalCards, totalRows);
+    const visible = Math.max(visibleCardCount, visibleRowCount);
+    
+    if (resultCount) {
+      if (visible === total) {
+        resultCount.textContent = `显示全部 ${total} 条预订`;
+      } else {
+        resultCount.textContent = `显示 ${visible} / ${total} 条预订`;
+      }
+    }
+  }
+  
+  // 绑定筛选事件
+  if (statusFilter) {
+    statusFilter.addEventListener('change', filterReservations);
+  }
+  if (dateFilter) {
+    dateFilter.addEventListener('change', filterReservations);
+  }
+  if (meetingTypeFilter) {
+    meetingTypeFilter.addEventListener('change', filterReservations);
+  }
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      setTimeout(filterReservations, 300); // 简单防抖
+    });
+  }
+  
+  // 重置筛选
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      statusFilter.value = '';
+      dateFilter.value = '';
+      meetingTypeFilter.value = '';
+      searchInput.value = '';
+      
+      // 显示所有项目
+      document.querySelectorAll('.reservation-item').forEach(item => {
+        item.style.display = 'block';
+      });
+      
+      document.querySelectorAll('.reservation-row').forEach(row => {
+        row.style.display = '';
+      });
+      
+      console.log('筛选已重置');
+    });
+  }
+  
+  // 页面加载时执行一次筛选（如果有预设值）
+  filterReservations();
+});
+</script>
+{% endblock %}

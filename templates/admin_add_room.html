@@ -1,0 +1,829 @@
+{% extends "base.html" %} {% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="rooms" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="40" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23rooms)"/></svg>');
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .breadcrumb-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 删除了form-wizard相关样式 */
+
+  .section-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #667eea;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+  }
+
+  /* 不同卡片的边框色 */
+  .section-card.basic-info {
+    border-left-color: #667eea; /* 蓝色 - 基本信息 */
+  }
+
+  .section-card.room-type {
+    border-left-color: #ff9800; /* 橙色 - 会议室类型 */
+  }
+
+  .section-card.location {
+    border-left-color: #28a745; /* 绿色 - 位置信息 */
+  }
+
+  .section-card.links {
+    border-left-color: #17a2b8; /* 青色 - 会议链接 */
+  }
+
+  .section-card.equipment {
+    border-left-color: #28a745; /* 绿色 - 设备配置 */
+  }
+
+  .section-card.description {
+    border-left-color: #6c757d; /* 灰色 - 描述信息 */
+  }
+
+  /* 悬停时的边框色变暗 */
+  .section-card.basic-info:hover {
+    border-left-color: #5a6ecd;
+  }
+
+  .section-card.room-type:hover {
+    border-left-color: #e68a00;
+  }
+
+  .section-card.location:hover {
+    border-left-color: #218838;
+  }
+
+  .section-card.links:hover {
+    border-left-color: #138496;
+  }
+
+  .section-card.equipment:hover {
+    border-left-color: #8c239e;
+  }
+
+  .section-card.description:hover {
+    border-left-color: #5a6268;
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control,
+  .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.85rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .room-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .type-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .type-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .type-option.selected {
+    border-color: #667eea;
+    background: var(--primary-gradient);
+    color: white;
+  }
+
+  .type-option input[type="radio"] {
+    display: none;
+  }
+
+  .type-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .capacity-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .capacity-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .capacity-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .capacity-option.selected {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+  }
+
+  .equipment-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .equipment-tag {
+    background: white;
+    border: 2px solid #e9ecef;
+    padding: 0.5rem 1rem;
+    border-radius: 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.875rem;
+  }
+
+  .equipment-tag:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+  }
+
+  .equipment-tag.selected {
+    background: var(--primary-gradient);
+    color: white;
+    border-color: transparent;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  .section-card:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  .section-card:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .room-type-selector {
+      grid-template-columns: 1fr;
+    }
+
+    .capacity-selector {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-plus-circle me-3"></i>添加会议室
+              </h2>
+              <p class="mb-0 text-white-50">会议室管理 / 添加会议室</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a
+                  href="{{ url_for('admin_rooms') }}"
+                  class="btn btn-light btn-lg"
+                >
+                  <i class="fas fa-arrow-left me-2"></i>返回列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %} {% if messages %} {% for message
+  in messages %}
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="alert alert-info alert-custom alert-dismissible fade show">
+        <i class="fas fa-info-circle me-2"></i>
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+    </div>
+  </div>
+  {% endfor %} {% endif %} {% endwith %}
+
+  <form method="POST" id="addRoomForm">
+    <!-- 基本信息 -->
+    <div class="section-card basic-info">
+      <h4 class="section-title">
+        <i class="fas fa-info-circle" style="color: #667eea"></i>
+        基本信息
+      </h4>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input
+              type="text"
+              class="form-control"
+              id="room_number"
+              name="room_number"
+              required
+              placeholder="房间号"
+              autocomplete="off"
+            />
+            <label for="room_number">
+              <i class="fas fa-hashtag me-2"></i>房间号（如：A101、B201）
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              name="name"
+              required
+              placeholder="会议室名称"
+              autocomplete="off"
+            />
+            <label for="name">
+              <i class="fas fa-door-open me-2"></i>会议室名称
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-floating">
+        <input
+          type="number"
+          class="form-control"
+          id="capacity"
+          name="capacity"
+          min="1"
+          max="1000"
+          required
+          placeholder="容纳人数"
+        />
+        <label for="capacity">
+          <i class="fas fa-user-friends me-2"></i>最大容纳人数
+        </label>
+      </div>
+
+      <!-- 快速选择容量 -->
+      <div class="capacity-selector">
+        <div class="capacity-option" onclick="setCapacity(5)">
+          <i class="fas fa-user"></i>
+          <div>小型</div>
+          <small>1-5人</small>
+        </div>
+        <div class="capacity-option" onclick="setCapacity(15)">
+          <i class="fas fa-users"></i>
+          <div>中型</div>
+          <small>6-15人</small>
+        </div>
+        <div class="capacity-option" onclick="setCapacity(30)">
+          <i class="fas fa-user-friends"></i>
+          <div>大型</div>
+          <small>16-30人</small>
+        </div>
+        <div class="capacity-option" onclick="setCapacity(50)">
+          <i class="fas fa-building"></i>
+          <div>会议厅</div>
+          <small>30+人</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- 会议室类型 -->
+    <div class="section-card room-type">
+      <h4 class="section-title">
+        <i class="fas fa-cogs" style="color: #ff9800"></i>
+        会议室类型
+      </h4>
+      <div class="room-type-selector">
+        <div class="type-option selected" onclick="selectRoomType('Offline')">
+          <input type="radio" name="room_type" value="Offline" checked />
+          <i class="fas fa-building type-icon"></i>
+          <div><strong>线下会议室</strong></div>
+          <small>物理空间，需要预订使用</small>
+        </div>
+        <div class="type-option" onclick="selectRoomType('Online')">
+          <input type="radio" name="room_type" value="Online" />
+          <i class="fas fa-video type-icon"></i>
+          <div><strong>线上会议室</strong></div>
+          <small>虚拟空间，通过链接加入</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- 位置信息 -->
+    <div class="section-card location" id="location_section">
+      <h4 class="section-title">
+        <i class="fas fa-map-marker-alt" style="color: #28a745"></i>
+        位置信息
+      </h4>
+      <div class="form-floating mb-3">
+        <input
+          type="text"
+          class="form-control"
+          id="location"
+          name="location"
+          placeholder="详细位置"
+        />
+        <label for="location">
+          <i class="fas fa-map-pin me-2"></i>详细位置（如：3号楼5层508室）
+        </label>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input
+              type="text"
+              class="form-control"
+              id="building"
+              name="building"
+              placeholder="建筑"
+            />
+            <label for="building">
+              <i class="fas fa-building me-2"></i>建筑（如：A座、主楼）
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input
+              type="text"
+              class="form-control"
+              id="floor"
+              name="floor"
+              placeholder="楼层"
+            />
+            <label for="floor">
+              <i class="fas fa-layer-group me-2"></i>楼层（如：5楼、地下1层）
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 线上会议链接 -->
+    <div class="section-card links" id="link_section" style="display: none">
+      <h4 class="section-title">
+        <i class="fas fa-link" style="color: #17a2b8"></i>
+        会议链接
+      </h4>
+      <div class="form-floating">
+        <input
+          type="url"
+          class="form-control"
+          id="meeting_link"
+          name="meeting_link"
+          placeholder="会议链接"
+        />
+        <label for="meeting_link">
+          <i class="fas fa-external-link-alt me-2"></i>线上会议链接
+        </label>
+      </div>
+    </div>
+
+
+    <!-- 设备配置 -->
+    <div class="section-card equipment">
+      <h4 class="section-title">
+        <i class="fas fa-desktop" style="color: #28a745"></i>
+        设备配置
+      </h4>
+      <div class="form-floating mb-3">
+        <input
+          type="text"
+          class="form-control"
+          id="equipment"
+          name="equipment"
+          placeholder="设备信息"
+        />
+        <label for="equipment">
+          <i class="fas fa-tools me-2"></i>设备信息（用逗号分隔）
+        </label>
+      </div>
+
+      <!-- 常用设备快选 -->
+      <div class="equipment-tags">
+        <div class="equipment-tag" data-equipment="投影仪">
+          <i class="fas fa-video me-1"></i>投影仪
+        </div>
+        <div class="equipment-tag" data-equipment="白板">
+          <i class="fas fa-chalkboard me-1"></i>白板
+        </div>
+        <div class="equipment-tag" data-equipment="音响">
+          <i class="fas fa-volume-up me-1"></i>音响
+        </div>
+        <div class="equipment-tag" data-equipment="麦克风">
+          <i class="fas fa-microphone me-1"></i>麦克风
+        </div>
+        <div class="equipment-tag" data-equipment="电视">
+          <i class="fas fa-tv me-1"></i>电视
+        </div>
+        <div class="equipment-tag" data-equipment="电脑">
+          <i class="fas fa-laptop me-1"></i>电脑
+        </div>
+        <div class="equipment-tag" data-equipment="摄像头">
+          <i class="fas fa-camera me-1"></i>摄像头
+        </div>
+        <div class="equipment-tag" data-equipment="翻页笔">
+          <i class="fas fa-mouse-pointer me-1"></i>翻页笔
+        </div>
+      </div>
+    </div>
+
+    <!-- 描述信息 -->
+    <div class="section-card description">
+      <h4 class="section-title">
+        <i class="fas fa-file-alt" style="color: #6c757d"></i>
+        描述信息
+      </h4>
+      <div class="form-floating">
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          style="height: 120px"
+          placeholder="描述信息"
+        ></textarea>
+        <label for="description">
+          <i class="fas fa-edit me-2"></i>会议室详细描述和使用注意事项
+        </label>
+      </div>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-plus me-2"></i>
+        创建会议室
+      </button>
+      <a href="{{ url_for('admin_rooms') }}" class="back-btn">
+        <i class="fas fa-times me-2"></i>
+        取消
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 设备标签点击事件
+    document.querySelectorAll(".equipment-tag").forEach((tag) => {
+      tag.addEventListener("click", function () {
+        this.classList.toggle("selected");
+        updateEquipmentInput();
+      });
+    });
+
+    // 表单提交处理
+    document
+      .getElementById("addRoomForm")
+      .addEventListener("submit", function (e) {
+        if (!validateForm()) {
+          e.preventDefault();
+          return false;
+        }
+
+        const submitBtn = this.querySelector(".submit-btn");
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin me-2"></i>创建中...';
+        submitBtn.disabled = true;
+
+        // 如果验证通过，让表单正常提交
+        setTimeout(() => {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }, 3000);
+      });
+  });
+
+  function selectRoomType(type) {
+    // 更新类型选择器样式
+    document.querySelectorAll(".type-option").forEach((option) => {
+      option.classList.remove("selected");
+    });
+    event.currentTarget.classList.add("selected");
+
+    // 更新单选按钮
+    document.querySelector(`input[value="${type}"]`).checked = true;
+
+    // 显示/隐藏相关部分
+    const locationSection = document.getElementById("location_section");
+    const linkSection = document.getElementById("link_section");
+
+    if (type === "Offline") {
+      locationSection.style.display = "block";
+      linkSection.style.display = "none";
+    } else {
+      locationSection.style.display = "none";
+      linkSection.style.display = "block";
+    }
+  }
+
+  function setCapacity(capacity) {
+    document.getElementById("capacity").value = capacity;
+
+    // 更新容量选择器样式
+    document.querySelectorAll(".capacity-option").forEach((option) => {
+      option.classList.remove("selected");
+    });
+    event.currentTarget.classList.add("selected");
+  }
+
+  function updateEquipmentInput() {
+    const selectedTags = document.querySelectorAll(".equipment-tag.selected");
+    const equipment = Array.from(selectedTags).map(
+      (tag) => tag.dataset.equipment
+    );
+    document.getElementById("equipment").value = equipment.join(",");
+  }
+
+  function validateForm() {
+    let isValid = true;
+    const errors = [];
+
+    // 检查基本信息
+    const roomNumber = document.getElementById("room_number").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const capacity = document.getElementById("capacity").value;
+
+    if (!roomNumber) {
+      errors.push("请输入房间号");
+      isValid = false;
+    }
+
+    if (!name) {
+      errors.push("请输入会议室名称");
+      isValid = false;
+    }
+
+    if (!capacity || capacity < 1) {
+      errors.push("请设置正确的容纳人数");
+      isValid = false;
+    }
+
+    // 检查会议室类型相关信息
+    const roomType = document.querySelector(
+      'input[name="room_type"]:checked'
+    ).value;
+    if (roomType === "Offline") {
+      const location = document.getElementById("location").value.trim();
+      if (!location) {
+        errors.push("请填写会议室位置信息");
+        isValid = false;
+      }
+    } else {
+      const meetingLink = document.getElementById("meeting_link").value.trim();
+      if (!meetingLink) {
+        errors.push("请填写线上会议链接");
+        isValid = false;
+      }
+    }
+
+    if (!isValid) {
+      showNotification(errors.join("<br>"), "danger");
+    }
+
+    return isValid;
+  }
+
+  // 显示通知
+  function showNotification(message, type = "info") {
+    const notification = document.createElement("div");
+    notification.className = `alert alert-${type} alert-custom alert-dismissible fade show position-fixed`;
+    notification.style.cssText =
+      "top: 20px; right: 20px; z-index: 9999; min-width: 300px;";
+    notification.innerHTML = `
+      <i class="fas fa-${
+        type === "danger"
+          ? "exclamation-triangle"
+          : type === "success"
+          ? "check-circle"
+          : "info-circle"
+      } me-2"></i>
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 5000);
+  }
+
+  // 添加键盘快捷键支持
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case "s":
+          e.preventDefault();
+          if (validateForm()) {
+            document.getElementById("addRoomForm").submit();
+          }
+          break;
+        case "Escape":
+          window.location.href = "{{ url_for('admin_rooms') }}";
+          break;
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,476 @@
+{% extends "base.html" %} {% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-info-circle me-3"></i>关于我们
+              </h2>
+              <p class="mb-0 text-white-50">了解会议智控系统的功能特点与使用指南</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-sign-in-alt me-2"></i>返回登录
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统介绍卡片 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 text-center">
+          <div class="mb-4">
+            <i class="fas fa-cogs fa-4x text-primary mb-3"></i>
+            <h3 class="fw-bold mb-3">会议智控系统</h3>
+            <p class="lead text-muted">我们的会议智控系统旨在提供高效、便捷的会议室管理解决方案</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 系统特点 -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-primary mb-3">
+            <i class="fas fa-mouse-pointer fa-3x"></i>
+          </div>
+          <h5 class="fw-bold">简单直观</h5>
+          <p class="text-muted mb-0">预订界面清晰易用</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-success mb-3">
+            <i class="fas fa-tasks fa-3x"></i>
+          </div>
+          <h5 class="fw-bold">高效管理</h5>
+          <p class="text-muted mb-0">全面的会议室管理</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-warning mb-3">
+            <i class="fas fa-users fa-3x"></i>
+          </div>
+          <h5 class="fw-bold">用户友好</h5>
+          <p class="text-muted mb-0">贴心的用户体验</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-info mb-3">
+            <i class="fas fa-shield-alt fa-3x"></i>
+          </div>
+          <h5 class="fw-bold">安全可靠</h5>
+          <p class="text-muted mb-0">数据安全保障</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用指南 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title mb-4">
+            <i class="fas fa-book me-2 text-primary"></i>使用指南
+          </h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="user-icon me-3">
+                      <i class="fas fa-user fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title mb-0">普通用户</h5>
+                  </div>
+                  <ul class="list-unstyled feature-list">
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      预订会议室
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      查看预订历史
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      取消预订
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      上传会议资料
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="user-icon me-3">
+                      <i class="fas fa-user-cog fa-2x text-warning"></i>
+                    </div>
+                    <h5 class="card-title mb-0">管理员</h5>
+                  </div>
+                  <ul class="list-unstyled feature-list">
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      管理用户账户
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      管理所有预订
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      管理会议室信息
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                      系统数据统计
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员联系方式 -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title mb-4">
+            <i class="fas fa-address-book me-2 text-primary"></i>管理员联系方式
+          </h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card border-0 bg-gradient-light h-100">
+                <div class="card-body text-center">
+                  <div class="contact-avatar mb-3">
+                    <i class="fas fa-user-tie fa-3x text-primary"></i>
+                  </div>
+                  <h5 class="fw-bold mb-2">卢文辉</h5>
+                  <p class="text-muted mb-3">系统管理员</p>
+                  <div class="d-flex align-items-center justify-content-center">
+                    <i class="fas fa-phone text-primary me-2"></i>
+                    <span id="phone1" class="me-2 fw-medium">13925908204</span>
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      onclick="copyToClipboard('phone1')"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="点击复制电话号码"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="card border-0 bg-gradient-light h-100">
+                <div class="card-body text-center">
+                  <div class="contact-avatar mb-3">
+                    <i class="fas fa-user-tie fa-3x text-success"></i>
+                  </div>
+                  <h5 class="fw-bold mb-2">练思帆</h5>
+                  <p class="text-muted mb-3">系统管理员</p>
+                  <div class="d-flex align-items-center justify-content-center">
+                    <i class="fas fa-phone text-success me-2"></i>
+                    <span id="phone2" class="me-2 fw-medium">19864899298</span>
+                    <button
+                      class="btn btn-sm btn-outline-success"
+                      onclick="copyToClipboard('phone2')"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="点击复制电话号码"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 确保与控制面板的样式一致 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+  border-radius: 1rem !important;
+}
+
+.card {
+  transition: all 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1) !important;
+}
+
+/* 统计卡片样式 */
+.col-lg-3 .card {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.col-lg-3 .card:hover {
+  border-left-color: var(--bs-primary);
+  transform: translateY(-3px);
+}
+
+/* 用户图标样式 */
+.user-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 50%;
+}
+
+/* 联系人头像样式 */
+.contact-avatar {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+/* 渐变背景卡片 */
+.bg-gradient-light {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+/* 特性列表样式 */
+.feature-list li {
+  transition: all 0.3s ease;
+  padding: 0.25rem 0;
+}
+
+.feature-list li:hover {
+  transform: translateX(5px);
+  color: var(--bs-primary);
+}
+
+/* 按钮样式统一 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-light {
+  transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-light:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+/* 卡片标题样式 */
+.card-title {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .col-md-4.text-end {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+  
+  .d-flex.gap-2 {
+    justify-content: center !important;
+  }
+  
+  .card-body {
+    padding: 1.5rem !important;
+  }
+  
+  .step-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .d-flex.gap-2 {
+    gap: 0.25rem !important;
+  }
+  
+  .btn-lg {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* 特点卡片样式 */
+.col-lg-3 .card {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.col-lg-3:nth-child(1) .card {
+  border-left-color: #667eea;
+}
+
+.col-lg-3:nth-child(2) .card {
+  border-left-color: #28a745;
+}
+
+.col-lg-3:nth-child(3) .card {
+  border-left-color: #ffc107;
+}
+
+.col-lg-3:nth-child(4) .card {
+  border-left-color: #17a2b8;
+}
+
+.col-lg-3 .card:hover {
+  border-left-width: 6px;
+  margin-left: -2px;
+}
+</style>
+
+<script>
+  // 复制电话号码到剪贴板的函数
+  function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    const button = event.currentTarget;
+
+    // 创建临时文本区域
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+
+    try {
+      // 选择文本
+      textArea.select();
+      // 适用于移动设备
+      textArea.setSelectionRange(0, 99999);
+
+      // 执行复制命令
+      document.execCommand("copy");
+
+      // 更改按钮状态
+      const originalHTML = button.innerHTML;
+      const originalClass = button.className;
+      
+      button.innerHTML = '<i class="fas fa-check"></i>';
+      if (button.classList.contains('btn-outline-primary')) {
+        button.classList.remove("btn-outline-primary");
+        button.classList.add("btn-success");
+      } else if (button.classList.contains('btn-outline-success')) {
+        button.classList.remove("btn-outline-success");
+        button.classList.add("btn-success");
+      }
+
+      // 2秒后恢复原始状态
+      setTimeout(function () {
+        button.innerHTML = originalHTML;
+        button.className = originalClass;
+      }, 2000);
+    } catch (err) {
+      console.error("复制失败:", err);
+    } finally {
+      // 移除临时文本区域
+      document.body.removeChild(textArea);
+    }
+  }
+
+  // 初始化所有工具提示
+  document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+</script>
+
+<!-- 添加 Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

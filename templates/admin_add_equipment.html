@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 40px rgba(0, 26, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    
+    /* 彩色边框颜色变量 */
+    --border-blue: #4facfe;
+    --border-green: #00b894;
+    --border-orange: #ff9a8b;
+    --border-red: #fd7979;
+    --border-purple: #28a745;
+    --border-cyan: #0abde3;
+    --border-yellow: #feca57;
+    --border-pink: #ff6b9d;
+    --border-teal: #48cae4;
+    --border-indigo: #6c63ff;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="rooms" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="40" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23rooms)"/></svg>');
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .breadcrumb-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-wizard {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--hover-shadow);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .form-wizard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.15);
+  }
+
+  .form-section {
+    padding: 2rem;
+  }
+
+  /* 优化按钮样式 */
+  .suggestion-btn {
+    transition: all 0.3s ease;
+  }
+
+  .suggestion-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .suggestion-btn.selected {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+  }
+
+  .info-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  /* 动画效果 */
+  .section-card {
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid #667eea;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+  }
+
+  /* 不同section-card的彩色边框 */
+  .section-card.room-selection {
+    border-left-color: var(--border-blue);
+  }
+
+  .section-card.equipment-details {
+    border-left-color: var(--border-green);
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+
+  /* 左对齐标题文本 */
+  .page-header-content {
+    text-align: left !important;
+  }
+  
+  .page-header-content h2 {
+    text-align: left !important;
+  }
+  
+  .page-header-content p {
+    text-align: left !important;
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8 page-header-content">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-plus-circle me-3"></i>添加设备
+              </h2>
+              <p class="mb-0 text-white-50">
+                设备管理 / 添加设备
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('admin_equipment') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回设备管理
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加设备表单 -->
+  <div class="row">
+    <div class="col-12">
+      <form method="POST" id="equipmentForm">
+        <!-- 会议室选择 -->
+        <div class="section-card room-selection">
+          <h4 class="section-title">
+            <i class="fas fa-door-open" style="color: var(--border-blue);"></i>
+            会议室选择
+          </h4>
+              <div class="form-floating mb-4">
+                <select class="form-select" id="room_id" name="room_id" required>
+                  <option value="">请选择要配备设备的会议室</option>
+                  {% for room in rooms %}
+                  <option value="{{ room.RoomID }}" data-capacity="{{ room.Capacity }}" data-type="{{ room.RoomType }}">
+                    {{ room.RoomName }} ({{ room.RoomType }}, 容量: {{ room.Capacity }}人)
+                  </option>
+                  {% endfor %}
+                </select>
+                <label for="room_id">
+                  <i class="fas fa-door-open me-2"></i>选择会议室
+                </label>
+              </div>
+              <div id="roomInfo" class="info-text mb-4" style="display: none;">
+                <div class="alert alert-info alert-custom">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <span id="roomInfoText"></span>
+                </div>
+              </div>
+        </div>
+
+        <!-- 设备信息 -->
+        <div class="section-card equipment-details">
+          <h4 class="section-title">
+            <i class="fas fa-cog" style="color: var(--border-green);"></i>
+            设备详情
+          </h4>
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="form-floating mb-4">
+                    <input type="text" class="form-control form-control-lg" 
+                           id="equipment_name" name="equipment_name" 
+                           placeholder="设备名称" required>
+                    <label for="equipment_name">设备名称</label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-floating mb-4">
+                    <input type="number" class="form-control form-control-lg" 
+                           id="quantity" name="quantity" 
+                           value="1" min="1" max="100" placeholder="数量" required>
+                    <label for="quantity">设备数量</label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 常用设备建议 -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold text-muted">
+                  <i class="fas fa-lightbulb me-2"></i>常用设备建议
+                </label>
+                <div class="equipment-suggestions">
+                  <div class="row g-2">
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="投影仪">
+                        <i class="fas fa-video me-1"></i>投影仪
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="白板">
+                        <i class="fas fa-chalkboard me-1"></i>白板
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="音响设备">
+                        <i class="fas fa-volume-up me-1"></i>音响设备
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="麦克风">
+                        <i class="fas fa-microphone me-1"></i>麦克风
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="摄像头">
+                        <i class="fas fa-camera me-1"></i>摄像头
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="电脑">
+                        <i class="fas fa-laptop me-1"></i>电脑
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="打印机">
+                        <i class="fas fa-print me-1"></i>打印机
+                      </button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" class="btn btn-outline-primary btn-sm suggestion-btn" data-name="桌椅">
+                        <i class="fas fa-chair me-1"></i>桌椅
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+              <button type="submit" class="btn btn-primary btn-lg px-5 me-md-3">
+                <i class="fas fa-save me-2"></i>添加设备
+              </button>
+              <a href="{{ url_for('admin_equipment') }}" class="btn btn-outline-secondary btn-lg px-5">
+                <i class="fas fa-times me-2"></i>取消
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const roomSelect = document.getElementById('room_id');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomInfoText = document.getElementById('roomInfoText');
+  const equipmentNameInput = document.getElementById('equipment_name');
+  const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+
+  // 会议室选择变化时显示信息
+  roomSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.value) {
+      const capacity = selectedOption.dataset.capacity;
+      const type = selectedOption.dataset.type;
+      const roomName = selectedOption.text;
+      
+      roomInfoText.innerHTML = `
+        已选择会议室：<strong>${roomName}</strong><br>
+        类型：${type === 'Online' ? '线上会议室' : '线下会议室'}<br>
+        容量：${capacity}人
+      `;
+      roomInfo.style.display = 'block';
+      roomInfo.classList.add('fade-in');
+    } else {
+      roomInfo.style.display = 'none';
+    }
+  });
+
+  // 设备建议按钮点击事件
+  suggestionBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const equipmentName = this.dataset.name;
+      equipmentNameInput.value = equipmentName;
+      
+      // 移除其他按钮的选中状态
+      suggestionBtns.forEach(b => b.classList.remove('selected'));
+      // 添加当前按钮的选中状态
+      this.classList.add('selected');
+      
+      // 聚焦到设备名称输入框
+      equipmentNameInput.focus();
+    });
+  });
+
+  // 表单验证
+  const form = document.getElementById('equipmentForm');
+  let isSubmitting = false; // 防止重复提交
+  
+  form.addEventListener('submit', function(e) {
+    // 防止重复提交
+    if (isSubmitting) {
+      e.preventDefault();
+      return false;
+    }
+    
+    const roomId = roomSelect.value;
+    const equipmentName = equipmentNameInput.value.trim();
+    const quantity = document.getElementById('quantity').value;
+
+    if (!roomId) {
+      e.preventDefault();
+      alert('请选择会议室');
+      roomSelect.focus();
+      return;
+    }
+
+    if (!equipmentName) {
+      e.preventDefault();
+      alert('请输入设备名称');
+      equipmentNameInput.focus();
+      return;
+    }
+
+    if (quantity < 1 || quantity > 100) {
+      e.preventDefault();
+      alert('设备数量必须在1到100之间');
+      document.getElementById('quantity').focus();
+      return;
+    }
+
+    // 标记为正在提交，防止重复提交
+    isSubmitting = true;
+    
+    // 显示提交加载状态
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>添加中...';
+    submitBtn.disabled = true;
+    
+    // 如果因为某种原因没有成功提交，3秒后恢复状态
+    setTimeout(() => {
+      if (isSubmitting) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        isSubmitting = false;
+      }
+    }, 3000);
+  });
+
+  // 数量输入验证
+  const quantityInput = document.getElementById('quantity');
+  quantityInput.addEventListener('input', function() {
+    let value = parseInt(this.value);
+    if (value < 1) this.value = 1;
+    if (value > 100) this.value = 100;
+  });
+});
+</script>
+{% endblock %}

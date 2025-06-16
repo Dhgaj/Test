@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-edit me-3"></i>编辑会议预订
+              </h2>
+              <p class="mb-0 text-white-50">修改现有的会议预订信息</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="{{ url_for(return_url) }}" class="btn btn-light btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>{{ return_text }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表单内容 -->
+  <div class="row">
+    <div class="col-12">
+      <form method="POST" id="reservationForm">
+        
+        <!-- 基本信息区域 -->
+        <div class="card mb-4 reservation-section">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-info-circle me-2"></i>基本信息
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="title" class="form-label fw-semibold">
+                  会议标题 <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control form-control-lg" 
+                  id="title" 
+                  name="title" 
+                  placeholder="请输入会议标题" 
+                  value="{{ reservation.title }}" 
+                  required
+                >
+                <div class="form-text">
+                  <i class="fas fa-lightbulb me-1"></i>简明扼要地描述会议主题
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="attendees" class="form-label fw-semibold">
+                  参会人数 <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  class="form-control form-control-lg" 
+                  id="attendees" 
+                  name="attendees" 
+                  min="1" 
+                  max="100" 
+                  placeholder="预计参会人数"
+                  value="{{ reservation.attendees }}" 
+                  required
+                >
+                <div class="form-text">
+                  <i class="fas fa-users me-1"></i>输入预计参会人数
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 时间选择区域 -->
+        <div class="card mb-4 reservation-section">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-clock me-2"></i>时间安排
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="start_time" class="form-label fw-semibold">
+                  开始时间 <span class="text-danger">*</span>
+                </label>
+                <input type="datetime-local" class="form-control form-control-lg" 
+                       id="start_time" name="start_time" required
+                       value="{{ reservation.start_time.strftime('%Y-%m-%dT%H:%M') }}"
+                       onchange="handleStartTimeChange()">
+                <div class="form-text">
+                  <i class="fas fa-calendar-day me-1"></i>选择会议开始的日期和时间
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="end_time" class="form-label fw-semibold">
+                  结束时间 <span class="text-danger">*</span>
+                </label>
+                <input type="datetime-local" class="form-control form-control-lg" 
+                       id="end_time" name="end_time" required
+                       value="{{ reservation.end_time.strftime('%Y-%m-%dT%H:%M') }}"
+                       onchange="handleEndTimeChange()">
+                <div class="form-text">
+                  <i class="fas fa-calendar-check me-1"></i>选择会议结束的日期和时间
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div id="meeting-duration" class="alert alert-info border-0 bg-info-subtle" style="display: none;">
+                  <i class="fas fa-clock me-2 text-info"></i>
+                  <strong>会议时长：</strong><span id="duration-text"></span>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-info border-0 bg-info-subtle">
+              <i class="fas fa-info-circle me-2 text-info"></i>
+              <strong>提示：</strong>系统支持跨天会议预订。系统会自动在会议前后预留10分钟准备时间。
+            </div>
+          </div>
+        </div>
+
+        <!-- 会议室选择区域 -->
+        <div class="card mb-4 reservation-section">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-door-open me-2"></i>选择会议室
+            </h5>
+          </div>
+          <div class="card-body">
+            <label for="room_id" class="form-label fw-semibold">
+              会议室 <span class="text-danger">*</span>
+            </label>
+            <select class="form-select form-select-lg mb-3" id="room_id" name="room_id" required>
+              {% for room in rooms %}
+              <option value="{{ room.id }}" {% if room.id==reservation.room_id %}selected{% endif %}>
+                {{ room.name }} (容量: {{ room.capacity }}人)
+              </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">
+              <i class="fas fa-lightbulb me-1"></i>系统会根据时间安排自动检查会议室可用性
+            </div>
+            <div id="roomAvailability" class="small"></div>
+          </div>
+        </div>
+
+        <!-- 会议详情区域 -->
+        <div class="card mb-4 reservation-section">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-clipboard-list me-2"></i>会议详情
+            </h5>
+          </div>
+          <div class="card-body">
+            <label for="purpose" class="form-label fw-semibold">会议用途说明</label>
+            <textarea class="form-control" id="purpose" name="purpose"
+                      rows="4" placeholder="请描述会议用途和主要内容">{{ reservation.purpose }}</textarea>
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>详细描述会议的目的、议程和主要内容
+            </div>
+          </div>
+        </div>
+
+        <!-- 当前时间显示 -->
+        <div class="card mb-4 reservation-section">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-clock me-2"></i>当前时间
+            </h5>
+          </div>
+          <div class="card-body text-center">
+            <div id="localTime" class="h4 text-primary fw-bold"></div>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="text-center">
+          <a href="{{ url_for(return_url) }}" class="btn btn-secondary btn-lg px-5 me-3">
+            <i class="fas fa-times me-2"></i>取消修改
+          </a>
+          <button type="submit" class="btn btn-primary btn-lg px-5">
+            <i class="fas fa-save me-2"></i>保存修改
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+  border-radius: 1rem !important;
+}
+
+/* 预订区域统一样式 */
+.reservation-section {
+  border: 1px solid #e3e6f0 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+  transition: all 0.3s ease;
+}
+
+.reservation-section:hover {
+  box-shadow: 0 0.25rem 2rem 0 rgba(58, 59, 69, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+.reservation-section .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-bottom: 0 !important;
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+  padding: 1.25rem 1.5rem !important;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2) !important;
+}
+
+.reservation-section .card-header h5 {
+  color: white !important;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.form-control, .form-select {
+  border-radius: 0.5rem !important;
+  border: 1px solid #d1d3e2 !important;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.form-control-lg, .form-select-lg {
+  padding: 1rem 1.25rem;
+  font-size: 1.1rem;
+}
+
+.btn {
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.alert {
+  border-radius: 0.5rem !important;
+  border: none !important;
+  padding: 1rem 1.25rem;
+}
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.form-label.fw-semibold {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.75rem;
+}
+
+/* 渐变背景 */
+.bg-info-subtle {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%) !important;
+}
+
+.bg-success-subtle {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+}
+
+.bg-danger-subtle {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%) !important;
+}
+
+.bg-warning-subtle {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+}
+</style>
+
+<script>
+// 处理开始时间变化
+function handleStartTimeChange() {
+  const startTime = document.getElementById('start_time').value;
+  const endTime = document.getElementById('end_time').value;
+  
+  if (startTime) {
+    // 更新结束时间的最小值
+    document.getElementById('end_time').min = startTime;
+    
+    // 如果结束时间为空或早于开始时间，自动设置为开始时间+1小时
+    if (!endTime || new Date(endTime) <= new Date(startTime)) {
+      const startDate = new Date(startTime);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 加1小时
+      document.getElementById('end_time').value = endDate.toISOString().slice(0, 16);
+    }
+    
+    updateDurationDisplay();
+    updateRoomAvailability();
+  }
+}
+
+// 处理结束时间变化
+function handleEndTimeChange() {
+  const startTime = document.getElementById('start_time').value;
+  const endTime = document.getElementById('end_time').value;
+  
+  if (startTime && endTime) {
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    
+    if (endDate <= startDate) {
+      alert('结束时间必须晚于开始时间');
+      document.getElementById('end_time').value = '';
+      return;
+    }
+    
+    updateDurationDisplay();
+    updateRoomAvailability();
+  }
+}
+
+// 更新会议时长显示
+function updateDurationDisplay() {
+  const startTime = document.getElementById('start_time').value;
+  const endTime = document.getElementById('end_time').value;
+  const durationDiv = document.getElementById('meeting-duration');
+  const durationText = document.getElementById('duration-text');
+  
+  if (startTime && endTime) {
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    const diffMs = endDate - startDate;
+    
+    if (diffMs > 0) {
+      const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const minutes = Math.floor((diffMs % (60 * 60 * 1000)) / (60 * 1000));
+      
+      let duration = '';
+      if (days > 0) {
+        duration += `${days}天 `;
+      }
+      if (hours > 0) {
+        duration += `${hours}小时 `;
+      }
+      if (minutes > 0) {
+        duration += `${minutes}分钟`;
+      }
+      
+      durationText.textContent = duration || '小于1分钟';
+      durationDiv.style.display = 'block';
+      
+      // 如果跨天，显示警告
+      if (days > 0) {
+        durationDiv.className = 'alert alert-warning border-0 bg-warning-subtle';
+        durationText.innerHTML = `${duration} <br><small><i class="fas fa-exclamation-triangle me-1"></i>跨天会议，请确认会议室在整个时间段内可用</small>`;
+      } else {
+        durationDiv.className = 'alert alert-info border-0 bg-info-subtle';
+      }
+    } else {
+      durationDiv.style.display = 'none';
+    }
+  } else {
+    durationDiv.style.display = 'none';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const startTimeInput = document.getElementById("start_time");
+  const endTimeInput = document.getElementById("end_time");
+  const roomSelect = document.getElementById("room_id");
+  const roomAvailability = document.getElementById("roomAvailability");
+  const localTimeDisplay = document.getElementById("localTime");
+
+  // 初始显示时长
+  updateDurationDisplay();
+
+  // 更新本地时间显示
+  function updateLocalTime() {
+    const now = new Date();
+    localTimeDisplay.textContent = now.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  }
+
+  // 每秒更新一次时间
+  updateLocalTime();
+  setInterval(updateLocalTime, 1000);
+
+  function updateRoomAvailability() {
+    const startTime = startTimeInput.value;
+    const endTime = endTimeInput.value;
+    const roomId = roomSelect.value;
+
+    if (startTime && endTime) {
+      fetch(`/available_rooms?start_time=${startTime}&end_time=${endTime}`)
+        .then(response => response.json())
+        .then(data => {
+          // 更新所有会议室的选项文本
+          Array.from(roomSelect.options).forEach(option => {
+            if (option.value) {  
+              const room = data.rooms.find(r => r.id === parseInt(option.value));
+              const baseText = option.textContent.split('(')[0].trim(); 
+              if (room) {
+                option.textContent = `${baseText} (容量: ${room.capacity}人)`;
+              } else {
+                option.textContent = `${baseText} (该时间段已被预订)`;
+              }
+            }
+          });
+
+          // 更新可用性提示
+          if (roomId) {
+            const availableRoom = data.rooms.find(room => room.id === parseInt(roomId));
+            if (availableRoom) {
+              roomAvailability.innerHTML = `
+                <div class="alert alert-success border-0 bg-success-subtle">
+                  <i class="fas fa-check-circle me-2 text-success"></i>该时间段可用
+                </div>
+              `;
+              roomSelect.classList.remove("is-invalid");
+              roomSelect.classList.add("is-valid");
+            } else {
+              roomAvailability.innerHTML = `
+                <div class="alert alert-danger border-0 bg-danger-subtle">
+                  <i class="fas fa-exclamation-triangle me-2 text-danger"></i>该时间段已被预订
+                </div>
+              `;
+              roomSelect.classList.remove("is-valid");
+              roomSelect.classList.add("is-invalid");
+            }
+          } else {
+            roomAvailability.innerHTML = `
+              <div class="alert alert-info border-0 bg-info-subtle">
+                <i class="fas fa-info-circle me-2 text-info"></i>该时间段有 ${data.rooms.length} 个可用会议室
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          roomAvailability.innerHTML = `
+            <div class="alert alert-warning border-0 bg-warning-subtle">
+              <i class="fas fa-exclamation-triangle me-2 text-warning"></i>获取会议室可用性信息失败
+            </div>
+          `;
+        });
+    }
+  }
+
+  // 添加事件监听器
+  startTimeInput.addEventListener("change", updateRoomAvailability);
+  endTimeInput.addEventListener("change", updateRoomAvailability);
+  roomSelect.addEventListener("change", updateRoomAvailability);
+
+  // 初始检查会议室可用性
+  if (startTimeInput.value && endTimeInput.value) {
+    updateRoomAvailability();
+  }
+
+  // 表单提交验证
+  document.getElementById('reservationForm').addEventListener('submit', function(e) {
+    const startTime = new Date(startTimeInput.value);
+    const endTime = new Date(endTimeInput.value);
+    const now = new Date();
+
+    if (startTime <= now) {
+      e.preventDefault();
+      alert('开始时间不能早于当前时间');
+      return;
+    }
+
+    if (endTime <= startTime) {
+      e.preventDefault();
+      alert('结束时间必须晚于开始时间');
+      return;
+    }
+
+    // 支持跨天会议，移除24小时限制
+    const duration = (endTime - startTime) / (1000 * 60 * 60);
+    if (duration > 168) { // 限制为7天
+      e.preventDefault();
+      alert('会议时长不能超过7天');
+      return;
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,2092 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    --blue-border: #4facfe;
+    --orange-border: #ff9a8b;
+    --green-border: #00b894;
+    --cyan-border: #0abde3;
+    --purple-border: #28a745;
+    --red-border: #fd7979;
+    --yellow-border: #feca57;
+    --pink-border: #ff6b9d;
+    --teal-border: #26d0ce;
+    --indigo-border: #6c5ce7;
+    --brown-border: #8B4513;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid var(--blue-border);
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  /* 发送统计卡片 */
+  .section-card.stats-section {
+    border-left-color: var(--blue-border);
+  }
+
+  /* 选择接收者卡片 */
+  .section-card.recipients-section {
+    border-left-color: var(--green-border);
+  }
+
+  .section-card:nth-child(2) {
+    border-left-color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) {
+    border-left-color: var(--orange-border);
+  }
+
+  .section-card:nth-child(4) {
+    border-left-color: var(--red-border);
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-3px);
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-card:nth-child(1) .section-title i {
+    color: var(--blue-border);
+  }
+
+  .section-card:nth-child(2) .section-title i {
+    color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) .section-title i {
+    color: var(--orange-border);
+  }
+
+  .section-card:nth-child(4) .section-title i {
+    color: var(--red-border);
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+  }
+
+  .preview-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .preview-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .priority-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .priority-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .priority-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .priority-option.selected {
+    color: white;
+  }
+
+  .priority-option.high.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);
+  }
+
+  .priority-option.medium.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    box-shadow: 0 3px 12px rgba(255, 193, 7, 0.3);
+  }
+
+  .priority-option.low.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .type-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .type-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .type-option.selected {
+    border-color: #667eea;
+    background: var(--primary-gradient);
+    color: white;
+  }
+
+  .type-option input[type="radio"] {
+    display: none;
+  }
+
+  .type-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) { animation-delay: 0.1s; }
+  .section-card:nth-child(3) { animation-delay: 0.2s; }
+  .section-card:nth-child(4) { animation-delay: 0.3s; }
+
+  .recipient-info {
+    height: 100%;
+  }
+
+  .info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    color: white;
+    height: 100%;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    transition: var(--transition);
+  }
+
+  .stats-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: #2c3e50;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: var(--transition);
+    margin-bottom: 0;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .stats-card:hover::before {
+    opacity: 1;
+  }
+
+  .stats-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: #667eea;
+  }
+
+  /* 可点击统计卡片样式 */
+  .clickable-stat {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .clickable-stat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .clickable-stat:hover::after {
+    opacity: 1;
+  }
+
+  .clickable-stat:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+
+  .stat-icon {
+    opacity: 0.8;
+    color: #667eea;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  /* 统计数字脉冲动画 */
+  @keyframes statPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .stat-pulse {
+    animation: statPulse 0.6s ease-in-out;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .stats-card {
+      margin-bottom: 1rem;
+    }
+    
+    .quick-select-buttons .col-md-3 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .user-list-container {
+      max-height: 250px !important;
+    }
+    
+    .selected-users-container {
+      min-height: 200px !important;
+      margin-top: 1rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .section-card {
+      padding: 1rem;
+    }
+    
+    .stats-card {
+      padding: 1rem;
+    }
+    
+    .stat-number {
+      font-size: 1.5rem;
+    }
+  }
+
+  .info-card:hover {
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .info-header {
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+  }
+
+  .stat-item.total {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+  }
+  
+  /* 接收者选择器样式 */
+  .recipient-tabs .btn-group {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .recipient-tabs .btn {
+    border-radius: 0;
+    font-size: 0.95rem;
+    padding: 0.75rem 0.5rem;
+    transition: all 0.3s;
+  }
+  
+  .recipient-tabs .btn.active {
+    background-color: var(--primary-gradient);
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    position: relative;
+    z-index: 2;
+  }
+  
+  .recipient-panel {
+    display: none;
+    animation: fadeIn 0.3s;
+  }
+  
+  .recipient-panel.active {
+    display: block;
+  }
+  
+  .user-selection-info {
+    transition: var(--transition);
+    border-radius: 0.75rem;
+    cursor: pointer;
+  }
+  
+  .user-selection-info:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+  
+  .user-selection-info.selected-panel {
+    background-color: rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+    animation: pulse 0.3s ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .template-buttons .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.25rem;
+  }
+
+  .template-buttons .col-md-3 {
+    padding: 0 0.25rem;
+  }
+
+  .template-btn {
+    transition: var(--transition);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .template-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .notification-preview {
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    background-color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+
+  /* 搜索功能样式 */
+  .search-box .input-group {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .search-box .input-group-text {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-right: none;
+    color: #6c757d;
+  }
+
+  .search-box .form-control {
+    border: 2px solid #e9ecef;
+    border-left: none;
+    border-right: none;
+  }
+
+  .search-box .form-control:focus {
+    box-shadow: none;
+    border-color: #667eea;
+  }
+
+  .search-box .form-control:focus + .btn {
+    border-color: #667eea;
+  }
+
+  .search-box .btn {
+    border: 2px solid #e9ecef;
+    border-left: none;
+  }
+
+  .quick-select-buttons .btn {
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .selected-users-container {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px dashed #dee2e6 !important;
+    transition: var(--transition);
+  }
+
+  .selected-users-container:hover {
+    border-color: #667eea !important;
+  }
+
+  .selected-user-tag {
+    display: inline-flex;
+    align-items: center;
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 1.2rem;
+    font-size: 0.85rem;
+    margin: 0.25rem;
+    transition: var(--transition);
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    padding-right: 2rem;
+  }
+
+  .selected-user-tag.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+  }
+
+  .selected-user-tag.bg-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+  }
+
+  .selected-user-tag:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .selected-user-tag .remove-user {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .selected-user-tag .remove-user:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.3);
+  }
+
+  .search-results-container {
+    background: white;
+    transition: var(--transition);
+  }
+
+  .search-results-container:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .user-search-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .user-search-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    transform: translateX(4px);
+  }
+
+  .user-search-item.selected {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+  }
+
+  .user-search-item .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    margin-right: 0.75rem;
+    font-weight: 600;
+  }
+
+  .user-search-item .user-info {
+    flex: 1;
+  }
+
+  .user-search-item .user-name {
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+  }
+
+  .user-search-item .user-role {
+    font-size: 0.75rem;
+    color: #6c757d;
+  }
+
+  .user-search-item .select-btn {
+    background: var(--primary-gradient);
+    border: none;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    transition: var(--transition);
+  }
+
+  .user-search-item .select-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  }
+
+  .user-search-item.selected .select-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+  }
+
+  .search-loading {
+    text-align: center;
+    padding: 1rem;
+    color: #6c757d;
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .user-search-item {
+    animation: fadeInScale 0.2s ease-out;
+  }
+
+  /* 添加脉冲动画效果 */
+  .badge-pulse {
+    animation: pulse 1s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* 添加加载动画 */
+  .loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* 增强卡片悬停效果 */
+  .user-item.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .user-item.card.border-success {
+    border-width: 2px;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(40, 167, 69, 0.1));
+  }
+
+  /* 选择计数器增强 */
+  #customSelectedCount {
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-paper-plane me-3"></i>发送通知
+              </h2>
+              <p class="mb-0 text-white-50">向用户发送重要信息和系统公告</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表单主体 -->
+  <div class="row">
+    <div class="col-12">
+      <form method="POST" id="notificationForm">
+        <!-- 发送统计 -->
+        <div class="section-card stats-section">
+          <h4 class="section-title">
+            <i class="fas fa-chart-pie"></i>
+            通知统计
+          </h4>
+          <div class="row">
+            <div class="col-md-3">
+              <div class="stats-card text-center clickable-stat" data-stat-type="total" onclick="showStatDetail('total')">
+                <div class="stat-icon mb-2">
+                  <i class="fas fa-paper-plane fa-2x"></i>
+                </div>
+                <div class="stat-number" id="totalSentCount">{{ stats.total_sent if stats else 0 }}</div>
+                <div class="stat-label">总发送量</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-center clickable-stat" data-stat-type="read" onclick="showStatDetail('read')">
+                <div class="stat-icon mb-2">
+                  <i class="fas fa-envelope-open fa-2x"></i>
+                </div>
+                <div class="stat-number" id="totalReadCount">{{ stats.total_read if stats else 0 }}</div>
+                <div class="stat-label">已读数量</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-center clickable-stat" data-stat-type="unread" onclick="showStatDetail('unread')">
+                <div class="stat-icon mb-2">
+                  <i class="fas fa-envelope fa-2x"></i>
+                </div>
+                <div class="stat-number" id="totalUnreadCount">{{ stats.total_unread if stats else 0 }}</div>
+                <div class="stat-label">未读数量</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-center clickable-stat" data-stat-type="recent" onclick="showStatDetail('recent')">
+                <div class="stat-icon mb-2">
+                  <i class="fas fa-clock fa-2x"></i>
+                </div>
+                <div class="stat-number" id="recentSentCount">{{ stats.recent_sent if stats else 0 }}</div>
+                <div class="stat-label">近30天发送</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 接收者选择 -->
+        <div class="section-card recipients-section">
+          <h4 class="section-title">
+            <i class="fas fa-users"></i>
+            选择接收者
+          </h4>
+          <div class="recipient-selector mb-3">
+            <!-- 搜索框 -->
+            <div class="search-box mb-3">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" id="userSearch" 
+                       placeholder="输入用户名搜索..." autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 选择统计 -->
+            <div class="mb-3">
+              <div class="card bg-light border-0">
+                <div class="card-body p-2">
+                  <div class="row text-center">
+                    <div class="col-3">
+                      <small class="text-muted">管理员</small>
+                      <div class="fw-bold text-info">{{ users|selectattr('is_admin')|list|length }}</div>
+                    </div>
+                    <div class="col-3">
+                      <small class="text-muted">普通用户</small>
+                      <div class="fw-bold text-success">{{ users|rejectattr('is_admin')|list|length }}</div>
+                    </div>
+                    <div class="col-3">
+                      <small class="text-muted">总计</small>
+                      <div class="fw-bold text-primary">{{ users|length }}</div>
+                    </div>
+                    <div class="col-3">
+                      <small class="text-muted">已选择</small>
+                      <div class="fw-bold text-warning" id="selectedCountDisplay">0</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 快速选择按钮组 -->
+            <div class="quick-select-buttons mb-3">
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-primary btn-sm w-100" id="selectAllUsers">
+                    <i class="fas fa-users me-1"></i><span id="selectAllUsersText">全选所有用户</span>
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-info btn-sm w-100" id="selectAllAdmins">
+                    <i class="fas fa-user-shield me-1"></i><span id="selectAllAdminsText">选择所有管理员</span>
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-success btn-sm w-100" id="selectAllNormalUsers">
+                    <i class="fas fa-user me-1"></i><span id="selectAllNormalUsersText">选择所有普通用户</span>
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100" id="clearAllSelections">
+                    <i class="fas fa-times me-1"></i>清空选择
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 角色筛选器 -->
+            <div class="role-filter mb-3">
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="roleFilter" id="filterAll" value="all" checked>
+                <label class="btn btn-outline-secondary" for="filterAll">
+                  <i class="fas fa-users me-1"></i>显示全部
+                </label>
+                
+                <input type="radio" class="btn-check" name="roleFilter" id="filterAdmin" value="admin">
+                <label class="btn btn-outline-info" for="filterAdmin">
+                  <i class="fas fa-user-shield me-1"></i>仅管理员
+                </label>
+                
+                <input type="radio" class="btn-check" name="roleFilter" id="filterNormal" value="normal">
+                <label class="btn btn-outline-success" for="filterNormal">
+                  <i class="fas fa-user me-1"></i>仅普通用户
+                </label>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-8">
+                <!-- 用户列表显示区域 -->
+                <div class="user-list-container border rounded p-3" style="max-height: 350px; overflow-y: auto; background: white;">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">
+                      <i class="fas fa-list me-2"></i>用户列表
+                    </h6>
+                    <small class="text-muted">点击用户头像或姓名进行选择</small>
+                  </div>
+                  <div id="userListResults">
+                    <!-- 用户列表将通过JavaScript动态加载 -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <!-- 已选择用户显示区域 -->
+                <div class="selected-users-container border rounded p-3" style="min-height: 350px; overflow-y: auto; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-muted">
+                      <i class="fas fa-check-circle me-2"></i>已选择的用户
+                    </h6>
+                    <span class="badge bg-primary" id="customSelectedCount">0 人</span>
+                  </div>
+                  <div id="selectedUsersList" class="selected-users-list">
+                    <div class="text-center text-muted py-2">
+                      <i class="fas fa-user-plus fa-2x mb-2 opacity-50"></i>
+                      <p class="mb-0 small">尚未选择任何用户</p>
+                      <small class="opacity-75">请在下方用户列表中选择接收者</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 隐藏的复选框用于表单提交 -->
+            <input type="hidden" name="recipient_type" value="custom">
+            <div style="display: none;" id="hiddenCheckboxes">
+              {% for user in users %}
+                {% if user.UserID != current_user.UserID %}
+                <input class="custom-recipient" type="checkbox" name="custom_recipients[]" 
+                       value="{{ user.UserID }}" id="hidden-user-{{ user.UserID }}" 
+                       data-username="{{ user.UserName }}" 
+                       data-role="{{ 'admin' if user.is_admin else 'user' }}">
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 通知内容 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-edit"></i>
+            通知内容
+          </h4>
+          <div class="form-floating mb-4">
+            <input type="text" class="form-control" 
+                   id="title" name="title" placeholder="通知标题" 
+                   maxlength="100" required>
+            <label for="title">
+              <i class="fas fa-tag me-2"></i>通知标题
+            </label>
+          </div>
+          <div class="form-floating mb-3">
+            <textarea class="form-control" id="message" name="message" 
+                      placeholder="请输入通知内容" style="height: 150px;" 
+                      maxlength="1000" required></textarea>
+            <label for="message">
+              <i class="fas fa-file-alt me-2"></i>通知内容
+            </label>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="form-text">
+              <i class="fas fa-lightbulb me-1"></i>
+              提示：支持换行和基本格式，最多1000字符
+            </div>
+            <div class="char-counter">
+              <span id="charCount">0</span>/1000
+            </div>
+          </div>
+        </div>
+
+        <!-- 快速模板 -->
+        <div class="section-card" style="border-left-color: var(--yellow-border);">
+          <h4 class="section-title">
+            <i class="fas fa-layer-group" style="color: var(--yellow-border);"></i>
+            快速模板
+          </h4>
+          <div class="template-buttons">
+            <div class="row mx-0">
+              <div class="col-md-3 px-1 mb-0">
+                <button type="button" class="btn btn-outline-primary template-btn w-100" 
+                        data-title="系统维护通知" 
+                        data-content="尊敬的用户，系统将于今晚进行例行维护，预计维护时间为2小时。维护期间可能会影响部分功能的使用，请提前做好安排。感谢您的理解与配合。">
+                  <i class="fas fa-wrench me-1"></i>维护通知
+                </button>
+              </div>
+              <div class="col-md-3 px-1 mb-0">
+                <button type="button" class="btn btn-outline-success template-btn w-100"
+                        data-title="新功能发布" 
+                        data-content="亲爱的用户，我们很高兴地宣布系统新增了多项实用功能。新功能包括：会议室智能推荐、资料共享优化、通知系统升级等。欢迎体验并提出宝贵意见！">
+                  <i class="fas fa-star me-1"></i>新功能
+                </button>
+              </div>
+              <div class="col-md-3 px-1 mb-0">
+                <button type="button" class="btn btn-outline-warning template-btn w-100"
+                        data-title="重要提醒" 
+                        data-content="请注意：为了确保会议室的正常使用，请在会议结束后及时归还相关设备，保持会议室整洁。如发现设备损坏或遗失，请及时联系管理员。">
+                  <i class="fas fa-exclamation-triangle me-1"></i>重要提醒
+                </button>
+              </div>
+              <div class="col-md-3 px-1 mb-0">
+                <button type="button" class="btn btn-outline-info template-btn w-100"
+                        data-title="使用指南" 
+                        data-content="欢迎使用会议室预订系统！您可以通过系统快速预订会议室、查看实时状态、上传会议资料等。如需帮助，请查看使用指南或联系管理员。">
+                  <i class="fas fa-question-circle me-1"></i>使用指南
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 通知类型和优先级 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-cog"></i>
+            通知设置
+          </h4>
+          
+          <!-- 优先级选择 -->
+          <div class="mb-4">
+            <div class="mb-2 fw-medium">
+              <i class="fas fa-exclamation-circle me-2"></i>优先级
+            </div>
+            <div class="priority-selector">
+              <div class="priority-option low" onclick="setPriority('normal')">
+                <i class="fas fa-check-circle"></i>
+                <div>普通</div>
+                <small>一般通知</small>
+              </div>
+              <div class="priority-option medium" onclick="setPriority('important')">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>重要</div>
+                <small>重要信息</small>
+              </div>
+              <div class="priority-option high" onclick="setPriority('urgent')">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>紧急</div>
+                <small>紧急事项</small>
+              </div>
+            </div>
+            <input type="hidden" id="priority" name="priority" value="normal">
+          </div>
+          
+          <!-- 通知类型选择 -->
+          <div>
+            <div class="mb-2 fw-medium">
+              <i class="fas fa-bell me-2"></i>通知类型
+            </div>
+            <div class="type-selector">
+              <div class="type-option selected" onclick="selectNotificationType('info')">
+                <input type="radio" name="type" value="info" checked>
+                <i class="fas fa-info-circle type-icon"></i>
+                <div><strong>信息通知</strong></div>
+                <small>一般信息</small>
+              </div>
+              <div class="type-option" onclick="selectNotificationType('warning')">
+                <input type="radio" name="type" value="warning">
+                <i class="fas fa-exclamation-triangle type-icon"></i>
+                <div><strong>警告通知</strong></div>
+                <small>需注意事项</small>
+              </div>
+              <div class="type-option" onclick="selectNotificationType('announcement')">
+                <input type="radio" name="type" value="announcement">
+                <i class="fas fa-bullhorn type-icon"></i>
+                <div><strong>系统公告</strong></div>
+                <small>系统信息</small>
+              </div>
+              <div class="type-option" onclick="selectNotificationType('maintenance')">
+                <input type="radio" name="type" value="maintenance">
+                <i class="fas fa-tools type-icon"></i>
+                <div><strong>维护通知</strong></div>
+                <small>系统维护</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="submit-section">
+          <button type="button" class="preview-btn" id="previewBtn">
+            <i class="fas fa-eye me-2"></i>预览通知
+          </button>
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane me-2"></i>发送通知
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 预览模态框 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: var(--border-radius);">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-eye me-2"></i>通知预览
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="notification-preview">
+          <div class="preview-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 id="previewTitle" class="mb-0"></h6>
+              <span id="previewBadge" class="badge"></span>
+            </div>
+            <div class="preview-meta">
+              <small class="text-muted">
+                <i class="fas fa-user me-1"></i>发送者：{{ current_user.UserName }}
+                <i class="fas fa-clock me-1 ms-3"></i>发送时间：<span id="previewTime"></span>
+              </small>
+            </div>
+          </div>
+          <div class="preview-content">
+            <p id="previewContent"></p>
+          </div>
+          <div class="preview-footer">
+            <small class="text-muted">
+              <i class="fas fa-users me-1"></i>接收者：<span id="previewRecipients"></span>
+            </small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="preview-btn" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>关闭
+        </button>
+        <button type="button" class="submit-btn" id="sendFromPreview">
+          <i class="fas fa-paper-plane me-2"></i>确认发送
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 统计详情模态框 -->
+<div class="modal fade" id="statDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: var(--border-radius);">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-chart-bar me-2"></i><span id="statDetailTitle">统计详情</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="statDetailContent">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-3 text-muted">正在加载详细信息...</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>关闭
+        </button>
+        <a href="#" id="viewAllNotificationsBtn" class="btn btn-primary" style="display: none;">
+          <i class="fas fa-external-link-alt me-2"></i>查看所有通知
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 隐藏的JSON数据用于JavaScript -->
+<script type="application/json" id="allUsersData">
+[
+  {% set filtered_users = users | selectattr('UserID', 'ne', current_user.UserID) | list %}
+  {% for user in filtered_users %}
+  {
+    "id": "{{ user.UserID }}",
+    "name": "{{ user.UserName }}",
+    "role": {{ user.is_admin|lower }},
+    "avatar": "{{ user.UserName[0] if user.UserName else 'U' }}"
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('notificationForm');
+  const messageTextarea = document.getElementById('message');
+  const charCount = document.getElementById('charCount');
+  const templateBtns = document.querySelectorAll('.template-btn');
+  const previewBtn = document.getElementById('previewBtn');
+  
+  // 检查Bootstrap是否加载
+  if (typeof bootstrap === 'undefined') {
+    console.error('Bootstrap未加载，预览功能无法正常工作');
+  } else {
+    console.log('Bootstrap已加载，版本:', bootstrap);
+  }
+  
+  const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+  
+  // 接收者选择功能
+  const userSearch = document.getElementById('userSearch');
+  const clearSearchBtn = document.getElementById('clearSearch');
+  const userListResults = document.getElementById('userListResults');
+  const selectedUsersList = document.getElementById('selectedUsersList');
+  const customSelectedCountBadge = document.getElementById('customSelectedCount');
+  const selectAllUsersBtn = document.getElementById('selectAllUsers');
+  const selectAllAdminsBtn = document.getElementById('selectAllAdmins');
+  const selectAllNormalUsersBtn = document.getElementById('selectAllNormalUsers');
+  const clearAllSelectionsBtn = document.getElementById('clearAllSelections');
+  const roleFilterRadios = document.querySelectorAll('input[name="roleFilter"]');
+  
+  // 存储所有用户数据 - 从服务器端数据生成
+  const allUsers = JSON.parse(document.getElementById('allUsersData').textContent);
+  
+  let selectedUsers = new Set();
+  let currentFilter = 'all';
+  let searchQuery = '';
+  
+  // 动态更新按钮文本函数
+  function updateButtonTexts() {
+    const allUserIds = allUsers.map(user => user.id);
+    const adminUsers = allUsers.filter(user => user.role);
+    const normalUsers = allUsers.filter(user => !user.role);
+    
+    const allUsersSelected = allUserIds.every(id => selectedUsers.has(id));
+    const allAdminsSelected = adminUsers.length > 0 && adminUsers.every(user => selectedUsers.has(user.id));
+    const allNormalsSelected = normalUsers.length > 0 && normalUsers.every(user => selectedUsers.has(user.id));
+    
+    // 更新全选按钮
+    const selectAllUsersText = document.getElementById('selectAllUsersText');
+    const selectAllUsersIcon = selectAllUsersText.parentElement.querySelector('i');
+    if (allUsersSelected) {
+      selectAllUsersText.textContent = '取消全选';
+      selectAllUsersIcon.className = 'fas fa-times-circle me-1';
+      selectAllUsersText.parentElement.className = 'btn btn-outline-danger btn-sm w-100';
+    } else {
+      selectAllUsersText.textContent = '全选所有用户';
+      selectAllUsersIcon.className = 'fas fa-users me-1';
+      selectAllUsersText.parentElement.className = 'btn btn-outline-primary btn-sm w-100';
+    }
+    
+    // 更新管理员选择按钮
+    const selectAllAdminsText = document.getElementById('selectAllAdminsText');
+    const selectAllAdminsIcon = selectAllAdminsText.parentElement.querySelector('i');
+    if (allAdminsSelected) {
+      selectAllAdminsText.textContent = '取消选择管理员';
+      selectAllAdminsIcon.className = 'fas fa-user-times me-1';
+      selectAllAdminsText.parentElement.className = 'btn btn-outline-warning btn-sm w-100';
+    } else {
+      selectAllAdminsText.textContent = '选择所有管理员';
+      selectAllAdminsIcon.className = 'fas fa-user-shield me-1';
+      selectAllAdminsText.parentElement.className = 'btn btn-outline-info btn-sm w-100';
+    }
+    
+    // 更新普通用户选择按钮
+    const selectAllNormalUsersText = document.getElementById('selectAllNormalUsersText');
+    const selectAllNormalUsersIcon = selectAllNormalUsersText.parentElement.querySelector('i');
+    if (allNormalsSelected) {
+      selectAllNormalUsersText.textContent = '取消选择普通用户';
+      selectAllNormalUsersIcon.className = 'fas fa-user-times me-1';
+      selectAllNormalUsersText.parentElement.className = 'btn btn-outline-warning btn-sm w-100';
+    } else {
+      selectAllNormalUsersText.textContent = '选择所有普通用户';
+      selectAllNormalUsersIcon.className = 'fas fa-user me-1';
+      selectAllNormalUsersText.parentElement.className = 'btn btn-outline-success btn-sm w-100';
+    }
+  }
+  
+  // 初始化 - 默认选择所有用户
+  allUsers.forEach(user => {
+    selectedUsers.add(user.id);
+    document.getElementById(`hidden-user-${user.id}`).checked = true;
+  });
+  updateSelectedUsersList();
+  updateCustomSelectedCount();
+  renderUserList();
+  updateButtonTexts();
+  
+
+  
+  // 搜索用户功能
+  userSearch.addEventListener('input', function() {
+    searchQuery = this.value.trim().toLowerCase();
+    renderUserList();
+  });
+  
+  // 清空搜索
+  clearSearchBtn.addEventListener('click', function() {
+    userSearch.value = '';
+    searchQuery = '';
+    renderUserList();
+  });
+  
+  // 角色筛选功能
+  roleFilterRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.checked) {
+        currentFilter = this.value;
+        renderUserList();
+      }
+    });
+  });
+  
+  // 渲染用户列表
+  function renderUserList() {
+    let filteredUsers = allUsers.filter(user => {
+      // 角色筛选
+      if (currentFilter === 'admin' && !user.role) return false;
+      if (currentFilter === 'normal' && user.role) return false;
+      
+      // 搜索筛选
+      if (searchQuery && !user.name.toLowerCase().includes(searchQuery)) return false;
+      
+      return true;
+    });
+    
+    if (filteredUsers.length === 0) {
+      let message = '';
+      if (searchQuery) {
+        message = `未找到匹配 "${userSearch.value}" 的用户`;
+      } else {
+        message = `当前筛选条件下没有用户`;
+      }
+      
+      userListResults.innerHTML = `
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-user-slash fa-2x mb-2"></i>
+          <p class="mb-0">${message}</p>
+          <small>请尝试调整搜索关键词或筛选条件</small>
+        </div>
+      `;
+      return;
+    }
+    
+    const userCards = filteredUsers.map(user => {
+      const isSelected = selectedUsers.has(user.id);
+      const avatarColor = user.role ? 'bg-info' : 'bg-warning';
+      const roleText = user.role ? '管理员' : '普通用户';
+      const roleIcon = user.role ? 'fas fa-user-shield' : 'fas fa-user';
+      
+      return `
+        <div class="user-item card mb-2 ${isSelected ? 'border-success' : ''}" 
+             style="transition: all 0.3s ease; cursor: pointer;"
+             ondblclick="toggleUserSelection('${user.id}')"
+             title="双击快速选择/取消选择">
+          <div class="card-body p-3">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <div class="user-avatar ${avatarColor}" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; font-weight: 600;">
+                  ${user.avatar}
+                </div>
+              </div>
+              <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1 user-name">${user.name}</h6>
+                    <small class="text-muted">
+                      <i class="${roleIcon} me-1"></i>${roleText}
+                    </small>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} 
+                           onchange="toggleUserSelection('${user.id}')" 
+                           style="transform: scale(1.2);">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    userListResults.innerHTML = userCards;
+  }
+  
+  // 切换用户选择状态
+  window.toggleUserSelection = function(userId) {
+    const checkbox = document.getElementById(`hidden-user-${userId}`);
+    const user = allUsers.find(u => u.id === userId);
+    
+    if (!user) return;
+    
+    if (selectedUsers.has(userId)) {
+      selectedUsers.delete(userId);
+      checkbox.checked = false;
+    } else {
+      selectedUsers.add(userId);
+      checkbox.checked = true;
+    }
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList(); // 重新渲染以更新选中状态
+  };
+  
+  // 移除用户选择
+  window.removeUserSelection = function(userId) {
+    selectedUsers.delete(userId);
+    const checkbox = document.getElementById(`hidden-user-${userId}`);
+    checkbox.checked = false;
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList();
+  };
+  
+  // 更新已选择用户列表显示
+  function updateSelectedUsersList() {
+    if (selectedUsers.size === 0) {
+      selectedUsersList.innerHTML = `
+        <div class="text-center text-muted py-2">
+          <i class="fas fa-user-plus fa-2x mb-2 opacity-50"></i>
+          <p class="mb-0 small">尚未选择任何用户</p>
+          <small class="opacity-75">请在下方用户列表中选择接收者</small>
+        </div>
+      `;
+      return;
+    }
+    
+    const selectedUsersData = Array.from(selectedUsers).map(userId => 
+      allUsers.find(u => u.id === userId)
+    ).filter(Boolean);
+    
+    // 按角色分组显示
+    const adminUsers = selectedUsersData.filter(user => user.role);
+    const normalUsers = selectedUsersData.filter(user => !user.role);
+    
+    let listHtml = '';
+    
+    if (adminUsers.length > 0) {
+      listHtml += `
+        <div class="mb-2">
+          <small class="text-info fw-bold">
+            <i class="fas fa-user-shield me-1"></i>管理员 (${adminUsers.length})
+          </small>
+          <div class="mt-1">
+            ${adminUsers.map(user => `
+              <span class="selected-user-tag bg-info">
+                ${user.name}
+                <button class="remove-user" onclick="removeUserSelection('${user.id}')" title="移除">
+                  <i class="fas fa-times"></i>
+                </button>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    if (normalUsers.length > 0) {
+      listHtml += `
+        <div class="mb-2">
+          <small class="text-warning fw-bold">
+            <i class="fas fa-user me-1"></i>普通用户 (${normalUsers.length})
+          </small>
+          <div class="mt-1">
+            ${normalUsers.map(user => `
+              <span class="selected-user-tag bg-warning">
+                ${user.name}
+                <button class="remove-user" onclick="removeUserSelection('${user.id}')" title="移除">
+                  <i class="fas fa-times"></i>
+                </button>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    selectedUsersList.innerHTML = listHtml;
+  }
+  
+  // 更新选择计数
+  function updateCustomSelectedCount() {
+    const count = selectedUsers.size;
+    customSelectedCountBadge.textContent = `${count} 人`;
+    updateSelectedCount(count);
+  }
+  
+  // 快速选择功能 - 支持切换模式
+  selectAllUsersBtn.addEventListener('click', function() {
+    const allUserIds = allUsers.map(user => user.id);
+    const allSelected = allUserIds.every(id => selectedUsers.has(id));
+    
+    if (allSelected) {
+      // 如果全部已选择，则取消全部选择
+      allUsers.forEach(user => {
+        selectedUsers.delete(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = false;
+      });
+      showNotification(`已取消选择所有 ${allUsers.length} 位用户`, 'info');
+    } else {
+      // 选择所有用户
+      allUsers.forEach(user => {
+        selectedUsers.add(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = true;
+      });
+      showNotification(`已选择所有 ${allUsers.length} 位用户`, 'success');
+    }
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList();
+    updateButtonTexts();
+  });
+  
+  selectAllAdminsBtn.addEventListener('click', function() {
+    const adminUsers = allUsers.filter(user => user.role);
+    const adminUserIds = adminUsers.map(user => user.id);
+    const allAdminsSelected = adminUserIds.every(id => selectedUsers.has(id));
+    
+    if (allAdminsSelected) {
+      // 如果所有管理员已选择，则取消选择所有管理员
+      adminUsers.forEach(user => {
+        selectedUsers.delete(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = false;
+      });
+      showNotification(`已取消选择 ${adminUsers.length} 位管理员`, 'info');
+    } else {
+      // 选择所有管理员
+      adminUsers.forEach(user => {
+        selectedUsers.add(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = true;
+      });
+      showNotification(`已选择 ${adminUsers.length} 位管理员`, 'success');
+    }
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList();
+    updateButtonTexts();
+  });
+  
+  selectAllNormalUsersBtn.addEventListener('click', function() {
+    const normalUsers = allUsers.filter(user => !user.role);
+    const normalUserIds = normalUsers.map(user => user.id);
+    const allNormalSelected = normalUserIds.every(id => selectedUsers.has(id));
+    
+    if (allNormalSelected) {
+      // 如果所有普通用户已选择，则取消选择所有普通用户
+      normalUsers.forEach(user => {
+        selectedUsers.delete(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = false;
+      });
+      showNotification(`已取消选择 ${normalUsers.length} 位普通用户`, 'info');
+    } else {
+      // 选择所有普通用户
+      normalUsers.forEach(user => {
+        selectedUsers.add(user.id);
+        document.getElementById(`hidden-user-${user.id}`).checked = true;
+      });
+      showNotification(`已选择 ${normalUsers.length} 位普通用户`, 'success');
+    }
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList();
+    updateButtonTexts();
+  });
+  
+  clearAllSelectionsBtn.addEventListener('click', function() {
+    selectedUsers.clear();
+    
+    // 清空所有复选框
+    document.querySelectorAll('.custom-recipient').forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    
+    updateSelectedUsersList();
+    updateCustomSelectedCount();
+    renderUserList();
+    updateButtonTexts();
+    
+    showNotification('已清空所有选择', 'info');
+  });
+  
+  // 更新选择数量显示
+  function updateSelectedCount(count) {
+    // 更新顶部统计卡片中的已选择数量
+    const selectedCountDisplay = document.getElementById('selectedCountDisplay');
+    if (selectedCountDisplay) {
+      selectedCountDisplay.textContent = count;
+      
+      // 添加动画效果
+      selectedCountDisplay.classList.add('stat-pulse');
+      setTimeout(() => {
+        selectedCountDisplay.classList.remove('stat-pulse');
+      }, 1000);
+    }
+    
+    // 添加数量变化的视觉反馈
+    if (count > 0) {
+      customSelectedCountBadge.classList.remove('bg-primary');
+      customSelectedCountBadge.classList.add('bg-success');
+    } else {
+      customSelectedCountBadge.classList.remove('bg-success');
+      customSelectedCountBadge.classList.add('bg-primary');
+    }
+  }
+  
+  // 显示通知消息
+  function showNotification(message, type = 'info') {
+    // 创建通知元素
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = `
+      top: 20px; 
+      right: 20px; 
+      z-index: 9999; 
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // 自动移除通知
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 3000);
+  }
+  
+  // 字符计数
+  messageTextarea.addEventListener('input', function() {
+    const count = this.value.length;
+    charCount.textContent = count;
+    
+    if (count > 900) {
+      charCount.style.color = '#dc3545';
+    } else if (count > 700) {
+      charCount.style.color = '#fd7e14';
+    } else {
+      charCount.style.color = '#6c757d';
+    }
+  });
+
+  // 模板按钮功能
+  templateBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const title = this.dataset.title;
+      const content = this.dataset.content;
+      
+      document.getElementById('title').value = title;
+      messageTextarea.value = content;
+      messageTextarea.dispatchEvent(new Event('input'));
+      
+      // 视觉反馈
+      const originalClass = this.className;
+      this.className = this.className.replace('outline-', '');
+      
+      setTimeout(() => {
+        this.className = originalClass;
+      }, 1000);
+      
+      // 提示选择了模板
+      showNotification(`已选择"${title}"模板`, 'success');
+    });
+  });
+
+  // 预览功能
+  previewBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    console.log('预览按钮被点击');
+    
+    try {
+      const title = document.getElementById('title').value;
+      const message = messageTextarea.value;
+      const priority = document.getElementById('priority').value;
+      const typeElement = document.querySelector('input[name="type"]:checked');
+      const type = typeElement ? typeElement.value : 'info';
+      
+      console.log('表单数据:', { title, message, priority, type });
+      
+      if (!title || !message) {
+        console.log('表单验证失败:', { title: !!title, message: !!message });
+        showNotification('请填写完整的通知标题和内容', 'warning');
+        return;
+      }
+      
+      // 更新预览内容
+      document.getElementById('previewTitle').textContent = title;
+      document.getElementById('previewContent').textContent = message;
+      document.getElementById('previewTime').textContent = new Date().toLocaleString();
+      
+      // 设置优先级徽章
+      const badge = document.getElementById('previewBadge');
+      const badgeClasses = {
+        'normal': 'bg-success',
+        'important': 'bg-warning',
+        'urgent': 'bg-danger'
+      };
+      const badgeTexts = {
+        'normal': '普通',
+        'important': '重要',
+        'urgent': '紧急'
+      };
+      badge.className = `badge ${badgeClasses[priority]}`;
+      badge.textContent = badgeTexts[priority];
+      
+      // 设置接收者信息
+      let recipientText = "";
+      
+      // 获取当前选中的用户数量
+      const selectedCount = document.querySelectorAll('.custom-recipient:checked').length;
+      if (selectedCount > 0) {
+        recipientText = `已选择 ${selectedCount} 位用户`;
+      } else {
+        recipientText = "尚未选择接收者";
+      }
+      
+      document.getElementById('previewRecipients').textContent = recipientText;
+      
+      console.log('预览数据准备完成，准备显示模态框');
+      console.log('previewModal 对象:', previewModal);
+      
+      // 确保模态框元素存在
+      const modalElement = document.getElementById('previewModal');
+      if (!modalElement) {
+        console.error('找不到预览模态框元素');
+        showNotification('预览功能初始化失败', 'error');
+        return;
+      }
+      
+      previewModal.show();
+    } catch (error) {
+      console.error('预览功能出错:', error);
+      showNotification('预览功能出现错误: ' + error.message, 'error');
+    }
+  });
+
+  // 从预览发送
+  document.getElementById('sendFromPreview').addEventListener('click', function() {
+    previewModal.hide();
+    form.submit();
+  });
+
+  // 表单提交验证
+  form.addEventListener('submit', function(e) {
+    const title = document.getElementById('title').value.trim();
+    const message = messageTextarea.value.trim();
+    
+    if (!title) {
+      e.preventDefault();
+      showNotification('请输入通知标题', 'warning');
+      document.getElementById('title').focus();
+      return;
+    }
+    
+    if (!message) {
+      e.preventDefault();
+      showNotification('请输入通知内容', 'warning');
+      messageTextarea.focus();
+      return;
+    }
+    
+    if (message.length > 1000) {
+      e.preventDefault();
+      showNotification('通知内容不能超过1000个字符', 'warning');
+      messageTextarea.focus();
+      return;
+    }
+    
+    // 检查是否选择了接收者
+    const selectedCount = document.querySelectorAll('.custom-recipient:checked').length;
+    if (selectedCount === 0) {
+      e.preventDefault();
+      showNotification('请至少选择一位接收者', 'warning');
+      return;
+    }
+    
+    // 确认发送
+    const confirmMsg = `确定要向选中的 ${selectedCount} 位用户发送通知吗？`;
+    
+    if (!confirm(confirmMsg)) {
+      e.preventDefault();
+      return;
+    }
+    
+    // 显示发送状态
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>发送中...';
+    submitBtn.disabled = true;
+  });
+  
+  // 添加键盘快捷键支持
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case 's':
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit'));
+          break;
+        case 'p':
+          e.preventDefault();
+          previewBtn.click();
+          break;
+      }
+    }
+  });
+  
+  // 初始化优先级为普通
+  setPriority('normal');
+});
+
+// 显示统计详情
+function showStatDetail(statType) {
+  const statDetailModal = new bootstrap.Modal(document.getElementById('statDetailModal'));
+  const titleElement = document.getElementById('statDetailTitle');
+  const contentElement = document.getElementById('statDetailContent');
+  const viewAllBtn = document.getElementById('viewAllNotificationsBtn');
+  
+  // 设置标题和内容
+  switch(statType) {
+    case 'total':
+      titleElement.textContent = '总发送量详情';
+      contentElement.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card border-primary">
+              <div class="card-body text-center">
+                <i class="fas fa-paper-plane fa-3x text-primary mb-3"></i>
+                <h4 class="text-primary">${document.getElementById('totalSentCount').textContent}</h4>
+                <p class="text-muted">历史总发送量</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-info">
+              <div class="card-body">
+                <h6 class="text-info mb-3"><i class="fas fa-info-circle me-2"></i>说明</h6>
+                <p class="small text-muted">这是系统自上线以来发送的所有通知总数，包括系统通知、用户通知等。</p>
+                <p class="small text-muted">点击下方按钮可查看所有通知记录。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      viewAllBtn.style.display = 'inline-block';
+      viewAllBtn.href = '/admin/logs';
+      break;
+      
+    case 'read':
+      titleElement.textContent = '已读通知详情';
+      contentElement.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card border-success">
+              <div class="card-body text-center">
+                <i class="fas fa-envelope-open fa-3x text-success mb-3"></i>
+                <h4 class="text-success">${document.getElementById('totalReadCount').textContent}</h4>
+                <p class="text-muted">已读通知数量</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-info">
+              <div class="card-body">
+                <h6 class="text-info mb-3"><i class="fas fa-chart-line me-2"></i>阅读率</h6>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-success" role="progressbar" 
+                       style="width: ${calculateReadRate()}%" 
+                       aria-valuenow="${calculateReadRate()}" aria-valuemin="0" aria-valuemax="100">
+                    ${calculateReadRate()}%
+                  </div>
+                </div>
+                <p class="small text-muted">用户对通知的阅读情况良好</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      viewAllBtn.style.display = 'inline-block';
+      viewAllBtn.href = '/notifications';
+      break;
+      
+    case 'unread':
+      titleElement.textContent = '未读通知详情';
+      contentElement.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card border-warning">
+              <div class="card-body text-center">
+                <i class="fas fa-envelope fa-3x text-warning mb-3"></i>
+                <h4 class="text-warning">${document.getElementById('totalUnreadCount').textContent}</h4>
+                <p class="text-muted">未读通知数量</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-info">
+              <div class="card-body">
+                <h6 class="text-info mb-3"><i class="fas fa-exclamation-triangle me-2"></i>提醒</h6>
+                <p class="small text-muted">这些通知还未被用户查看，建议：</p>
+                <ul class="small text-muted">
+                  <li>关注重要通知的送达情况</li>
+                  <li>考虑通过其他方式提醒用户</li>
+                  <li>定期清理过期通知</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      viewAllBtn.style.display = 'inline-block';
+      viewAllBtn.href = '/notifications';
+      break;
+      
+    case 'recent':
+      titleElement.textContent = '近期发送统计';
+      contentElement.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card border-info">
+              <div class="card-body text-center">
+                <i class="fas fa-clock fa-3x text-info mb-3"></i>
+                <h4 class="text-info">${document.getElementById('recentSentCount').textContent}</h4>
+                <p class="text-muted">近30天发送量</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-info">
+              <div class="card-body">
+                <h6 class="text-info mb-3"><i class="fas fa-trending-up me-2"></i>发送趋势</h6>
+                <p class="small text-muted">最近30天的通知发送情况，可以帮助了解系统活跃度。</p>
+                <div class="d-flex justify-content-between text-muted small">
+                  <span>日均发送：</span>
+                  <span class="fw-bold">${Math.round(parseInt(document.getElementById('recentSentCount').textContent) / 30)} 条</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      viewAllBtn.style.display = 'inline-block';
+      viewAllBtn.href = '/admin/logs';
+      break;
+  }
+  
+  statDetailModal.show();
+}
+
+// 计算阅读率
+function calculateReadRate() {
+  const total = parseInt(document.getElementById('totalSentCount').textContent) || 0;
+  const read = parseInt(document.getElementById('totalReadCount').textContent) || 0;
+  
+  if (total === 0) return 0;
+  return Math.round((read / total) * 100);
+}
+
+// 优先级选择函数
+function setPriority(priority) {
+  // 更新优先级选择器样式
+  document.querySelectorAll('.priority-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  let selectedOption;
+  switch(priority) {
+    case 'urgent':
+      selectedOption = document.querySelector('.priority-option.high');
+      break;
+    case 'important':
+      selectedOption = document.querySelector('.priority-option.medium');
+      break;
+    default:
+      selectedOption = document.querySelector('.priority-option.low');
+  }
+  
+  if (selectedOption) {
+    selectedOption.classList.add('selected');
+  }
+  
+  // 更新隐藏字段
+  document.getElementById('priority').value = priority;
+}
+
+// 通知类型选择函数
+function selectNotificationType(type) {
+  // 更新类型选择器样式
+  document.querySelectorAll('.type-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  event.currentTarget.classList.add('selected');
+  
+  // 更新单选按钮
+  document.querySelector(`input[value="${type}"]`).checked = true;
+}
+</script>
+{% endblock %}

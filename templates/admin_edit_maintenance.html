@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    --blue-border: #4facfe;
+    --orange-border: #ff9a8b;
+    --green-border: #00b894;
+    --cyan-border: #0abde3;
+    --purple-border: #28a745;
+    --red-border: #fd7979;
+    --yellow-border: #feca57;
+    --pink-border: #ff6b9d;
+    --teal-border: #26d0ce;
+    --indigo-border: #6c5ce7;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="tools" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/><circle cx="40" cy="40" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23tools)"/></svg>');
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .breadcrumb-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-body {
+    padding: 0;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid var(--blue-border);
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-card:nth-child(2) {
+    border-left-color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) {
+    border-left-color: var(--blue-border);
+  }
+
+  .section-card:nth-child(4) {
+    border-left-color: var(--red-border);
+  }
+
+  .section-card:nth-child(5) {
+    border-left-color: var(--cyan-border);
+  }
+
+  .section-card:nth-child(6) {
+    border-left-color: var(--purple-border);
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-3px);
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-card:nth-child(1) .section-title i {
+    color: var(--blue-border);
+  }
+
+  .section-card:nth-child(2) .section-title i {
+    color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) .section-title i {
+    color: var(--blue-border);
+  }
+
+  .section-card:nth-child(4) .section-title i {
+    color: var(--red-border);
+  }
+
+  .section-card:nth-child(5) .section-title i {
+    color: var(--cyan-border);
+  }
+
+  .section-card:nth-child(6) .section-title i {
+    color: var(--purple-border);
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* 会议室选择器特殊样式 */
+  #room_id {
+    min-height: 80px;
+    padding: 1.5rem 1rem;
+    font-size: 1.2rem;
+  }
+
+  #room_id option {
+    padding: 0.8rem 0.5rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .status-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .status-option {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .status-option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-option.selected {
+    color: white;
+  }
+
+  .status-option.scheduled.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    box-shadow: 0 3px 12px rgba(116, 185, 255, 0.3);
+  }
+
+  .status-option.in-progress.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #6c5ce7, #5f39f0);
+    box-shadow: 0 3px 12px rgba(108, 92, 231, 0.3);
+  }
+
+  .status-option.completed.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .status-option.cancelled.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);
+  }
+
+  .status-option input[type="radio"] {
+    display: none;
+  }
+
+  .status-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .date-time-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) { animation-delay: 0.1s; }
+  .section-card:nth-child(3) { animation-delay: 0.2s; }
+  .section-card:nth-child(4) { animation-delay: 0.3s; }
+
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .form-section {
+      padding: 1rem;
+    }
+    
+    .status-selector {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .date-time-selector {
+      grid-template-columns: 1fr;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-edit me-3"></i>编辑维护计划
+              </h2>
+              <p class="mb-0 text-white-50">
+                维护管理 / 编辑维护计划
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('admin_maintenance') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="alert alert-info alert-custom alert-dismissible fade show">
+              <i class="fas fa-info-circle me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 表单主体 -->
+  <div class="form-body">
+    <form method="POST" id="editMaintenanceForm">
+      <!-- 基本信息 -->
+      <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-info-circle text-primary"></i>
+            基本信息
+          </h4>
+          <div class="form-floating">
+            <textarea class="form-control" id="description" name="description" 
+                      style="height: 90px;" placeholder="详细描述">{{ maintenance.Description }}</textarea>
+            <label for="description">
+              <i class="fas fa-file-alt me-2"></i>维护详细描述
+            </label>
+          </div>
+        </div>
+
+        <!-- 会议室选择 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-door-open text-success"></i>
+            会议室信息
+          </h4>
+          <div class="form-floating">
+            <select class="form-select" id="room_id" name="room_id" required>
+              <option value="">请选择会议室</option>
+              {% for room in rooms %}
+              <option value="{{ room.RoomID }}" {% if room.RoomID == maintenance.RoomID %}selected{% endif %}>
+                {{ room.RoomName }}
+              </option>
+              {% endfor %}
+            </select>
+            <label for="room_id">
+              <i class="fas fa-door-open me-2"></i>选择需要维护的会议室
+            </label>
+          </div>
+        </div>
+
+        <!-- 时间安排 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-calendar-alt text-info"></i>
+            时间安排
+          </h4>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" 
+                       value="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}T{{ maintenance.StartTime.strftime('%H:%M') }}" required>
+                <label for="start_datetime">
+                  <i class="fas fa-play me-2"></i>开始日期时间
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" 
+                       value="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}T{{ maintenance.EndTime.strftime('%H:%M') }}" required>
+                <label for="end_datetime">
+                  <i class="fas fa-stop me-2"></i>结束日期时间
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 text-muted">
+            <small><i class="fas fa-info-circle me-1"></i>支持跨天维护，请选择完整的开始和结束日期时间</small>
+          </div>
+        </div>
+
+        <!-- 状态选择 -->
+        <div class="section-card">
+          <h4 class="section-title">
+            <i class="fas fa-cog text-warning"></i>
+            状态设置
+          </h4>
+          <div class="status-selector">
+            <div class="status-option scheduled {% if maintenance.Status == 'Scheduled' %}selected{% endif %}" onclick="selectStatus('Scheduled')">
+              <input type="radio" name="status" value="Scheduled" {% if maintenance.Status == 'Scheduled' %}checked{% endif %}>
+              <i class="fas fa-calendar-plus status-icon"></i>
+              <div><strong>计划中</strong></div>
+              <small>等待执行</small>
+            </div>
+            <div class="status-option in-progress {% if maintenance.Status == 'In Progress' %}selected{% endif %}" onclick="selectStatus('In Progress')">
+              <input type="radio" name="status" value="In Progress" {% if maintenance.Status == 'In Progress' %}checked{% endif %}>
+              <i class="fas fa-cog status-icon"></i>
+              <div><strong>进行中</strong></div>
+              <small>正在执行</small>
+            </div>
+            <div class="status-option completed {% if maintenance.Status == 'Completed' %}selected{% endif %}" onclick="selectStatus('Completed')">
+              <input type="radio" name="status" value="Completed" {% if maintenance.Status == 'Completed' %}checked{% endif %}>
+              <i class="fas fa-check-circle status-icon"></i>
+              <div><strong>已完成</strong></div>
+              <small>执行完毕</small>
+            </div>
+            <div class="status-option cancelled {% if maintenance.Status == 'Cancelled' %}selected{% endif %}" onclick="selectStatus('Cancelled')">
+              <input type="radio" name="status" value="Cancelled" {% if maintenance.Status == 'Cancelled' %}checked{% endif %}>
+              <i class="fas fa-times-circle status-icon"></i>
+              <div><strong>已取消</strong></div>
+              <small>取消执行</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-section">
+          <a href="{{ url_for('admin_maintenance') }}" class="back-btn">
+            <i class="fas fa-times me-2"></i>
+            取消
+          </a>
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-save me-2"></i>
+            更新维护计划
+          </button>
+        </div>
+      </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 表单提交处理
+    document.getElementById('editMaintenanceForm').addEventListener('submit', function(e) {
+      if (!validateForm()) {
+        e.preventDefault();
+        return false;
+      }
+
+      // 检查是否选择了取消状态，需要额外确认
+      const status = document.querySelector('input[name="status"]:checked')?.value;
+      if (status === 'Cancelled') {
+        const confirmed = confirm('确认要取消这个维护计划吗？\n\n取消后：\n✓ 维护记录将保留在系统中\n✓ 状态将标记为"已取消"\n✓ 会议室状态将根据其他维护情况调整\n\n点击"确定"继续取消，点击"取消"返回编辑。');
+        if (!confirmed) {
+          e.preventDefault();
+          return false;
+        }
+      }
+
+      const submitBtn = this.querySelector('.submit-btn');
+      const originalText = submitBtn.innerHTML;
+      
+      if (status === 'Cancelled') {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>取消维护中...';
+      } else {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>更新中...';
+      }
+      submitBtn.disabled = true;
+
+      // 如果验证通过，让表单正常提交
+      setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }, 3000);
+    });
+  });
+
+  function selectStatus(status) {
+    // 更新状态选择器样式
+    document.querySelectorAll('.status-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+    
+    // 更新单选按钮
+    document.querySelector(`input[value="${status}"]`).checked = true;
+    
+    // 如果选择已取消状态，显示提示信息
+    if (status === 'Cancelled') {
+      showNotification('✅ 已选择取消维护状态<br>📋 维护记录将被标记为已取消但会保留在系统中<br>🏠 会议室状态将根据其他维护情况自动调整', 'info');
+    } else if (status === 'Completed') {
+      showNotification('✅ 已选择完成状态，会议室将变为可用状态', 'info');
+    } else if (status === 'In Progress') {
+      showNotification('🔧 已选择进行中状态，会议室将处于维护状态', 'info');
+    } else if (status === 'Scheduled') {
+      showNotification('📅 已选择计划中状态，维护将按计划执行', 'info');
+    }
+  }
+
+  function validateForm() {
+    let isValid = true;
+    const errors = [];
+
+    // 获取当前状态
+    const status = document.querySelector('input[name="status"]:checked')?.value;
+    
+    // 检查基本信息
+    const roomId = document.getElementById('room_id').value;
+    const startDatetime = document.getElementById('start_datetime').value;
+    const endDatetime = document.getElementById('end_datetime').value;
+
+    if (!roomId) {
+      errors.push('请选择需要维护的会议室');
+      isValid = false;
+    }
+
+    // 对于已取消的维护，放宽时间验证要求
+    if (status === 'Cancelled') {
+      // 已取消状态只需要基本的时间字段检查
+      if (!startDatetime) {
+        errors.push('请选择开始日期时间');
+        isValid = false;
+      }
+      if (!endDatetime) {
+        errors.push('请选择结束日期时间');
+        isValid = false;
+      }
+      if (startDatetime && endDatetime && new Date(startDatetime) >= new Date(endDatetime)) {
+        errors.push('结束日期时间必须晚于开始日期时间');
+        isValid = false;
+      }
+    } else {
+      // 其他状态需要完整的时间验证
+      if (!startDatetime) {
+        errors.push('请选择开始日期时间');
+        isValid = false;
+      }
+
+      if (!endDatetime) {
+        errors.push('请选择结束日期时间');
+        isValid = false;
+      }
+
+      if (startDatetime && endDatetime && new Date(startDatetime) >= new Date(endDatetime)) {
+        errors.push('结束日期时间必须晚于开始日期时间');
+        isValid = false;
+      }
+
+      // 检查开始时间不能早于当前时间（仅对计划中的维护进行检查）
+      if (startDatetime && new Date(startDatetime) < new Date() && status === 'Scheduled') {
+        errors.push('开始时间不能早于当前时间');
+        isValid = false;
+      }
+    }
+
+    if (!isValid) {
+      showNotification(errors.join('<br>'), 'danger');
+    }
+
+    return isValid;
+  }
+
+  function showNotification(message, type = 'info') {
+    const alertClass = type === 'danger' ? 'alert-danger' : 'alert-info';
+    const icon = type === 'danger' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass} alert-custom alert-dismissible fade show`;
+    alert.innerHTML = `
+      <i class="${icon} me-2"></i>
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    const firstCard = container.querySelector('.row.mb-4');
+    
+    const alertRow = document.createElement('div');
+    alertRow.className = 'row mb-3';
+    alertRow.innerHTML = `<div class="col-12"></div>`;
+    alertRow.querySelector('.col-12').appendChild(alert);
+    
+    container.insertBefore(alertRow, firstCard.nextSibling);
+    
+    // 自动移除通知
+    setTimeout(() => {
+      if (alertRow.parentNode) {
+        alertRow.remove();
+      }
+    }, 5000);
+  }
+
+  // 键盘快捷键
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case 's':
+          e.preventDefault();
+          if (validateForm()) {
+            document.getElementById('editMaintenanceForm').submit();
+          }
+          break;
+        case 'Escape':
+          window.location.href = "{{ url_for('admin_maintenance') }}";
+          break;
+      }
+    }
+  });
+</script>
+{% endblock %} 

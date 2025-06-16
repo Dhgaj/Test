@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-clock me-3"></i>自动确认状态
+              </h2>
+              <p class="mb-0 text-white-50">监控和管理自动确认任务的执行状态</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('admin_reservations') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-calendar-check me-2"></i>预订管理
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-warning mb-3">
+            <i class="fas fa-hourglass-half fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-warning">{{ total_pending }}</h3>
+          <p class="text-muted mb-0">待确认预订</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-primary mb-3">
+            <i class="fas fa-cog fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-primary">{{ pending_reservations|length }}</h3>
+          <p class="text-muted mb-0">待执行任务</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-success mb-3">
+            <i class="fas fa-check-circle fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-success">{{ total_confirmed }}</h3>
+          <p class="text-muted mb-0">已确认预订</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 闪现消息 -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 待执行的自动确认任务 -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-tasks me-2 text-primary"></i>待执行的自动确认任务
+              </h5>
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-outline-primary btn-sm" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt me-1"></i>刷新
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          {% if pending_reservations %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th class="border-0">预订ID</th>
+                  <th class="border-0">会议室</th>
+                  <th class="border-0">预订用户</th>
+                  <th class="border-0">会议标题</th>
+                  <th class="border-0">预订时间</th>
+                  <th class="border-0">自动确认时间</th>
+                  <th class="border-0">剩余时间</th>
+                  <th class="border-0">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in pending_reservations %}
+                <tr>
+                  <td class="align-middle">
+                    <span class="badge bg-primary">#{{ item.reservation.ID }}</span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-door-open me-2 text-info"></i>
+                      <div>
+                        <div class="fw-bold">{{ item.reservation.room.RoomName }}</div>
+                        <small class="text-muted">容量: {{ item.reservation.room.Capacity }}人</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-user me-2 text-success"></i>
+                      {{ item.reservation.user.UserName }}
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-bold">{{ item.reservation.Title }}</div>
+                    {% if item.reservation.Description %}
+                    <small class="text-muted">{{ item.reservation.Description[:50] }}{% if item.reservation.Description|length > 50 %}...{% endif %}</small>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    <div>
+                      <i class="fas fa-calendar me-1 text-primary"></i>
+                      {{ item.reservation.StartTime.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div>
+                      <i class="fas fa-clock me-1 text-warning"></i>
+                      {{ item.reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ item.reservation.EndTime.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="badge bg-info">
+                      {{ item.scheduled_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="countdown-timer" 
+                         data-target="{{ item.scheduled_time.isoformat() }}"
+                         data-reservation-id="{{ item.reservation.ID }}">
+                      <span class="badge bg-warning">计算中...</span>
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="btn-group" role="group">
+                      <a href="javascript:void(0)" 
+                         class="btn btn-sm btn-success"
+                         title="立即确认"
+                         onclick="confirmReservation('{{ item.reservation.ID }}', '{{ item.reservation.Title }}', '{{ url_for('confirm_reservation', id=item.reservation.ID) }}')">>
+                        <i class="fas fa-check"></i>
+                      </a>
+                      <a href="{{ url_for('edit_reservation', id=item.reservation.ID) }}" 
+                         class="btn btn-sm btn-primary"
+                         title="编辑预订">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+            <h5 class="text-muted mb-3">当前没有待执行的自动确认任务</h5>
+            <p class="text-muted">所有预订都已处理完成</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统信息 -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0">
+            <i class="fas fa-info-circle me-2 text-info"></i>自动确认系统说明
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-primary mb-2">工作机制</h6>
+              <ul class="list-unstyled small">
+                <li><i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>新预订提交后自动安排5分钟后确认</li>
+                <li><i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>手动确认或取消将自动移除待执行任务</li>
+                <li><i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>系统会发送通知并记录操作日志</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-success mb-2">优势特点</h6>
+              <ul class="list-unstyled small">
+                <li><i class="fas fa-check text-success me-2"></i>减少管理员工作量</li>
+                <li><i class="fas fa-check text-success me-2"></i>提高预订处理效率</li>
+                <li><i class="fas fa-check text-success me-2"></i>确保及时响应用户需求</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+}
+
+.countdown-timer .expired {
+  background-color: #dc3545 !important;
+}
+
+.countdown-timer .soon {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.countdown-timer .normal {
+  background-color: #17a2b8 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 倒计时功能
+  function updateCountdowns() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    const now = new Date();
+    
+    timers.forEach(timer => {
+      const target = new Date(timer.dataset.target);
+      const diff = target - now;
+      
+      if (diff <= 0) {
+        timer.innerHTML = '<span class="badge bg-danger expired">已到时间</span>';
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        
+        let badgeClass = 'normal';
+        if (minutes < 1) {
+          badgeClass = 'soon';
+        }
+        
+        timer.innerHTML = `<span class="badge bg-info ${badgeClass}">${minutes}分${seconds}秒</span>`;
+      }
+    });
+  }
+  
+  // 每秒更新倒计时
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
+  
+  // 每30秒自动刷新页面数据
+  setInterval(() => {
+    // 静默刷新，避免打断用户操作
+    fetch(window.location.href)
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const newDoc = parser.parseFromString(html, 'text/html');
+        
+        // 更新任务列表
+        const oldTable = document.querySelector('.table-responsive');
+        const newTable = newDoc.querySelector('.table-responsive');
+        if (oldTable && newTable) {
+          oldTable.innerHTML = newTable.innerHTML;
+          updateCountdowns(); // 重新初始化倒计时
+        }
+        
+        // 更新统计数据
+        const statCards = document.querySelectorAll('.card-body .fw-bold');
+        const newStatCards = newDoc.querySelectorAll('.card-body .fw-bold');
+        statCards.forEach((card, index) => {
+          if (newStatCards[index]) {
+            card.textContent = newStatCards[index].textContent;
+          }
+        });
+      })
+      .catch(error => console.log('自动刷新失败:', error));
+  }, 30000);
+  
+  // 确认预约函数
+  let confirmReservationUrl = '';
+  
+  window.confirmReservation = function(id, title, url) {
+    confirmReservationUrl = url;
+    document.getElementById('confirmReservationTitle').textContent = title;
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmReservationModal'));
+    confirmModal.show();
+    return false;
+  }
+  
+  // 确认预约按钮事件
+  document.getElementById('confirmReservationBtn').addEventListener('click', function() {
+    if (confirmReservationUrl) {
+      window.location.href = confirmReservationUrl;
+    }
+  });
+});
+</script>
+
+<!-- 确认预约模态框 -->
+<div class="modal fade" id="confirmReservationModal" tabindex="-1" aria-labelledby="confirmReservationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="confirmReservationModalLabel">
+          <i class="fas fa-check-circle me-2"></i>立即确认预约
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+          <h6 class="mb-3">您确定要立即确认以下预约吗？</h6>
+          <div class="alert alert-info">
+            <strong id="confirmReservationTitle"></strong>
+          </div>
+          <p class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            立即确认将取消自动确认任务，预约状态变更为已确认。
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>取消
+        </button>
+        <button type="button" class="btn btn-success" id="confirmReservationBtn">
+          <i class="fas fa-check me-2"></i>立即确认
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

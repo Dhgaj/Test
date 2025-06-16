@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议智控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--gradient-primary) !important;
+            box-shadow: var(--shadow);
+            border: none;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.75rem 1rem !important;
+            border-radius: 0.5rem;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* 确保导航链接不会影响其他元素 */
+        .nav-link.active ~ .nav-item .user-avatar,
+        .nav-link:hover ~ .nav-item .user-avatar {
+            transform: none !important;
+            width: 32px !important;
+            height: 32px !important;
+        }
+
+        .content {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            margin-bottom: 2rem;
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+            border: none;
+            padding: 1.5rem;
+            font-weight: 600;
+        }
+
+        .bg-gradient {
+            background: var(--gradient-primary) !important;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .btn {
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            color: #333;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .form-control {
+            border-radius: 0.75rem;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .table {
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background: white;
+        }
+
+        .table thead th {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border-radius: 0;
+        }
+
+        /* 现代化表头样式 */
+        .table-header-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .table-header-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="headerPattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white" opacity="0.1"/><circle cx="18" cy="18" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23headerPattern)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .table-header-modern::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.5) 25%, 
+                rgba(255,255,255,0.8) 50%, 
+                rgba(255,255,255,0.5) 75%, 
+                rgba(255,255,255,0) 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header-cell {
+            position: relative;
+            z-index: 1;
+            padding: 1.5rem 1rem !important;
+            background: transparent !important;
+            color: white !important;
+            font-weight: 700 !important;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0 !important;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .header-cell:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border-bottom-color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .header-cell:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* 不同图标的颜色主题 - 更加丰富的渐变 */
+        .user-icon { 
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #74b9ff 100%);
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
+        }
+        .role-icon { 
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 50%, #fd79a8 100%);
+            box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4);
+        }
+        .action-icon { 
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 50%, #fdcb6e 100%);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        }
+        .id-icon { 
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #6c5ce7 100%);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+        .room-icon { 
+            background: linear-gradient(135deg, #00b894 0%, #00a085 50%, #00b894 100%);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+        .equipment-icon { 
+            background: linear-gradient(135deg, #ff7675 0%, #d63031 50%, #ff7675 100%);
+            box-shadow: 0 4px 15px rgba(255, 118, 117, 0.4);
+        }
+        .quantity-icon { 
+            background: linear-gradient(135deg, #00cec9 0%, #00b894 50%, #00cec9 100%);
+            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.4);
+        }
+        .title-icon { 
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 50%, #ffeaa7 100%);
+            box-shadow: 0 4px 15px rgba(255, 234, 167, 0.4);
+        }
+        .file-icon { 
+            background: linear-gradient(135deg, #81ecec 0%, #00cec9 50%, #81ecec 100%);
+            box-shadow: 0 4px 15px rgba(129, 236, 236, 0.4);
+        }
+        .size-icon { 
+            background: linear-gradient(135deg, #fab1a0 0%, #e17055 50%, #fab1a0 100%);
+            box-shadow: 0 4px 15px rgba(250, 177, 160, 0.4);
+        }
+        .time-icon { 
+            background: linear-gradient(135deg, #55a3ff 0%, #2d3de8 50%, #55a3ff 100%);
+            box-shadow: 0 4px 15px rgba(85, 163, 255, 0.4);
+        }
+        .start-icon { 
+            background: linear-gradient(135deg, #00b894 0%, #00a085 50%, #55efc4 100%);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+        .end-icon { 
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 50%, #ff9ff3 100%);
+            box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4);
+        }
+        .status-icon { 
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 50%, #ffeaa7 100%);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        }
+
+        .header-cell:hover .header-icon {
+            transform: scale(1.15) rotate(8deg);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-cell:hover .header-text {
+            transform: translateX(3px);
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-checkbox {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 0.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .header-checkbox:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .header-checkbox .form-check-input {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header-checkbox .form-check-input:checked {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            border-color: #00b894;
+            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.3);
+        }
+
+        .header-checkbox .form-check-input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        /* 表格行的增强悬停效果 */
+        .table tbody tr:hover {
+            background: linear-gradient(90deg, 
+                rgba(102, 126, 234, 0.05) 0%, 
+                rgba(102, 126, 234, 0.08) 50%, 
+                rgba(102, 126, 234, 0.05) 100%
+            ) !important;
+            transform: translateX(3px) scale(1.001);
+            box-shadow: 0 2px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .header-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+            
+            .header-text {
+                font-size: 0.85rem;
+            }
+            
+            .header-cell {
+                padding: 1rem 0.5rem !important;
+            }
+
+            .header-cell:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .header-cell:hover .header-icon {
+                transform: scale(1.05) rotate(3deg);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header-content {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .header-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+            
+            .header-text {
+                font-size: 0.8rem;
+                display: none; /* 在很小的屏幕上只显示图标 */
+            }
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #f1f3f4;
+            vertical-align: middle;
+        }
+
+        .alert {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: var(--shadow-sm);
+            font-weight: 500;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #e84393 0%, #d63031 100%);
+            color: white;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: white;
+        }
+
+        .badge {
+            border-radius: 0.5rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 添加用户头像样式 */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: none !important; /* 防止头像大小变化的过渡效果 */
+        }
+
+        /* 用户菜单容器额外右边距 */
+        .navbar-nav.ms-auto {
+            margin-right: -5rem !important;
+        }
+
+        .user-menu {
+            min-width: 200px;
+            padding: 0.5rem 0;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-lg);
+            border: none;
+        }
+
+        .user-menu .user-header {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .user-menu .user-header .user-avatar {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 0.5rem;
+            border: 3px solid white;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+            background: var(--gradient-secondary) !important;
+            border: 2px solid white;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content > * {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .content {
+                margin-top: 1rem;
+            }
+            
+            .table {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- 如果用户已登录，显示扩展的导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        {% else %}
+        <!-- 如果用户未登录，显示普通导航栏 -->
+        <nav class="navbar navbar-dark bg-dark">
+            {% endif %}
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('index') }}">会议智控系统</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto">
+                        {% if current_user.is_authenticated %}
+                        <!-- 如果用户已登录，显示以下导航项 -->
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}"
+                                href="{{ url_for('dashboard') }}">控制面板</a>
+                        </li>
+                        {% if current_user.is_admin %}
+                        <!-- 如果用户是管理员，显示以下导航项 -->
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'new_reservation' }}"
+                                href="{{ url_for('new_reservation') }}">预订会议室</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_reservations' }}"
+                                href="{{ url_for('admin_reservations') }}">预订管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'view_room_status' }}"
+                                href="{{ url_for('view_room_status') }}">会议室状态</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_rooms' }}"
+                                href="{{ url_for('admin_rooms') }}">会议室管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_users' }}"
+                                href="{{ url_for('admin_users') }}">用户管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_maintenance' }}"
+                                href="{{ url_for('admin_maintenance') }}">维护管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_equipment' }}"
+                                href="{{ url_for('admin_equipment') }}">设备管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'statistics' }}"
+                                href="{{ url_for('statistics') }}">使用统计</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_send_notification' }}"
+                                href="{{ url_for('admin_send_notification') }}">发送通知</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_auto_confirmation_status' }}"
+                                href="{{ url_for('admin_auto_confirmation_status') }}">自动确认</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'admin_logs' }}"
+                                href="{{ url_for('admin_logs') }}">日志管理</a>
+                        </li>
+                        {% else %}
+                        <!-- 如果用户不是管理员，显示以下导航项 -->
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'new_reservation' }}" 
+                               href="{{ url_for('new_reservation') }}">预订会议室</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'view_all_reservations' }}" 
+                               href="{{ url_for('view_all_reservations') }}">预订管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'view_room_status' }}" 
+                               href="{{ url_for('view_room_status') }}">会议室状态</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'my_materials' }}" 
+                               href="{{ url_for('my_materials') }}">我的会议资料</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'about' }}" 
+                               href="{{ url_for('about') }}">关于我们</a>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+                    </ul>
+                    
+                    <ul class="navbar-nav ms-auto">
+                        {% if current_user.is_authenticated %}
+                        <!-- 通知图标 -->
+                        <li class="nav-item position-relative">
+                            <a class="nav-link" href="{{ url_for('view_notifications') }}" style="transform: none !important;">
+                                <i class="fas fa-bell" style="font-size: inherit !important;"></i>
+                                {% set unread_count = current_user.notifications|selectattr('Status', 'equalto', 'Unread')|list|length %}
+                                {% if unread_count > 0 %}
+                                <span class="badge bg-danger notification-badge" style="transform: translate(50%, -50%) !important;">{{ unread_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        
+                        <!-- 用户信息下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" style="transform: none !important;">
+                                <img src="{% if current_user.Avatar %}{{ current_user.Avatar }}{% else %}https://ui-avatars.com/api/?name={{ current_user.UserName }}&background=random{% endif %}"
+                                    alt="用户头像" class="user-avatar" style="width: 32px !important; height: 32px !important;">
+                                <span>{{ current_user.UserName }}</span>
+                                {% if current_user.is_admin %}
+                                <span class="badge bg-warning text-dark ms-1">管理员</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end user-menu">
+                                <li class="user-header">
+                                    <img src="{% if current_user.Avatar %}{{ current_user.Avatar }}{% else %}https://ui-avatars.com/api/?name={{ current_user.UserName }}&background=random&size=128{% endif %}"
+                                        alt="用户头像" class="user-avatar">
+                                    <h6 class="mb-0">{{ current_user.UserName }}</h6>
+                                    <small>{{ current_user.Email }}</small>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">
+                                    <i class="fas fa-tachometer-alt fa-fw me-2"></i>我的仪表盘
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('user_profile') }}">
+                                    <i class="fas fa-user-circle fa-fw me-2"></i>个人资料
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('view_notifications') }}">
+                                    <i class="fas fa-bell fa-fw me-2"></i>我的通知
+                                    {% if unread_count > 0 %}
+                                    <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                                    {% endif %}
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('request_change_password') }}">
+                                    <i class="fas fa-key fa-fw me-2"></i>修改密码
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt fa-fw me-2"></i>退出登录
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <!-- 未登录用户显示登录注册按钮 -->
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'login' }}"
+                                href="{{ url_for('login') }}">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'register' }}"
+                                href="{{ url_for('register') }}">注册</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'about' }}"
+                                href="{{ url_for('about') }}">关于我们</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <!-- 显示闪存消息 -->
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'info' if category == 'info' else 'warning' if category == 'warning' else 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                <i class="fas fa-{{ 'check-circle' if category == 'success' else 'info-circle' if category == 'info' else 'exclamation-triangle' if category == 'warning' else 'exclamation-circle' if category == 'error' else 'check-circle' }} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/zh-cn.min.js"></script>
+        <script>
+            // 初始化所有下拉菜单
+            document.addEventListener('DOMContentLoaded', function() {
+                var dropdowns = document.querySelectorAll('.dropdown-toggle');
+                dropdowns.forEach(function(dropdown) {
+                    new bootstrap.Dropdown(dropdown);
+                });
+                
+                // 防止导航项点击导致头像和通知图标大小变化
+                document.querySelectorAll('.navbar-nav .nav-link').forEach(function(navLink) {
+                    navLink.addEventListener('click', function(e) {
+                        // 确保用户头像和通知图标保持原样
+                        document.querySelectorAll('.user-avatar, .fas.fa-bell').forEach(function(element) {
+                            var style = window.getComputedStyle(element);
+                            element.style.width = style.width;
+                            element.style.height = style.height;
+                            element.style.fontSize = style.fontSize;
+                            element.style.transform = 'none';
+                        });
+                    });
+                });
+                
+                // 页面加载性能监控 (仅在开发模式下)
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    setTimeout(function() {
+                        if (window.performance && window.performance.timing) {
+                            const timing = window.performance.timing;
+                            const loadTime = timing.loadEventEnd - timing.navigationStart;
+                            if (loadTime > 0) {
+                                console.log(`🚀 页面加载时间: ${loadTime}ms`);
+                                
+                                // 在控制台显示更多调试信息
+                                console.log('📊 性能指标:', {
+                                    'DNS查询': timing.domainLookupEnd - timing.domainLookupStart + 'ms',
+                                    '连接建立': timing.connectEnd - timing.connectStart + 'ms',
+                                    '请求响应': timing.responseEnd - timing.requestStart + 'ms',
+                                    'DOM解析': timing.domContentLoadedEventEnd - timing.domLoading + 'ms',
+                                    '资源加载': timing.loadEventEnd - timing.domContentLoadedEventEnd + 'ms'
+                                });
+                            }
+                        }
+                    }, 100);
+                }
+                
+                // 检查JavaScript库是否正确加载
+                const libraries = {
+                    'jQuery': typeof $ !== 'undefined',
+                    'Bootstrap': typeof bootstrap !== 'undefined',
+                    'Moment.js': typeof moment !== 'undefined'
+                };
+                
+                console.log('📚 JavaScript库状态:', libraries);
+                
+                // 检查是否有未捕获的错误
+                const errorCount = window.onerror ? 'error handler active' : 'no error handler';
+                console.log('⚠️ 错误处理:', errorCount);
+            });
+            
+            // 全局错误处理
+            window.addEventListener('error', function(e) {
+                console.error('❌ JavaScript错误:', e.error);
+            });
+            
+            // 为开发环境添加快捷键
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+Shift+D 显示调试信息
+                if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        console.clear();
+                        console.log('🔧 调试模式激活');
+                        console.log('📄 当前页面:', window.location.pathname);
+                        console.log('🕐 当前时间:', new Date().toLocaleString('zh-CN'));
+                        console.log('👤 用户代理:', navigator.userAgent);
+                        console.log('📱 视口大小:', window.innerWidth + 'x' + window.innerHeight);
+                    }
+                }
+            });
+        </script>
+        
+        <!-- 页面特定的JavaScript代码块 -->
+        {% block scripts %}{% endblock %}
+    </body>
+
+</html>

@@ -1,0 +1,387 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-file-alt me-3"></i>会议资料管理
+              </h2>
+              <p class="mb-0 text-white-50">
+                {{ booking.Title }} - {{ booking.room.RoomName }}
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('upload_material', booking_id=booking.ID) }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-upload me-2"></i>上传资料
+                </a>
+                <a href="{{ url_for('my_materials') }}" class="btn btn-outline-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 会议资料列表 -->
+  {% if materials %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h6 class="mb-0">
+                <i class="fas fa-folder-open me-2 text-primary"></i>会议资料列表
+              </h6>
+            </div>
+            <div class="col-auto">
+              <span class="badge bg-primary">{{ materials|length }} 个文件</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-header-modern">
+                <tr>
+                  <th class="border-0 px-4 py-3 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon title-icon">
+                        <i class="fas fa-file-alt"></i>
+                      </div>
+                      <span class="header-text">资料标题</span>
+                    </div>
+                  </th>
+                  <th class="border-0 py-3 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon file-icon">
+                        <i class="fas fa-paperclip"></i>
+                      </div>
+                      <span class="header-text">文件名称</span>
+                    </div>
+                  </th>
+                  <th class="border-0 py-3 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon size-icon">
+                        <i class="fas fa-weight-hanging"></i>
+                      </div>
+                      <span class="header-text">文件大小</span>
+                    </div>
+                  </th>
+                  <th class="border-0 py-3 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon time-icon">
+                        <i class="fas fa-clock"></i>
+                      </div>
+                      <span class="header-text">上传时间</span>
+                    </div>
+                  </th>
+                  <th class="border-0 py-3 text-center header-cell">
+                    <div class="header-content justify-content-center">
+                      <div class="header-icon action-icon">
+                        <i class="fas fa-tools"></i>
+                      </div>
+                      <span class="header-text">操作</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for material in materials %}
+                <tr class="material-row">
+                  <td class="px-4 py-3">
+                    <div class="d-flex align-items-center">
+                      <div class="file-icon me-3">
+                        {% set file_ext = material.FileName.lower().split('.')[-1] %}
+                        {% if file_ext in ['doc', 'docx'] %}
+                          <i class="fas fa-file-word fa-lg text-primary"></i>
+                        {% elif file_ext == 'pdf' %}
+                          <i class="fas fa-file-pdf fa-lg text-danger"></i>
+                        {% elif file_ext in ['xls', 'xlsx'] %}
+                          <i class="fas fa-file-excel fa-lg text-success"></i>
+                        {% elif file_ext in ['ppt', 'pptx'] %}
+                          <i class="fas fa-file-powerpoint fa-lg text-warning"></i>
+                        {% elif file_ext == 'txt' %}
+                          <i class="fas fa-file-alt fa-lg text-info"></i>
+                        {% else %}
+                          <i class="fas fa-file fa-lg text-secondary"></i>
+                        {% endif %}
+                      </div>
+                      <div>
+                        <h6 class="mb-1 fw-semibold">{{ material.Title }}</h6>
+                        <small class="text-muted">{{ material.Description if material.Description else '无描述' }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3">
+                    <span class="text-dark fw-medium">{{ material.FileName }}</span>
+                  </td>
+                  <td class="py-3">
+                    <span class="badge bg-light text-dark">{{ (material.FileSize / 1024)|round(2) }} KB</span>
+                  </td>
+                  <td class="py-3">
+                    <div class="d-flex flex-column">
+                      <span class="fw-medium">{{ material.UploadTime.strftime('%Y-%m-%d') }}</span>
+                      <small class="text-muted">{{ material.UploadTime.strftime('%H:%M') }}</small>
+                    </div>
+                  </td>
+                  <td class="py-3 text-center">
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('download_material', material_id=material.ID) }}" 
+                         class="btn btn-sm btn-outline-primary" 
+                         data-bs-toggle="tooltip" 
+                         title="下载文件">
+                        <i class="fas fa-download"></i>
+                      </a>
+                      {% if current_user.UserID == material.UserID or current_user.is_admin %}
+                      <a href="javascript:void(0)" 
+                         class="btn btn-sm btn-outline-danger" 
+                         onclick="confirmDelete('{{ url_for('delete_material', material_id=material.ID) }}')"
+                         data-bs-toggle="tooltip" 
+                         title="删除文件">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- 空状态 -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <div class="empty-state">
+            <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+            <h5 class="text-muted mb-3">暂无会议资料</h5>
+            <p class="text-muted mb-4">还没有上传任何会议资料，点击上方按钮开始上传</p>
+            <a href="{{ url_for('upload_material', booking_id=booking.ID) }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-upload me-2"></i>上传第一个资料
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>确认删除
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="d-flex align-items-center mb-3">
+          <div class="me-3">
+            <i class="fas fa-trash-alt fa-2x text-danger"></i>
+          </div>
+          <div>
+            <h6 class="mb-1">确定要删除这个文件吗？</h6>
+            <small class="text-muted">此操作无法撤销，文件将被永久删除。</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>取消
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-2"></i>确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 确保与控制面板的样式一致 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+  border-radius: 1rem !important;
+}
+
+.card {
+  transition: all 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1) !important;
+}
+
+/* 表格样式增强 */
+.table tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.08);
+}
+
+.material-row {
+  transition: all 0.3s ease;
+}
+
+.material-row:hover {
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+  border-left: 3px solid var(--bs-primary);
+  transform: translateX(3px);
+}
+
+/* 文件图标样式 */
+.file-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 0.5rem;
+}
+
+/* 按钮样式统一 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* 按钮组样式 */
+.btn-group .btn {
+  border-radius: 0.375rem !important;
+  margin: 0 1px;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+/* 徽章样式统一 */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+/* 空状态样式 */
+.empty-state {
+  padding: 3rem 2rem;
+}
+
+.empty-state i {
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 工具提示样式 */
+[data-bs-toggle="tooltip"] {
+  cursor: pointer;
+}
+
+/* 旧的表格头部样式已移至 base.html 统一管理 */
+
+/* 文件信息样式 */
+.fw-semibold {
+  color: #2d3748;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    margin: 1px 0;
+    border-radius: 0.375rem !important;
+  }
+  
+  .file-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+  }
+}
+</style>
+
+<script>
+let deleteUrl = '';
+
+function confirmDelete(url) {
+  deleteUrl = url;
+  const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+  modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化工具提示
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+  // 确认删除按钮事件
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (deleteUrl) {
+      window.location.href = deleteUrl;
+    }
+  });
+});
+</script>
+{% endblock %}

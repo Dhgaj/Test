@@ -1,0 +1,1070 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+<style>
+  /* 统计卡片样式 - 增强圆角 */
+  .stat-card {
+    background: white;
+    border-radius: 20px; /* 增加圆角 */
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12); /* 增强阴影 */
+    transition: all 0.3s ease;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px 20px 0 0;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-8px) scale(1.02); /* 增强悬停效果 */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    border-radius: 25px; /* 悬停时更大圆角 */
+  }
+  
+  .stat-card .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .stat-card h4 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-card p {
+    color: #6c757d;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* 头像样式 - 增强圆角 */
+  .avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px; /* 更大圆角 */
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+  }
+
+  /* 卡片视图样式 - 增强圆角 */
+  .room-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem; /* 增加间距 */
+    padding: 1.5rem;
+  }
+
+  .room-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 20px; /* 增加圆角 */
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 更流畅的动画 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .room-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .room-card:hover {
+    transform: translateY(-10px) scale(1.02); /* 增强悬停效果 */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+    border-radius: 25px; /* 悬停时更大圆角 */
+    border-color: #667eea;
+  }
+
+  .room-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .room-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .room-number {
+    color: #667eea;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .status-badge {
+    padding: 0.6rem 1.2rem; /* 增加内边距 */
+    border-radius: 30px; /* 增加圆角 */
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+  }
+
+  .badge-online {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+  }
+
+  .badge-offline {
+    background: linear-gradient(135deg, #00b894, #00a085);
+    color: white;
+  }
+
+  .room-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 16px; /* 增加圆角 */
+  }
+
+  .room-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px; /* 完全圆形 */
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3); /* 添加阴影 */
+  }
+
+  .room-details h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .room-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .room-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 16px; /* 增加圆角 */
+  }
+
+  .info-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 12px; /* 添加圆角 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .info-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+  }
+
+  .info-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #495057;
+  }
+
+  .room-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  .action-btn {
+    padding: 0.7rem 1.3rem; /* 增加内边距 */
+    border: none;
+    border-radius: 12px; /* 增加圆角 */
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-edit:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border-radius: 15px; /* 悬停时更大圆角 */
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+  }
+
+  .btn-delete:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    border-radius: 15px; /* 悬停时更大圆角 */
+  }
+
+  .room-description {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 16px; /* 增加圆角 */
+    margin-bottom: 1rem;
+    color: #6c757d;
+    font-style: italic;
+    border-left: 4px solid #667eea;
+  }
+
+  /* 表格样式增强 */
+  .card {
+    border-radius: 20px !important; /* 增加表格容器圆角 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden;
+  }
+
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table thead th {
+    border-top: none;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem;
+    font-weight: 600;
+  }
+
+  .table tbody tr {
+    transition: all 0.3s ease;
+  }
+
+  .table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    transform: scale(1.01);
+  }
+
+  .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  /* 按钮组样式增强 */
+  .btn-group {
+    border-radius: 12px; /* 增加圆角 */
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-group .btn {
+    border-radius: 0;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-group .btn:first-child {
+    border-radius: 12px 0 0 12px;
+  }
+
+  .btn-group .btn:last-child {
+    border-radius: 0 12px 12px 0;
+  }
+
+  .btn-group .btn:hover {
+    transform: scale(1.05);
+    z-index: 1;
+  }
+
+  /* 徽章样式增强 */
+  .badge {
+    border-radius: 20px !important; /* 增加圆角 */
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .badge.bg-info {
+    background: linear-gradient(135deg, #74b9ff, #0984e3) !important;
+  }
+
+  .badge.bg-success {
+    background: linear-gradient(135deg, #00b894, #00a085) !important;
+  }
+
+  /* 搜索和筛选框样式增强 */
+  .form-control, .form-select {
+    border-radius: 12px !important; /* 增加圆角 */
+    border: 2px solid #e9ecef !important;
+    transition: all 0.3s ease !important;
+    padding: 0.7rem 1rem !important;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+    transform: translateY(-2px) !important;
+    border-radius: 15px !important; /* 焦点时更大圆角 */
+  }
+
+  /* 视图切换按钮增强 */
+  .btn-group.view-toggle .btn {
+    border-radius: 25px !important;
+    margin: 0 2px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-group.view-toggle .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-group.view-toggle .btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border-color: transparent !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .room-cards-grid {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+    
+    .room-info-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .room-actions {
+      flex-direction: column;
+    }
+
+    .stat-card {
+      border-radius: 16px;
+    }
+
+    .room-card {
+      border-radius: 16px;
+    }
+  }
+
+  /* 复制按钮样式 */
+  .copy-link-btn {
+    transition: all 0.3s ease;
+    border-radius: 6px !important;
+  }
+
+  .copy-link-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .copy-link-btn.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
+  }
+
+  /* 会议链接容器样式 */
+  .d-flex.align-items-center.gap-1,
+  .d-flex.align-items-center.gap-2 {
+    flex-wrap: wrap;
+  }
+</style>
+
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-door-open me-3"></i>会议室管理
+              </h2>
+              <p class="mb-0 text-white-50">管理所有会议室信息和配置</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('add_room') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-plus me-2"></i>添加会议室
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="row mb-4">
+    <div class="col-md-4 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-door-open fa-3x"></i>
+        </div>
+        <h4>{{ rooms|length }}</h4>
+        <p>总会议室</p>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-laptop fa-3x"></i>
+        </div>
+        <h4>{{ rooms|selectattr('RoomType', 'equalto', 'Online')|list|length }}</h4>
+        <p>线上会议室</p>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-building fa-3x"></i>
+        </div>
+        <h4>{{ rooms|selectattr('RoomType', 'equalto', 'Offline')|list|length }}</h4>
+        <p>线下会议室</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 搜索和过滤控件 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="roomSearch" 
+                       placeholder="搜索会议室名称、房间号或位置...">
+              </div>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <select class="form-select" id="typeFilter">
+                <option value="">所有类型</option>
+                <option value="Online">线上会议室</option>
+                <option value="Offline">线下会议室</option>
+              </select>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-users"></i>
+                </span>
+                <input type="number" class="form-control" id="minCapacity" placeholder="最小容量" min="1" max="1000">
+              </div>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <div class="input-group">
+                <span class="input-group-text">到</span>
+                <input type="number" class="form-control" id="maxCapacity" placeholder="最大容量" min="1" max="1000">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="btn-group w-100" role="group">
+                <button type="button" class="btn btn-outline-primary active" id="tableViewBtn">
+                  <i class="fas fa-table me-1"></i>列表
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="cardViewBtn">
+                  <i class="fas fa-th-large me-1"></i>卡片
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表格视图 -->
+  <div id="tableView" class="view-content">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-header-modern">
+              <tr>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon id-icon">
+                      <i class="fas fa-hashtag"></i>
+                    </div>
+                    <span class="header-text">房间号</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon room-icon">
+                      <i class="fas fa-door-open"></i>
+                    </div>
+                    <span class="header-text">会议室名称</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon quantity-icon">
+                      <i class="fas fa-users"></i>
+                    </div>
+                    <span class="header-text">容量</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon equipment-icon">
+                      <i class="fas fa-tag"></i>
+                    </div>
+                    <span class="header-text">类型</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon size-icon">
+                      <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span class="header-text">位置</span>
+                  </div>
+                </th>
+                <th class="header-cell text-center">
+                  <div class="header-content justify-content-center">
+                    <div class="header-icon action-icon">
+                      <i class="fas fa-tools"></i>
+                    </div>
+                    <span class="header-text">操作</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="roomTableBody">
+              {% for room in rooms %}
+              <tr data-room-id="{{ room.id }}" 
+                  data-type="{{ room.RoomType }}" 
+                  data-capacity="{{ room.capacity }}"
+                  data-name="{{ room.name|lower }}"
+                  data-room-number="{{ room.room_number|lower if room.room_number else '' }}"
+                  data-location="{{ (room.building + ' ' + room.floor if room.building and room.floor else room.Location if room.Location else '')|lower }}">
+                <td>
+                  <strong>{{ room.room_number or '-' }}</strong>
+                </td>
+                <td>
+                  <i class="fas fa-door-open me-2 text-primary"></i>
+                  {{ room.name }}
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-users me-1 text-muted"></i>
+                    {{ room.capacity }}人
+                  </div>
+                </td>
+                <td>
+                  {% if room.RoomType == 'Online' %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-laptop me-1"></i>线上
+                  </span>
+                  {% else %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-building me-1"></i>线下
+                  </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if room.RoomType == 'Offline' %}
+                    {% if room.floor and room.building %}
+                      <i class="fas fa-building me-1 text-muted"></i>{{ room.building }} {{ room.floor }}
+                    {% elif room.Location %}
+                      <i class="fas fa-map-marker-alt me-1 text-muted"></i>{{ room.Location }}
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  {% else %}
+                    {% if room.MeetingLink %}
+                      <div class="d-flex align-items-center gap-1">
+                        <a href="{{ room.MeetingLink }}" target="_blank" class="text-decoration-none text-primary" title="点击访问会议链接">
+                          <i class="fas fa-link me-1"></i>会议链接
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary copy-link-btn" 
+                                data-link="{{ room.MeetingLink }}" 
+                                title="复制链接"
+                                style="padding: 0.1rem 0.3rem; font-size: 0.7rem;">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    {% else %}
+                      <i class="fas fa-cloud me-1 text-muted"></i>线上会议室
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{{ url_for('edit_room', id=room.id) }}" 
+                       class="btn btn-sm btn-primary"
+                       title="编辑会议室">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="javascript:void(0)" 
+                       class="btn btn-sm btn-danger"
+                       onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')"
+                       title="删除会议室">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卡片视图 -->
+  <div id="cardView" class="view-content" style="display: none;">
+    <div class="room-cards-grid" id="roomCardsGrid">
+      {% for room in rooms %}
+      <div class="room-card" 
+           data-room-id="{{ room.id }}" 
+           data-type="{{ room.RoomType }}" 
+           data-capacity="{{ room.capacity }}"
+           data-name="{{ room.name|lower }}"
+           data-room-number="{{ room.room_number|lower if room.room_number else '' }}"
+           data-location="{{ (room.building + ' ' + room.floor if room.building and room.floor else room.Location if room.Location else '')|lower }}">
+        
+        <div class="room-header-info">
+          <div>
+            <h3 class="room-title">{{ room.name }}</h3>
+            <div class="room-number">
+              <i class="fas fa-hashtag me-1"></i>
+              {{ room.room_number or '未设置' }}
+            </div>
+          </div>
+          {% if room.RoomType == 'Online' %}
+          <span class="status-badge badge-online">
+            <i class="fas fa-laptop"></i>线上
+          </span>
+          {% else %}
+          <span class="status-badge badge-offline">
+            <i class="fas fa-building"></i>线下
+          </span>
+          {% endif %}
+        </div>
+        
+        <div class="room-info">
+          <div class="room-icon">
+            {% if room.RoomType == 'Online' %}
+            <i class="fas fa-laptop"></i>
+            {% else %}
+            <i class="fas fa-door-open"></i>
+            {% endif %}
+          </div>
+          <div class="room-details">
+            <h5>{{ room.RoomType == 'Online' and '线上会议室' or '线下会议室' }}</h5>
+            <p>
+              {% if room.RoomType == 'Offline' %}
+                {% if room.floor and room.building %}
+                  {{ room.building }} {{ room.floor }}
+                {% elif room.Location %}
+                  {{ room.Location }}
+                {% else %}
+                  位置信息未设置
+                {% endif %}
+              {% else %}
+                {% if room.MeetingLink %}
+                  <div class="d-flex align-items-center gap-2 mt-2">
+                    <a href="{{ room.MeetingLink }}" target="_blank" class="text-decoration-none text-primary" title="点击访问会议链接">
+                      <i class="fas fa-link me-1"></i>会议链接
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary copy-link-btn" 
+                            data-link="{{ room.MeetingLink }}" 
+                            title="复制链接"
+                            style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                {% else %}
+                  虚拟会议空间
+                {% endif %}
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        <div class="room-info-grid">
+          <div class="info-item">
+            <div class="info-label">容量</div>
+            <div class="info-value">{{ room.capacity }}人</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">类型</div>
+            <div class="info-value">{{ room.RoomType == 'Online' and '线上' or '线下' }}</div>
+          </div>
+        </div>
+        
+        {% if room.description %}
+        <div class="room-description">
+          <i class="fas fa-info-circle me-2"></i>
+          {{ room.description }}
+        </div>
+        {% endif %}
+        
+        <div class="room-actions">
+          <a href="{{ url_for('edit_room', id=room.id) }}" 
+             class="action-btn btn-edit">
+            <i class="fas fa-edit"></i>编辑
+          </a>
+          <a href="javascript:void(0)" 
+             class="action-btn btn-delete"
+             onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')">>
+            <i class="fas fa-trash"></i>删除
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 空状态 -->
+  <div id="emptyState" class="text-center py-5" style="display: none;">
+    <i class="fas fa-door-closed fa-4x text-muted mb-3"></i>
+    <h4 class="text-muted">没有找到会议室</h4>
+    <p class="text-muted">尝试调整筛选条件或添加新的会议室</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 获取DOM元素
+  const searchInput = document.getElementById('roomSearch');
+  const typeFilter = document.getElementById('typeFilter');
+  const minCapacityInput = document.getElementById('minCapacity');
+  const maxCapacityInput = document.getElementById('maxCapacity');
+  const tableViewBtn = document.getElementById('tableViewBtn');
+  const cardViewBtn = document.getElementById('cardViewBtn');
+  const tableView = document.getElementById('tableView');
+  const cardView = document.getElementById('cardView');
+  const emptyState = document.getElementById('emptyState');
+
+  // 视图切换功能
+  function switchToTableView() {
+    tableView.style.display = 'block';
+    cardView.style.display = 'none';
+    tableViewBtn.classList.add('active');
+    cardViewBtn.classList.remove('active');
+    filterRooms();
+  }
+
+  function switchToCardView() {
+    tableView.style.display = 'none';
+    cardView.style.display = 'block';
+    tableViewBtn.classList.remove('active');
+    cardViewBtn.classList.add('active');
+    filterRooms();
+  }
+
+  // 房间过滤功能
+  function filterRooms() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedType = typeFilter.value;
+    const minCapacity = parseInt(minCapacityInput.value) || 0;
+    const maxCapacity = parseInt(maxCapacityInput.value) || 1000;
+    
+    const isTableView = tableView.style.display !== 'none';
+    const items = isTableView 
+      ? document.querySelectorAll('#roomTableBody tr')
+      : document.querySelectorAll('.room-card');
+    
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const name = item.dataset.name || '';
+      const roomNumber = item.dataset.roomNumber || '';
+      const location = item.dataset.location || '';
+      const type = item.dataset.type || '';
+      const capacity = parseInt(item.dataset.capacity) || 0;
+      
+      // 搜索匹配检查
+      const searchMatch = searchTerm === '' || 
+                         name.includes(searchTerm) || 
+                         roomNumber.includes(searchTerm) || 
+                         location.includes(searchTerm);
+      
+      // 类型匹配检查
+      const typeMatch = selectedType === '' || type === selectedType;
+      
+      // 容量范围匹配检查
+      const capacityMatch = capacity >= minCapacity && capacity <= maxCapacity;
+      
+      // 显示或隐藏房间
+      if (searchMatch && typeMatch && capacityMatch) {
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    // 处理空状态显示
+    showEmptyState(visibleCount === 0, isTableView);
+  }
+
+  // 显示空状态
+  function showEmptyState(isEmpty, isTableView) {
+    if (isEmpty) {
+      emptyState.style.display = 'block';
+      if (isTableView) {
+        tableView.querySelector('.table-responsive').style.display = 'none';
+      } else {
+        cardView.querySelector('.room-cards-grid').style.display = 'none';
+      }
+    } else {
+      emptyState.style.display = 'none';
+      if (isTableView) {
+        tableView.querySelector('.table-responsive').style.display = 'block';
+      } else {
+        cardView.querySelector('.room-cards-grid').style.display = 'grid';
+      }
+    }
+  }
+
+  // 删除确认
+  let deleteRoomUrl = '';
+  
+  function confirmDelete(roomName, url) {
+    deleteRoomUrl = url;
+    document.getElementById('deleteRoomName').textContent = roomName;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    deleteModal.show();
+    return false;
+  }
+
+  // 事件监听器
+  tableViewBtn.addEventListener('click', switchToTableView);
+  cardViewBtn.addEventListener('click', switchToCardView);
+  searchInput.addEventListener('input', filterRooms);
+  typeFilter.addEventListener('change', filterRooms);
+  minCapacityInput.addEventListener('input', filterRooms);
+  maxCapacityInput.addEventListener('input', filterRooms);
+
+  // 将确认删除函数挂载到全局
+  window.confirmDelete = confirmDelete;
+  
+  // 确认删除按钮事件
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (deleteRoomUrl) {
+      window.location.href = deleteRoomUrl;
+    }
+  });
+
+  // 复制链接功能
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.copy-link-btn')) {
+      e.preventDefault();
+      const button = e.target.closest('.copy-link-btn');
+      const link = button.getAttribute('data-link');
+      
+      console.log('准备复制链接:', link); // 调试信息
+      
+      if (!link) {
+        console.error('没有找到链接数据');
+        alert('未找到会议链接');
+        return;
+      }
+      
+      // 复制到剪贴板
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(function() {
+          console.log('复制成功:', link); // 调试信息
+          showCopySuccess(button, '已复制到剪贴板');
+        }).catch(function(err) {
+          console.error('现代API复制失败:', err);
+          fallbackCopy(link, button);
+        });
+      } else {
+        console.log('使用备用复制方法');
+        fallbackCopy(link, button);
+      }
+    }
+  });
+
+  // 显示复制成功状态
+  function showCopySuccess(button, message) {
+    const originalHtml = button.innerHTML;
+    const originalClasses = button.className;
+    
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.className = 'btn btn-sm btn-success copy-link-btn';
+    button.title = message || '复制成功';
+    
+    // 显示临时消息
+    showTemporaryMessage(message || '链接已复制到剪贴板', 'success');
+    
+    // 2秒后恢复原状
+    setTimeout(function() {
+      button.innerHTML = originalHtml;
+      button.className = originalClasses;
+      button.title = '复制链接';
+    }, 2000);
+  }
+
+  // 备用复制方法
+  function fallbackCopy(text, button) {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const result = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (result) {
+        console.log('备用方法复制成功:', text);
+        showCopySuccess(button, '已复制到剪贴板(兼容模式)');
+      } else {
+        console.error('备用方法复制失败');
+        showTemporaryMessage('复制失败，请手动复制链接', 'error');
+      }
+    } catch (err) {
+      console.error('备用复制方法出错:', err);
+      showTemporaryMessage('复制失败，请手动复制链接', 'error');
+    }
+  }
+
+  // 显示临时消息
+  function showTemporaryMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'warning'} alert-dismissible fade show position-fixed`;
+    messageDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+    messageDiv.innerHTML = `
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    // 3秒后自动消失
+    setTimeout(function() {
+      if (messageDiv.parentNode) {
+        messageDiv.remove();
+      }
+    }, 3000);
+  }
+
+  // 初始化
+  filterRooms();
+});
+</script>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>确认删除会议室
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <i class="fas fa-door-open fa-3x text-danger mb-3"></i>
+          <h6 class="mb-3">您确定要删除以下会议室吗？</h6>
+          <div class="alert alert-warning">
+            <strong id="deleteRoomName"></strong>
+          </div>
+          <p class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            此操作将永久删除该会议室，且无法恢复。
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>取消
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-2"></i>确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

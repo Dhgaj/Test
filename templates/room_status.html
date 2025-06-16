@@ -1,0 +1,838 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-door-open me-3"></i>会议室状态
+              </h2>
+              <p class="mb-0 text-white-50">实时查看所有会议室的使用情况</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 状态说明和视图切换 -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <!-- 状态徽章说明 -->
+      <div class="d-flex gap-2 justify-content-start flex-wrap align-items-center">
+        <span class="text-muted me-2">状态：</span>
+        <span class="badge bg-success fs-6 px-3 py-2 shadow-sm">
+          <i class="fas fa-check-circle me-1"></i>可用
+        </span>
+        <span class="badge bg-warning fs-6 px-3 py-2 shadow-sm">
+          <i class="fas fa-wrench me-1"></i>维护
+        </span>
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <!-- 视图切换按钮 -->
+      <div class="btn-group view-toggle shadow-sm" role="group">
+        <button type="button" class="btn btn-outline-primary active" id="card-view-btn">
+          <i class="fas fa-th-large me-2"></i>卡片
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="list-view-btn">
+          <i class="fas fa-list me-2"></i>列表
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卡片视图 -->
+  <div id="card-view" class="view-container active">
+    <div class="row">
+      {% for status in room_status %}
+      <div class="col-lg-6 col-xl-4 mb-4">
+        <div class="card border-0 shadow-sm h-100 room-status-card" data-room-id="{{ status.room.RoomID }}" style="border-radius: 15px; overflow: hidden;">
+          <!-- 会议室头部信息 -->
+          <div class="card-header border-bottom-0 pb-2" style="background: linear-gradient(135deg, #f8f9fa, #ffffff);">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h5 class="mb-2 fw-bold text-dark d-flex align-items-center">
+                  <div class="status-indicator me-3"
+                       style="width: 12px; height: 12px; border-radius: 50%; 
+                              background: {% if status.room.Status == 'Maintenance' %}#ffc107{% else %}#28a745{% endif %};">
+                  </div>
+                  <i class="fas fa-door-open me-2 text-primary"></i>
+                  {{ status.room.RoomName }}
+                </h5>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-users me-1 text-muted"></i>
+                    <span class="small text-muted">{{ status.room.Capacity }}人</span>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <i class="fas {% if status.room.RoomType == 'Online' %}fa-video{% else %}fa-building{% endif %} me-1 text-muted"></i>
+                    <span class="small text-muted">{% if status.room.RoomType == 'Online' %}线上{% else %}线下{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge fs-6 px-3 py-2 shadow-sm
+                  {% if status.room.Status == 'Maintenance' %}bg-warning 
+                  {% else %}bg-success{% endif %}"
+                  style="border-radius: 20px;">
+                  {% if status.room.Status == 'Maintenance' %}
+                    <i class="fas fa-wrench me-1"></i>维护中
+                  {% else %}
+                    <i class="fas fa-check-circle me-1"></i>可用
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body pt-3">
+            <!-- 位置/链接信息 -->
+            {% if status.room.RoomType == 'Offline' and status.room.Location %}
+            <div class="mb-3 p-2 rounded" style="background-color: rgba(102, 126, 234, 0.05);">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                <span class="small fw-medium">{{ status.room.Location }}</span>
+              </div>
+            </div>
+            {% elif status.room.RoomType == 'Online' and status.room.MeetingLink %}
+            <div class="mb-3 p-2 rounded" style="background-color: rgba(102, 126, 234, 0.05);">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-link me-2 text-primary"></i>
+                  <a href="{{ status.room.MeetingLink }}" 
+                     target="_blank" 
+                     class="text-decoration-none text-primary small fw-medium">
+                    会议链接
+                    <i class="fas fa-external-link-alt ms-1"></i>
+                  </a>
+                </div>
+                <button class="btn btn-sm btn-outline-primary copy-link-btn" 
+                        data-link="{{ status.room.MeetingLink }}" 
+                        title="复制链接">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- 当前使用情况 -->
+            {% if status.current_booking %}
+            <div class="alert border-0 mb-3" style="background: linear-gradient(135deg, rgba(13, 202, 240, 0.1), rgba(13, 202, 240, 0.05)); border-radius: 12px;">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-clock text-info me-2 mt-1"></i>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 text-info fw-semibold">正在进行</h6>
+                  <p class="mb-1 fw-medium text-dark">{{ status.current_booking.Title }}</p>
+                  <p class="mb-0 small text-muted">
+                    <i class="far fa-clock me-1"></i>
+                    结束时间：{{ status.current_booking.EndTime.strftime('%H:%M') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- 即将进行的会议 -->
+            {% if status.upcoming_bookings %}
+            <div class="mb-3">
+              <h6 class="text-muted mb-2 fw-semibold">
+                <i class="fas fa-calendar-alt me-2"></i>即将进行
+              </h6>
+              <div class="upcoming-meetings" style="max-height: 120px; overflow-y: auto;">
+                {% for booking in status.upcoming_bookings[:2] %}
+                <div class="border-start border-3 ps-3 mb-2" style="border-color: #667eea !important; background: rgba(102, 126, 234, 0.02); border-radius: 0 8px 8px 0; padding: 8px 12px;">
+                  <p class="mb-1 fw-semibold small text-dark">{{ booking.Title }}</p>
+                  <p class="mb-0 small text-muted">
+                    <i class="far fa-clock me-1"></i>
+                    {{ booking.StartTime.strftime('%H:%M') }} - 
+                    {{ booking.EndTime.strftime('%H:%M') }}
+                    {% if booking.StartTime.date() != booking.EndTime.date() %}
+                    <br><span class="badge bg-warning badge-sm">跨日会议</span>
+                    {% endif %}
+                  </p>
+                </div>
+                {% endfor %}
+                {% if status.upcoming_bookings|length > 2 %}
+                <p class="small text-muted mb-0 text-center">
+                  <i class="fas fa-ellipsis-h me-1"></i>
+                  还有 {{ status.upcoming_bookings|length - 2 }} 个会议
+                </p>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- 设备信息 -->
+            {% if status.equipment %}
+            <div class="mb-3">
+              <h6 class="text-muted mb-2 fw-semibold">
+                <i class="fas fa-tools me-2"></i>可用设备
+              </h6>
+              <div class="d-flex flex-wrap gap-2">
+                {% for item in status.equipment %}
+                <span class="badge bg-light text-dark border px-3 py-2" style="border-radius: 15px; font-weight: 500;">
+                  <i class="fas fa-cog me-1"></i>
+                  {{ item.EquipmentName }} × {{ item.Quantity }}
+                </span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- 维护信息 -->
+            {% if status.maintenance %}
+            <div class="alert border-0 mb-0" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05)); border-radius: 12px;">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-wrench text-warning me-2 mt-1"></i>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 text-warning fw-semibold">维护计划</h6>
+                  <p class="mb-1 small">
+                    <i class="far fa-calendar me-1"></i>
+                    {{ status.maintenance.StartTime.strftime('%m-%d %H:%M') }} 至 
+                    {{ status.maintenance.EndTime.strftime('%m-%d %H:%M') }}
+                  </p>
+                  <span class="badge bg-warning text-dark">{{ status.maintenance.Status }}</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- 操作按钮 -->
+          {% if status.room.Status == 'Available' %}
+          <div class="card-footer bg-white border-top-0 pt-0">
+            <div class="d-grid">
+              <a href="{{ url_for('new_reservation', room_id=status.room.RoomID) }}" 
+                 class="btn btn-primary btn-lg shadow-sm"
+                 style="border-radius: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none;">
+                <i class="fas fa-calendar-plus me-2"></i>
+                {% if status.current_booking %}稍后预订{% else %}立即预订{% endif %}
+              </a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 列表视图 -->
+  <div id="list-view" class="view-container">
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-header">
+            <tr>
+              <th class="py-3">会议室</th>
+              <th class="py-3">容量</th>
+              <th class="py-3">类型</th>
+              <th class="py-3">状态</th>
+              <th class="py-3">当前/即将进行</th>
+              <th class="py-3">地点/链接</th>
+              <th class="py-3 text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status in room_status %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-door-open me-2 text-primary"></i>
+                  <strong>{{ status.room.RoomName }}</strong>
+                </div>
+              </td>
+              <td>{{ status.room.Capacity }}人</td>
+              <td>
+                <span class="badge bg-light text-dark">
+                  <i class="fas {% if status.room.RoomType == 'Online' %}fa-video{% else %}fa-building{% endif %} me-1"></i>
+                  {% if status.room.RoomType == 'Online' %}线上{% else %}线下{% endif %}
+                </span>
+              </td>
+              <td>
+                <span class="badge fs-6 px-3 py-2 
+                  {% if status.room.Status == 'Maintenance' %}bg-warning 
+                  {% else %}bg-success{% endif %}">
+                  {% if status.room.Status == 'Maintenance' %}
+                    <i class="fas fa-wrench me-1"></i>维护中
+                  {% else %}
+                    <i class="fas fa-check-circle me-1"></i>可用
+                  {% endif %}
+                </span>
+              </td>
+              <td>
+                <div>
+                  {% if status.current_booking %}
+                  <div class="mb-2">
+                    <span class="badge bg-info">正在进行</span>
+                    <div class="mt-1 text-truncate" style="max-width: 180px;" title="{{ status.current_booking.Title }}">
+                      {{ status.current_booking.Title }}
+                    </div>
+                    <small class="text-muted">
+                      结束时间: {{ status.current_booking.EndTime.strftime('%H:%M') }}
+                    </small>
+                  </div>
+                  {% endif %}
+                  
+                  {% if status.upcoming_bookings %}
+                  <div>
+                    <span class="badge bg-secondary">即将进行</span> 
+                    <div class="mt-1 text-truncate" style="max-width: 180px;" title="{{ status.upcoming_bookings[0].Title }}">
+                      {{ status.upcoming_bookings[0].Title }}
+                    </div>
+                    <small class="text-muted">
+                      {{ status.upcoming_bookings[0].StartTime.strftime('%H:%M') }} - 
+                      {{ status.upcoming_bookings[0].EndTime.strftime('%H:%M') }}
+                    </small>
+                    {% if status.upcoming_bookings|length > 1 %}
+                    <div class="small text-primary">还有 {{ status.upcoming_bookings|length - 1 }} 个会议</div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+
+                  {% if not status.current_booking and not status.upcoming_bookings %}
+                  <span class="text-muted">暂无安排</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                {% if status.room.RoomType == 'Offline' and status.room.Location %}
+                <div class="text-truncate" style="max-width: 150px;" title="{{ status.room.Location }}">
+                  <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                  {{ status.room.Location }}
+                </div>
+                {% elif status.room.RoomType == 'Online' and status.room.MeetingLink %}
+                <div class="d-flex align-items-center">
+                  <a href="{{ status.room.MeetingLink }}" target="_blank" class="text-decoration-none text-primary me-2">
+                    <i class="fas fa-link me-1"></i>会议链接
+                  </a>
+                  <button class="btn btn-sm btn-outline-primary copy-link-btn" 
+                          data-link="{{ status.room.MeetingLink }}" 
+                          title="复制链接">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if status.room.Status == 'Available' %}
+                <a href="{{ url_for('new_reservation', room_id=status.room.RoomID) }}" 
+                   class="btn btn-primary btn-sm">
+                  <i class="fas fa-calendar-plus me-1"></i>
+                  预订
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-outline-secondary btn-sm room-details-btn" 
+                        data-room-id="{{ status.room.RoomID }}">
+                  <i class="fas fa-info-circle"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 空状态 -->
+  {% if not room_status %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-door-closed fa-4x text-muted mb-4"></i>
+          <h5 class="text-muted mb-3">暂无会议室信息</h5>
+          <p class="text-muted mb-4">请联系管理员添加会议室</p>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-arrow-left me-2"></i>返回控制面板
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 会议室详情模态框 -->
+<div class="modal fade" id="roomDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-gradient text-white">
+        <h5 class="modal-title"><i class="fas fa-door-open me-2"></i><span id="modal-room-name"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body" id="roomDetailsContent">
+        <!-- 内容将通过JavaScript动态填充 -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        <a href="#" class="btn btn-primary" id="modal-reserve-btn">
+          <i class="fas fa-calendar-plus me-1"></i>预订
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 复制按钮样式 */
+.copy-link-btn {
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.copy-link-btn:hover {
+  background-color: #667eea;
+  border-color: #667eea;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.copy-link-btn.success {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+/* 确保与控制面板的样式一致 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+  border-radius: 1rem !important;
+}
+
+.card {
+  transition: all 0.3s ease;
+  border-radius: 15px !important;
+  overflow: hidden;
+}
+
+.room-status-card {
+  transition: all 0.3s ease;
+}
+
+.card:hover,
+.room-status-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 视图切换关键样式 */
+.view-container {
+  display: none !important;
+}
+
+.view-container.active {
+  display: block !important;
+}
+
+.view-toggle .btn {
+  transition: all 0.3s ease;
+  border-radius: 25px;
+  font-weight: 500;
+}
+
+.view-toggle .btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  border-color: #667eea !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+}
+
+.view-toggle .btn:not(.active) {
+  background-color: white !important;
+  border-color: #667eea !important;
+  color: #667eea !important;
+}
+
+.view-toggle .btn:not(.active):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+}
+
+/* 状态指示器动画 - 减少明显程度 */
+.status-indicator {
+  position: relative;
+  animation: subtlePulse 3s infinite;
+}
+
+@keyframes subtlePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+/* 按钮样式统一和动画效果 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a67d8, #6b5b95);
+}
+
+/* 徽章样式美化 */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, #dc3545, #e74c3c) !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  color: #000 !important;
+}
+
+/* 表格样式优化 */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  font-weight: 600;
+  border-top: none;
+  border-bottom: 2px solid #dee2e6;
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.table-header {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+
+.table-header th {
+  color: white !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  transform: scale(1.01);
+}
+
+.table td, .table th {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* 模态框样式 */
+.modal-content {
+  border-radius: 20px !important;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 响应式设计优化 */
+@media (max-width: 992px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .table td, .table th {
+    white-space: nowrap;
+  }
+  
+  .room-status-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+@media (max-width: 768px) {
+  .col-md-4.text-end, .col-md-6.text-end {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+  
+  .d-flex.gap-2 {
+    justify-content: center !important;
+    flex-wrap: wrap;
+  }
+  
+  .view-toggle {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .view-toggle .btn {
+    flex: 1;
+    margin: 0 0.25rem;
+  }
+  
+  .room-status-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 360px) {
+  .d-flex.gap-2 {
+    gap: 0.25rem !important;
+  }
+  
+  .btn-lg {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+}
+</style>
+
+<script>
+// 视图切换功能
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('页面加载完成，开始初始化视图切换功能');
+  
+  // 获取视图切换按钮和视图容器
+  const cardViewBtn = document.getElementById('card-view-btn');
+  const listViewBtn = document.getElementById('list-view-btn');
+  const cardView = document.getElementById('card-view');
+  const listView = document.getElementById('list-view');
+  
+  // 检查元素是否存在
+  if (!cardViewBtn || !listViewBtn || !cardView || !listView) {
+    console.error('无法找到必要的DOM元素');
+    return;
+  }
+  
+  console.log('找到所有必要的DOM元素');
+  
+  // 从localStorage获取用户首选视图
+  const preferredView = localStorage.getItem('roomStatusPreferredView') || 'card';
+  console.log('用户首选视图:', preferredView);
+  
+  // 初始化视图
+  function initializeView(viewType) {
+    console.log('初始化视图:', viewType);
+    
+    if (viewType === 'list') {
+      cardViewBtn.classList.remove('active');
+      listViewBtn.classList.add('active');
+      cardView.classList.remove('active');
+      listView.classList.add('active');
+    } else {
+      cardViewBtn.classList.add('active');
+      listViewBtn.classList.remove('active');
+      cardView.classList.add('active');
+      listView.classList.remove('active');
+    }
+  }
+  
+  // 切换到卡片视图
+  function switchToCardView() {
+    console.log('切换到卡片视图');
+    cardViewBtn.classList.add('active');
+    listViewBtn.classList.remove('active');
+    cardView.classList.add('active');
+    listView.classList.remove('active');
+    localStorage.setItem('roomStatusPreferredView', 'card');
+  }
+  
+  // 切换到列表视图
+  function switchToListView() {
+    console.log('切换到列表视图');
+    cardViewBtn.classList.remove('active');
+    listViewBtn.classList.add('active');
+    cardView.classList.remove('active');
+    listView.classList.add('active');
+    localStorage.setItem('roomStatusPreferredView', 'list');
+  }
+  
+  // 初始化首选视图
+  initializeView(preferredView);
+  
+  // 卡片视图按钮点击事件
+  cardViewBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    console.log('卡片视图按钮被点击');
+    switchToCardView();
+  });
+  
+  // 列表视图按钮点击事件
+  listViewBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    console.log('列表视图按钮被点击');
+    switchToListView();
+  });
+  
+  // 会议室详情按钮点击事件
+  const detailButtons = document.querySelectorAll('.room-details-btn');
+  console.log('找到', detailButtons.length, '个详情按钮');
+  
+  if (detailButtons.length > 0) {
+    const roomDetailsModal = new bootstrap.Modal(document.getElementById('roomDetailsModal'));
+    
+    detailButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const roomId = this.getAttribute('data-room-id');
+        console.log('点击了房间ID为', roomId, '的详情按钮');
+        
+        // 查找与此roomId匹配的会议室卡片
+        const correspondingCard = document.querySelector(`[data-room-id="${roomId}"]`);
+        if (correspondingCard) {
+          // 从卡片中提取信息并填充到模态框中
+          const roomNameElement = correspondingCard.querySelector('.fw-bold.text-dark');
+          if (roomNameElement) {
+            const roomName = roomNameElement.textContent.trim();
+            document.getElementById('modal-room-name').textContent = roomName;
+            
+            // 克隆卡片的内容到模态框
+            const cardBody = correspondingCard.querySelector('.card-body');
+            if (cardBody) {
+              const clonedContent = cardBody.cloneNode(true);
+              document.getElementById('roomDetailsContent').innerHTML = '';
+              document.getElementById('roomDetailsContent').appendChild(clonedContent);
+            }
+            
+            // 更新预订按钮链接
+            const reserveBtn = document.getElementById('modal-reserve-btn');
+            if (reserveBtn) {
+              reserveBtn.href = `/new_reservation/${roomId}`;
+            }
+            
+            roomDetailsModal.show();
+          }
+        }
+      });
+    });
+  }
+  
+  console.log('视图切换功能初始化完成');
+  
+  // 复制链接功能
+  function initializeCopyButtons() {
+    console.log('初始化复制按钮功能');
+    const copyButtons = document.querySelectorAll('.copy-link-btn');
+    console.log('找到', copyButtons.length, '个复制按钮');
+    
+    copyButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const link = this.getAttribute('data-link');
+        if (!link) {
+          console.error('未找到要复制的链接');
+          return;
+        }
+        
+        console.log('尝试复制链接:', link);
+        
+        // 尝试使用现代的 navigator.clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(link).then(() => {
+            console.log('链接复制成功 (clipboard API)');
+            showCopySuccess(this);
+          }).catch(err => {
+            console.error('复制失败 (clipboard API):', err);
+            fallbackCopyTextToClipboard(link, this);
+          });
+        } else {
+          // 回退方法
+          fallbackCopyTextToClipboard(link, this);
+        }
+      });
+    });
+  }
+  
+  // 回退复制方法
+  function fallbackCopyTextToClipboard(text, button) {
+    console.log('使用回退复制方法');
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // 避免滚动到底部
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        console.log('链接复制成功 (execCommand)');
+        showCopySuccess(button);
+      } else {
+        console.error('复制失败 (execCommand)');
+        alert('复制失败，请手动复制链接');
+      }
+    } catch (err) {
+      console.error('复制失败 (execCommand):', err);
+      alert('复制失败，请手动复制链接');
+    }
+    
+    document.body.removeChild(textArea);
+  }
+  
+  // 显示复制成功状态
+  function showCopySuccess(button) {
+    const originalIcon = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.classList.add('success');
+    
+    setTimeout(() => {
+      button.innerHTML = originalIcon;
+      button.classList.remove('success');
+    }, 2000);
+  }
+  
+  // 初始化复制按钮
+  initializeCopyButtons();
+});
+</script>
+{% endblock %}

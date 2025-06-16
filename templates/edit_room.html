@@ -1,0 +1,586 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-edit me-3"></i>编辑会议室
+              </h2>
+              <p class="mb-0 text-white-50">修改会议室信息，确保预订系统信息准确</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('admin_rooms') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回会议室管理
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0" style="color: black;">
+            <i class="fas fa-door-open me-2 text-primary"></i>会议室详细信息
+          </h5>
+        </div>
+        <div class="card-body p-5">
+          <!-- 表单开始 -->
+          <form method="POST" class="needs-validation" novalidate>
+            
+            <!-- 基本信息区块 -->
+            <div class="info-section mb-5">
+              <h6 class="section-title mb-4">
+                <i class="fas fa-info-circle me-2"></i>基本信息
+              </h6>
+              
+              <div class="row g-4">
+                <!-- 会议室名称输入框 -->
+                <div class="col-md-6">
+                  <label for="name" class="form-label fw-semibold">
+                    <i class="fas fa-tag me-2 text-success"></i>会议室名称
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control form-control-lg"
+                    id="name"
+                    name="name"
+                    value="{{ room.name }}"
+                    required 
+                    placeholder="如：小型会议室" />
+                  <div class="invalid-feedback">请输入会议室名称</div>
+                </div>
+
+                <!-- 房间号输入框 -->
+                <div class="col-md-6">
+                  <label for="room_number" class="form-label fw-semibold">
+                    <i class="fas fa-hashtag me-2 text-primary"></i>房间号
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control form-control-lg"
+                    id="room_number"
+                    name="room_number"
+                    value="{{ room.room_number }}"
+                    required 
+                    placeholder="如：A101" />
+                  <div class="invalid-feedback">请输入房间号</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 配置信息区块 -->
+            <div class="info-section mb-5">
+              <h6 class="section-title mb-4">
+                <i class="fas fa-cog me-2"></i>配置信息
+              </h6>
+              
+              <div class="row g-4">
+                <!-- 容纳人数输入框 -->
+                <div class="col-md-6">
+                  <label for="capacity" class="form-label fw-semibold">
+                    <i class="fas fa-users me-2 text-info"></i>容纳人数
+                  </label>
+                  <input
+                    type="number"
+                    class="form-control form-control-lg"
+                    id="capacity"
+                    name="capacity"
+                    value="{{ room.capacity }}"
+                    min="1"
+                    max="500"
+                    required 
+                    placeholder="如：10" />
+                  <div class="form-text">请输入1-500之间的数字</div>
+                  <div class="invalid-feedback">请输入有效的人数</div>
+                </div>
+
+                <!-- 设备信息输入框 -->
+                <div class="col-md-6">
+                  <label for="equipment" class="form-label fw-semibold">
+                    <i class="fas fa-laptop me-2 text-warning"></i>设备信息
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control form-control-lg"
+                    id="equipment"
+                    name="equipment"
+                    value="{{ room.Equipment or '' }}"
+                    placeholder="如：投影仪,白板,音响" />
+                  <div class="form-text">多个设备请用逗号分隔</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 会议室类型选择 -->
+            <div class="info-section mb-5">
+              <h6 class="section-title mb-4">
+                <i class="fas fa-map-marker-alt me-2"></i>类型与位置
+              </h6>
+              
+              <div class="mb-4">
+                <label class="form-label fw-semibold">会议室类型</label>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="type-option">
+                      <input class="form-check-input" type="radio" name="room_type" id="type_offline" value="Offline" 
+                        {% if room.RoomType == 'Offline' %}checked{% endif %}>
+                      <label class="type-label" for="type_offline">
+                        <div class="type-icon offline-icon">
+                          <i class="fas fa-building"></i>
+                        </div>
+                        <div class="type-content">
+                          <h6 class="mb-1">线下会议室</h6>
+                          <small class="text-muted">实体会议室，需要物理到场</small>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="type-option">
+                      <input class="form-check-input" type="radio" name="room_type" id="type_online" value="Online"
+                        {% if room.RoomType == 'Online' %}checked{% endif %}>
+                      <label class="type-label" for="type_online">
+                        <div class="type-icon online-icon">
+                          <i class="fas fa-video"></i>
+                        </div>
+                        <div class="type-content">
+                          <h6 class="mb-1">线上会议室</h6>
+                          <small class="text-muted">虚拟会议室，远程参与</small>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 会议室位置（仅线下会议室显示） -->
+              <div class="location-section" id="location_section" {% if room.RoomType == 'Online' %}style="display:none;"{% endif %}>
+                <div class="mb-4">
+                  <label for="location" class="form-label fw-semibold">
+                    <i class="fas fa-map-marker-alt me-2 text-danger"></i>详细位置
+                  </label>
+                  <input 
+                    type="text" 
+                    class="form-control form-control-lg mb-3" 
+                    id="location" 
+                    name="location" 
+                    placeholder="如：3号楼5层508室" 
+                    value="{{ room.Location or '' }}">
+                  <div class="form-text">请提供准确的位置信息便于参会者找到</div>
+                </div>
+                
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="building" class="form-label fw-semibold">建筑</label>
+                    <input 
+                      type="text" 
+                      class="form-control form-control-lg" 
+                      id="building" 
+                      name="building" 
+                      placeholder="如：A座、B座、主楼" 
+                      value="{{ room.Building or '' }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="floor" class="form-label fw-semibold">楼层</label>
+                    <input 
+                      type="text" 
+                      class="form-control form-control-lg" 
+                      id="floor" 
+                      name="floor" 
+                      placeholder="如：1楼、2楼、地下一层" 
+                      value="{{ room.Floor or '' }}">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 线上会议链接（仅线上会议室显示） -->
+              <div class="link-section" id="link_section" {% if room.RoomType == 'Offline' or not room.RoomType %}style="display:none;"{% endif %}>
+                <div class="mb-4">
+                  <label for="meeting_link" class="form-label fw-semibold">
+                    <i class="fas fa-link me-2 text-primary"></i>线上会议链接
+                  </label>
+                  <input 
+                    type="url" 
+                    class="form-control form-control-lg" 
+                    id="meeting_link" 
+                    name="meeting_link" 
+                    placeholder="如：https://zoom.us/j/123456789" 
+                    value="{{ room.MeetingLink or '' }}">
+                  <div class="form-text">请提供有效的会议链接</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 描述信息区块 -->
+            <div class="info-section mb-5">
+              <h6 class="section-title mb-4">
+                <i class="fas fa-file-text me-2"></i>描述信息
+              </h6>
+              
+              <div class="mb-4">
+                <label for="description" class="form-label fw-semibold">
+                  <i class="fas fa-comment me-2 text-secondary"></i>会议室描述
+                </label>
+                <textarea
+                  class="form-control form-control-lg"
+                  id="description"
+                  name="description"
+                  rows="4"
+                  placeholder="请描述会议室的特色、适用场景等信息...">{{ room.description }}</textarea>
+                <div class="form-text">详细描述有助于用户选择合适的会议室</div>
+              </div>
+            </div>
+
+            <!-- 提交和取消按钮 -->
+            <div class="d-flex justify-content-center gap-3 mt-5 pt-4 border-top">
+              <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline-secondary btn-lg px-5">
+                <i class="fas fa-times me-2"></i>取消
+              </a>
+              <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save me-2"></i>保存修改
+              </button>
+            </div>
+          </form>
+          <!-- 表单结束 -->
+  </div>
+</div>
+
+<style>
+/* 页面标题样式 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* 卡片样式 */
+.card {
+  border-radius: 1rem !important;
+  transition: all 0.3s ease;
+}
+
+.card-header {
+  border-radius: 1rem 1rem 0 0 !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+
+/* 区块标题样式 */
+.info-section {
+  position: relative;
+}
+
+.section-title {
+  color: #495057;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 1.5rem;
+}
+
+.section-title i {
+  color: #6c757d;
+}
+
+/* 表单控件样式 */
+.form-control {
+  border-radius: 0.75rem !important;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-control-lg {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+/* 标签样式 */
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-label i {
+  font-size: 0.9rem;
+}
+
+/* 会议室类型选择样式 */
+.type-option {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.type-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.type-label {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  margin-bottom: 0;
+}
+
+.type-label:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.type-option input[type="radio"]:checked + .type-label {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.type-option input[type="radio"]:checked + .type-label .type-content h6,
+.type-option input[type="radio"]:checked + .type-label .type-content small {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.type-option input[type="radio"]:checked + .type-label .type-content h6 {
+  font-weight: 700 !important;
+}
+
+.type-option input[type="radio"]:checked + .type-label .type-content small {
+  opacity: 0.95;
+}
+
+.type-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1.5rem;
+}
+
+.offline-icon {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.online-icon {
+  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+  color: white;
+}
+
+.type-content h6 {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #2c3e50;
+}
+
+.type-content small {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* 位置和链接区域样式 */
+.location-section,
+.link-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+/* 按钮样式 */
+.btn {
+  border-radius: 0.75rem !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background: #6c757d;
+  border-color: #6c757d;
+  transform: translateY(-2px);
+}
+
+/* 表单验证样式 */
+.was-validated .form-control:valid {
+  border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* 帮助文本样式 */
+.form-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .type-label {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .type-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.info-section {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.info-section:nth-child(2) { animation-delay: 0.1s; }
+.info-section:nth-child(3) { animation-delay: 0.2s; }
+.info-section:nth-child(4) { animation-delay: 0.3s; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 获取单选按钮和需要隐藏/显示的区域
+  const typeOfflineRadio = document.getElementById('type_offline');
+  const typeOnlineRadio = document.getElementById('type_online');
+  const locationSection = document.getElementById('location_section');
+  const linkSection = document.getElementById('link_section');
+  
+  // 添加事件监听器，当单选按钮状态改变时触发
+  typeOfflineRadio.addEventListener('change', function() {
+    if (this.checked) {
+      locationSection.style.display = 'block';
+      linkSection.style.display = 'none';
+      // 添加动画效果
+      locationSection.style.animation = 'fadeInUp 0.5s ease forwards';
+    }
+  });
+  
+  typeOnlineRadio.addEventListener('change', function() {
+    if (this.checked) {
+      locationSection.style.display = 'none';
+      linkSection.style.display = 'block';
+      // 添加动画效果
+      linkSection.style.animation = 'fadeInUp 0.5s ease forwards';
+    }
+  });
+  
+  // 表单验证
+  const form = document.querySelector('.needs-validation');
+  
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    form.classList.add('was-validated');
+  });
+  
+  // 实时验证
+  const inputs = form.querySelectorAll('input[required], textarea[required]');
+  inputs.forEach(input => {
+    input.addEventListener('blur', function() {
+      if (this.checkValidity()) {
+        this.classList.remove('is-invalid');
+        this.classList.add('is-valid');
+      } else {
+        this.classList.remove('is-valid');
+        this.classList.add('is-invalid');
+      }
+    });
+  });
+  
+  // 人数输入验证
+  const capacityInput = document.getElementById('capacity');
+  capacityInput.addEventListener('input', function() {
+    const value = parseInt(this.value);
+    if (value < 1 || value > 500 || isNaN(value)) {
+      this.setCustomValidity('请输入1-500之间的有效数字');
+    } else {
+      this.setCustomValidity('');
+    }
+  });
+  
+  // URL验证（线上会议链接）
+  const meetingLinkInput = document.getElementById('meeting_link');
+  meetingLinkInput.addEventListener('blur', function() {
+    if (this.value && typeOnlineRadio.checked) {
+      try {
+        new URL(this.value);
+        this.setCustomValidity('');
+      } catch {
+        this.setCustomValidity('请输入有效的会议链接URL');
+      }
+    } else {
+      this.setCustomValidity('');
+    }
+  });
+});
+</script>
+{% endblock %}

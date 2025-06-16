@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #667eea;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+  }
+
+  .section-card.equipment-info {
+    border-left-color: #667eea; /* 蓝色 - 设备信息 */
+  }
+
+  .section-card.equipment-details {
+    border-left-color: #28a745; /* 绿色 - 设备详情 */
+  }
+
+  .section-card.equipment-info:hover {
+    border-left-color: #5a6ecd;
+  }
+
+  .section-card.equipment-details:hover {
+    border-left-color: #218838;
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .form-control,
+  .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.85rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .form-floating label {
+    padding: 1rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    text-align: center;
+    border-radius: var(--border-radius);
+    margin-top: 2rem;
+  }
+
+  .submit-btn {
+    background: var(--primary-gradient);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    color: white;
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    padding: 1rem 3rem;
+    border-radius: 1.5rem;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    display: inline-block;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+    text-decoration: none;
+  }
+
+  .alert {
+    border-radius: 0.85rem;
+    border: none;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+
+  .alert-info {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #0d47a1;
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 控制面板样式标题 */
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  .section-card:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  .section-card:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .section-card {
+      padding: 1.5rem;
+    }
+    
+    .submit-btn,
+    .back-btn {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+    }
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-edit me-3"></i>编辑设备
+              </h2>
+              <p class="mb-0 text-white-50">设备管理 / 编辑设备</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('admin_equipment') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="alert alert-info alert-custom alert-dismissible fade show">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" id="editEquipmentForm">
+      <!-- 设备基本信息 -->
+      <div class="section-card equipment-info">
+        <h4 class="section-title">
+          <i class="fas fa-cogs" style="color: #667eea"></i>
+          设备基本信息
+        </h4>
+        
+        <div class="form-floating">
+          <select class="form-select" id="room_id" name="room_id" required>
+            <option value="">请选择会议室</option>
+            {% for room in rooms %}
+            <option value="{{ room.RoomID }}" {% if room.RoomID == equipment.RoomID %}selected{% endif %}>
+              {{ room.RoomName }}
+            </option>
+            {% endfor %}
+          </select>
+          <label for="room_id">
+            <i class="fas fa-door-open me-2"></i>所属会议室
+          </label>
+        </div>
+
+        <div class="form-floating">
+          <input type="text" class="form-control" id="equipment_name" name="equipment_name" 
+                 value="{{ equipment.EquipmentName }}" required placeholder="设备名称">
+          <label for="equipment_name">
+            <i class="fas fa-tag me-2"></i>设备名称
+          </label>
+        </div>
+      </div>
+
+      <!-- 设备详细信息 -->
+      <div class="section-card equipment-details">
+        <h4 class="section-title">
+          <i class="fas fa-list-ul" style="color: #28a745"></i>
+          设备详细信息
+        </h4>
+        
+        <div class="form-floating">
+          <input type="number" class="form-control" id="quantity" name="quantity" 
+                 value="{{ equipment.Quantity }}" min="1" required placeholder="设备数量">
+          <label for="quantity">
+            <i class="fas fa-calculator me-2"></i>设备数量
+          </label>
+        </div>
+        
+        <div class="mt-3 text-muted">
+          <small>
+            <i class="fas fa-info-circle me-1"></i>
+            请确保设备数量准确，这将影响会议室的可用设备统计
+          </small>
+        </div>
+      </div>
+
+      <!-- 提交按钮 -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="submit-section">
+            <a href="{{ url_for('admin_equipment') }}" class="back-btn">
+              <i class="fas fa-times me-2"></i>
+              取消
+            </a>
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-save me-2"></i>
+              更新设备信息
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // 表单验证
+  document.getElementById('editEquipmentForm').addEventListener('submit', function(e) {
+    const roomId = document.getElementById('room_id').value;
+    const equipmentName = document.getElementById('equipment_name').value.trim();
+    const quantity = document.getElementById('quantity').value;
+
+    if (!roomId) {
+      alert('请选择会议室');
+      e.preventDefault();
+      return false;
+    }
+
+    if (!equipmentName) {
+      alert('请输入设备名称');
+      e.preventDefault();
+      return false;
+    }
+
+    if (!quantity || quantity < 1) {
+      alert('请输入正确的设备数量（至少为1）');
+      e.preventDefault();
+      return false;
+    }
+
+    // 提交时显示加载状态
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>更新中...';
+    submitBtn.disabled = true;
+
+    // 如果验证失败，恢复按钮状态
+    setTimeout(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }, 3000);
+  });
+
+  // 输入框焦点效果
+  const inputs = document.querySelectorAll('.form-control, .form-select');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.closest('.section-card').style.borderLeftWidth = '6px';
+    });
+    
+    input.addEventListener('blur', function() {
+      this.closest('.section-card').style.borderLeftWidth = '4px';
+    });
+  });
+
+  // 键盘快捷键
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case 's':
+          e.preventDefault();
+          document.getElementById('editEquipmentForm').submit();
+          break;
+        case 'Escape':
+          window.location.href = "{{ url_for('admin_equipment') }}";
+          break;
+      }
+    }
+  });
+});
+</script>
+{% endblock %} 

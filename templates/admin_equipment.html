@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-cogs me-3"></i>设备管理
+              </h2>
+              <p class="mb-0 text-white-50">全面管理会议室设备，确保设施完善</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('add_equipment') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-plus me-2"></i>添加设备
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- 设备统计 -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-primary mb-3">
+            <i class="fas fa-cogs fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-primary">{{ equipment_list|length }}</h3>
+          <p class="text-muted mb-0">设备总数</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-success mb-3">
+            <i class="fas fa-check-circle fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-success">{{ equipment_list|map('first')|map(attribute='Quantity')|sum }}</h3>
+          <p class="text-muted mb-0">设备数量</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-info mb-3">
+            <i class="fas fa-building fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-info">{{ equipment_list|map('last')|map(attribute='RoomName')|unique|list|length }}</h3>
+          <p class="text-muted mb-0">配备会议室</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="stat-icon text-warning mb-3">
+            <i class="fas fa-wrench fa-3x"></i>
+          </div>
+          <h3 class="fw-bold text-warning">{{ equipment_list|map('first')|map(attribute='EquipmentName')|unique|list|length }}</h3>
+          <p class="text-muted mb-0">设备类型</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设备列表 -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-list me-2 text-primary"></i>设备清单
+              </h5>
+            </div>
+            <div class="col-auto">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm active" id="tableView">
+                  <i class="fas fa-table me-1"></i>列表
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="cardView">
+                  <i class="fas fa-th-large me-1"></i>卡片
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 表格视图 -->
+        <div id="tableViewContent" class="card-body p-0">
+          {% if equipment_list %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-header-modern">
+                <tr>
+                  <th class="border-0 px-4 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon id-icon">
+                        <i class="fas fa-hashtag"></i>
+                      </div>
+                      <span class="header-text">设备ID</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon room-icon">
+                        <i class="fas fa-door-open"></i>
+                      </div>
+                      <span class="header-text">所属会议室</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon equipment-icon">
+                        <i class="fas fa-cog"></i>
+                      </div>
+                      <span class="header-text">设备名称</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon quantity-icon">
+                        <i class="fas fa-sort-numeric-up"></i>
+                      </div>
+                      <span class="header-text">数量统计</span>
+                    </div>
+                  </th>
+                  <th class="border-0 text-center header-cell">
+                    <div class="header-content justify-content-center">
+                      <div class="header-icon action-icon">
+                        <i class="fas fa-tools"></i>
+                      </div>
+                      <span class="header-text">管理操作</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for equipment, room in equipment_list %}
+                <tr class="equipment-row">
+                  <td class="align-middle px-4">
+                    <span class="badge bg-primary">#{{ equipment.EquipmentID }}</span>
+                  </td>
+                  <td class="align-middle">
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-circle me-3">
+                        <i class="fas fa-building"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold">{{ room.RoomName }}</div>
+                        <small class="text-muted">{{ room.RoomType }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold">{{ equipment.EquipmentName }}</div>
+                  </td>
+                  <td class="align-middle">
+                    <span class="badge bg-success rounded-pill">{{ equipment.Quantity }}台</span>
+                  </td>
+                  <td class="align-middle text-center">
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('edit_equipment', id=equipment.EquipmentID) }}" 
+                         class="btn btn-outline-primary btn-sm"
+                         data-bs-toggle="tooltip" title="编辑设备">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{{ url_for('delete_equipment', id=equipment.EquipmentID) }}" 
+                         class="btn btn-outline-danger btn-sm"
+                         onclick="return confirm('确定要删除这个设备吗？删除后将无法恢复！')"
+                         data-bs-toggle="tooltip" title="删除设备">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">暂无设备信息</h5>
+            <p class="text-muted">点击"添加设备"开始管理会议室设备</p>
+            <a href="{{ url_for('add_equipment') }}" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>添加第一个设备
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- 卡片视图 -->
+        <div id="cardViewContent" class="card-body p-4" style="display: none;">
+          {% if equipment_list %}
+          <div class="row g-4" id="equipmentGrid">
+            {% for equipment, room in equipment_list %}
+            <div class="col-lg-4 col-md-6 equipment-item">
+              <div class="equipment-card card border-0 shadow-sm h-100">
+                <div class="card-header bg-light border-bottom-0">
+                  <div class="row align-items-center">
+                    <div class="col">
+                      <h6 class="mb-0 fw-bold">{{ equipment.EquipmentName }}</h6>
+                    </div>
+                    <div class="col-auto">
+                      <span class="badge bg-primary rounded-pill">
+                        <i class="fas fa-cog me-1"></i>#{{ equipment.EquipmentID }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="equipment-info">
+                    <div class="info-item mb-2">
+                      <i class="fas fa-door-open text-primary me-2"></i>
+                      <span class="fw-semibold">{{ room.RoomName }}</span>
+                      <small class="text-muted">({{ room.RoomType }})</small>
+                    </div>
+                    <div class="info-item mb-2">
+                      <i class="fas fa-sort-numeric-up text-success me-2"></i>
+                      <span>数量: <span class="badge bg-success rounded-pill">{{ equipment.Quantity }}台</span></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer bg-white border-top">
+                  <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('edit_equipment', id=equipment.EquipmentID) }}" 
+                       class="btn btn-outline-primary btn-sm">
+                      <i class="fas fa-edit me-1"></i>编辑
+                    </a>
+                    <a href="{{ url_for('delete_equipment', id=equipment.EquipmentID) }}" 
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('确定要删除这个设备吗？删除后将无法恢复！')">
+                      <i class="fas fa-trash me-1"></i>删除
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">暂无设备信息</h5>
+            <p class="text-muted">点击"添加设备"开始管理会议室设备</p>
+            <a href="{{ url_for('add_equipment') }}" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>添加第一个设备
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 确保与控制面板和预订页面的样式一致 */
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.stat-card {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1) !important;
+}
+
+.stat-card:nth-child(1) { border-left-color: #007bff; }
+.stat-card:nth-child(2) { border-left-color: #28a745; }
+.stat-card:nth-child(3) { border-left-color: #0dcaf0; }
+.stat-card:nth-child(4) { border-left-color: #ffc107; }
+
+.equipment-row {
+  transition: all 0.3s ease;
+}
+
+.equipment-row:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  transform: translateX(5px);
+}
+
+.equipment-card {
+  border-radius: 1rem !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.equipment-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,0.15) !important;
+}
+
+.equipment-card .card-header {
+  border-radius: 1rem 1rem 0 0 !important;
+}
+
+.stat-icon {
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: currentColor;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.info-item i {
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.btn-group .btn {
+  border-radius: 0.5rem !important;
+  margin: 0 1px;
+}
+
+.equipment-item {
+  animation: fadeInUp 0.6s ease;
+}
+
+.equipment-item:nth-child(2) { animation-delay: 0.1s; }
+.equipment-item:nth-child(3) { animation-delay: 0.2s; }
+.equipment-item:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 按钮样式与我的会议资料页面保持一致 */
+.btn-light {
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-light:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  /* 小屏幕 - 按钮居中显示 */
+  .col-md-4.text-end {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+  
+  .equipment-card .btn-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .equipment-card .btn-group .btn {
+    margin: 0;
+    border-radius: 0.375rem !important;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 360px) {
+  /* 在最小屏幕上减少按钮之间的间距 */
+  .d-flex.gap-2 {
+    gap: 0.25rem !important;
+  }
+  
+  .btn-lg {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化工具提示
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+  // 视图切换
+  const tableViewBtn = document.getElementById('tableView');
+  const cardViewBtn = document.getElementById('cardView');
+  const tableViewContent = document.getElementById('tableViewContent');
+  const cardViewContent = document.getElementById('cardViewContent');
+  
+  tableViewBtn.addEventListener('click', function() {
+    tableViewBtn.classList.add('active');
+    cardViewBtn.classList.remove('active');
+    tableViewContent.style.display = 'block';
+    cardViewContent.style.display = 'none';
+    localStorage.setItem('equipmentViewMode', 'table');
+  });
+  
+  cardViewBtn.addEventListener('click', function() {
+    cardViewBtn.classList.add('active');
+    tableViewBtn.classList.remove('active');
+    tableViewContent.style.display = 'none';
+    cardViewContent.style.display = 'block';
+    localStorage.setItem('equipmentViewMode', 'card');
+  });
+  
+  // 恢复用户偏好的视图
+  const savedViewMode = localStorage.getItem('equipmentViewMode');
+  if (savedViewMode === 'card') {
+    cardViewBtn.click();
+  }
+  
+  // 键盘快捷键
+  document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + T 切换表格视图
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+      e.preventDefault();
+      tableViewBtn.click();
+    }
+    
+    // Ctrl/Cmd + C 切换卡片视图
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      e.preventDefault();
+      cardViewBtn.click();
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 英雄区域 -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <div class="hero-section bg-gradient-primary text-white py-5 rounded-lg shadow-lg">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h1 class="display-3 fw-bold mb-4">
+                <i class="fas fa-building me-3"></i>会议智控系统
+              </h1>
+              <p class="lead fs-4 mb-4 opacity-90">
+                智能管理会议室资源，让每一次会议都更高效
+              </p>
+              <div class="feature-badges">
+                <span class="badge bg-light text-primary me-2 p-2">
+                  <i class="fas fa-clock me-1"></i>实时预订
+                </span>
+                <span class="badge bg-light text-primary me-2 p-2">
+                  <i class="fas fa-calendar-check me-1"></i>智能调度
+                </span>
+                <span class="badge bg-light text-primary me-2 p-2">
+                  <i class="fas fa-shield-alt me-1"></i>安全可靠
+                </span>
+              </div>
+            </div>
+            <div class="col-lg-4 text-center">
+              <div class="hero-icon">
+                <i class="fas fa-video fa-7x text-white opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 功能特色区域 -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <h2 class="text-center mb-5">
+        <i class="fas fa-star me-2 text-warning"></i>系统特色
+      </h2>
+    </div>
+    <div class="col-lg-4 mb-4">
+      <div class="feature-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="feature-icon text-primary mb-3">
+            <i class="fas fa-calendar-plus fa-3x"></i>
+          </div>
+          <h5 class="card-title fw-bold">快速预订</h5>
+          <p class="card-text text-muted">
+            简单几步即可完成会议室预订，支持线上线下多种会议形式
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+      <div class="feature-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="feature-icon text-success mb-3">
+            <i class="fas fa-chart-line fa-3x"></i>
+          </div>
+          <h5 class="card-title fw-bold">数据统计</h5>
+          <p class="card-text text-muted">
+            实时查看使用率、统计报表，为管理决策提供数据支持
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+      <div class="feature-card card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="feature-icon text-info mb-3">
+            <i class="fas fa-users fa-3x"></i>
+          </div>
+          <h5 class="card-title fw-bold">团队协作</h5>
+          <p class="card-text text-muted">
+            支持多人协作，权限管理，会议资料共享与管理
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作区域 -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="action-section card border-0 shadow-lg bg-gradient-light">
+        <div class="card-body text-center p-5">
+          {% if not current_user.is_authenticated %}
+          <!-- 用户未登录时 -->
+          <h3 class="mb-4">
+            <i class="fas fa-rocket me-2 text-primary"></i>开始您的智能会议之旅
+          </h3>
+          <p class="text-muted mb-4">登录系统，体验高效的会议室管理服务</p>
+          <div class="d-flex gap-3 justify-content-center">
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4">
+              <i class="fas fa-sign-in-alt me-2"></i>立即登录
+            </a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg px-4">
+              <i class="fas fa-user-plus me-2"></i>注册账号
+            </a>
+          </div>
+          {% else %}
+          <!-- 用户已登录时 -->
+          <h3 class="mb-4">
+            <i class="fas fa-hand-paper me-2 text-success"></i>欢迎回来，{{ current_user.UserName }}！
+          </h3>
+          <p class="text-muted mb-4">继续您的会议管理工作</p>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+              <i class="fas fa-tachometer-alt me-2"></i>控制面板
+            </a>
+            <a href="{{ url_for('new_reservation') }}" class="btn btn-success btn-lg px-4">
+              <i class="fas fa-calendar-plus me-2"></i>预订会议室
+            </a>
+            {% if current_user.IsAdmin %}
+            <a href="{{ url_for('admin_users') }}" class="btn btn-warning btn-lg px-4">
+              <i class="fas fa-cogs me-2"></i>系统管理
+            </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 1rem !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>') repeat;
+  background-size: 30px 30px;
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+.feature-card {
+  transition: all 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,0.15) !important;
+}
+
+.feature-icon {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.action-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 1rem !important;
+}
+
+.feature-badges .badge {
+  font-size: 0.9rem;
+  border-radius: 1rem;
+}
+
+.hero-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (max-width: 768px) {
+  .display-3 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-section {
+    text-align: center;
+  }
+  
+  .d-flex.gap-3 {
+    flex-direction: column;
+  }
+  
+  .d-flex.gap-3 .btn {
+    margin-bottom: 0.5rem;
+  }
+}
+</style>
+{% endblock %}

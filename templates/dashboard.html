@@ -1,0 +1,1654 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container-fluid">
+  <!-- 页面标题和欢迎信息 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-tachometer-alt me-3"></i>控制面板
+              </h2>
+              <p class="mb-0 text-white-50">
+                欢迎回来，{{ current_user.UserName }}！今天是 <span id="currentDate"></span>
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('new_reservation') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-plus me-2"></i>预订会议室
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="row mb-4">
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#reservationsModal">
+        <div class="card-body text-center">
+          <div class="text-primary mb-3">
+            <i class="fas fa-calendar-check fa-3x"></i>
+          </div>
+          <h4 class="fw-bold">{{ current_user.reservations|active|length }}</h4>
+          <p class="text-muted mb-0">我的预订</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#confirmedModal">
+        <div class="card-body text-center">
+          <div class="text-success mb-3">
+            <i class="fas fa-clock fa-3x"></i>
+          </div>
+          <h4 class="fw-bold">
+            {{ current_user.reservations|active|selectattr("Status", "equalto", "Confirmed")|list|length }}
+          </h4>
+          <p class="text-muted mb-0">已确认</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#pendingModal">
+        <div class="card-body text-center">
+          <div class="text-warning mb-3">
+            <i class="fas fa-hourglass-half fa-3x"></i>
+          </div>
+          <h4 class="fw-bold">
+            {{ current_user.reservations|active|selectattr("Status", "equalto", "Pending")|list|length }}
+          </h4>
+          <p class="text-muted mb-0">待确认</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#cancelledModal">
+        <div class="card-body text-center">
+          <div class="text-danger mb-3">
+            <i class="fas fa-times-circle fa-3x"></i>
+          </div>
+          <h4 class="fw-bold">
+            {{ current_user.reservations|selectattr("Status", "equalto", "Cancelled")|list|length }}
+          </h4>
+          <p class="text-muted mb-0">已取消</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#allExpiredModal">
+        <div class="card-body text-center">
+          <div class="text-danger mb-3">
+            <i class="fas fa-calendar-times fa-3x"></i>
+          </div>
+          <h4 class="fw-bold">{{ current_user.reservations|expired|length }}</h4>
+          <p class="text-muted mb-0">过期会议</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#materialsModal">
+        <div class="card-body text-center">
+          <div class="text-info mb-3">
+            <i class="fas fa-file-alt fa-3x"></i>
+          </div>
+          {% set user_materials_count = current_user.uploaded_materials|length %}
+          <h4 class="fw-bold">{{ user_materials_count }}</h4>
+          <p class="text-muted mb-0">会议资料</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快捷操作面板 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title mb-3">
+            <i class="fas fa-bolt me-2 text-warning"></i>快捷操作
+          </h6>
+          <div class="row g-2 justify-content-center">
+            {% set col_class = "col-lg-2 col-md-4 col-6" if current_user.is_admin else "col-lg col-md-4 col-6" %}
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('new_reservation') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-plus fa-2x mb-2"></i>
+                <span class="small">快速预订</span>
+              </a>
+            </div>
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('view_room_status') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-door-open fa-2x mb-2"></i>
+                <span class="small">会议室状态</span>
+              </a>
+            </div>
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('my_materials') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-folder fa-2x mb-2"></i>
+                <span class="small">我的资料</span>
+              </a>
+            </div>
+            {% if current_user.is_admin %}
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('statistics') }}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                <span class="small">使用统计</span>
+              </a>
+            </div>
+            {% endif %}
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('view_notifications') }}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-bell fa-2x mb-2"></i>
+                <span class="small">通知中心</span>
+              </a>
+            </div>
+            <div class="{{ col_class }}">
+              <a href="{{ url_for('user_profile') }}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                <i class="fas fa-cog fa-2x mb-2"></i>
+                <span class="small">账户信息</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今日会议预览 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h6 class="mb-0">
+                <i class="fas fa-calendar-day me-2 text-primary"></i>今日会议安排
+              </h6>
+            </div>
+            <div class="col-auto">
+              <span class="badge bg-primary" id="todayBadge"></span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          {% set today_reservations = current_user.reservations|active|today %}
+          {% if today_reservations %}
+          <div class="list-group list-group-flush">
+            {% for reservation in today_reservations[:3] %}
+            <div class="list-group-item border-0">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="time-indicator">
+                    <div class="time-badge bg-primary text-white">
+                      {{ reservation.StartTime.strftime('%H:%M') }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <h6 class="mb-1">{{ reservation.Title }}</h6>
+                  <p class="mb-1 text-muted small">
+                    <i class="fas fa-door-open me-1"></i>{{ reservation.room.RoomName }}
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-clock me-1"></i>{{ reservation.StartTime.strftime('%H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}
+                  </p>
+                  {% if reservation.Description %}
+                  <p class="mb-0 text-muted small">{{ reservation.Description[:50] }}{% if reservation.Description|length > 50 %}...{% endif %}</p>
+                  {% endif %}
+                </div>
+                <div class="col-auto">
+                  <span class="badge bg-{{ 'success' if reservation.Status == 'Confirmed' else 'warning' }}">
+                    {{ '已确认' if reservation.Status == 'Confirmed' else '待确认' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% if today_reservations|length > 3 %}
+          <div class="card-footer bg-light text-center">
+            <a href="{{ url_for('view_all_reservations') }}" class="btn btn-sm btn-outline-primary">
+              查看全部 {{ today_reservations|length }} 个会议
+            </a>
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="text-center py-4">
+            <i class="fas fa-calendar-check fa-2x text-muted mb-3"></i>
+            <p class="text-muted mb-0">今日暂无会议安排</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的预订列表 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow my-reservations-card">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>我的预订
+              </h5>
+            </div>
+            <div class="col-auto">
+              {% set active_reservations_count = current_user.reservations|active|length %}
+              <span class="badge bg-primary" id="materialsCount">{{ active_reservations_count }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0 my-reservations-body">
+          {% set active_reservations = current_user.reservations|active %}
+          {% if active_reservations %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-header-modern">
+                <tr>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon room-icon">
+                        <i class="fas fa-door-open"></i>
+                      </div>
+                      <span class="header-text">会议室</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon title-icon">
+                        <i class="fas fa-heading"></i>
+                      </div>
+                      <span class="header-text">会议标题</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon start-icon">
+                        <i class="fas fa-play"></i>
+                      </div>
+                      <span class="header-text">开始时间</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon end-icon">
+                        <i class="fas fa-stop"></i>
+                      </div>
+                      <span class="header-text">结束时间</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon status-icon">
+                        <i class="fas fa-info-circle"></i>
+                      </div>
+                      <span class="header-text">预约状态</span>
+                    </div>
+                  </th>
+                  <th class="border-0 text-center header-cell">
+                    <div class="header-content justify-content-center">
+                      <div class="header-icon action-icon">
+                        <i class="fas fa-cogs"></i>
+                      </div>
+                      <span class="header-text">操作</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for reservation in active_reservations %}
+                <tr>
+                  <td class="align-middle">
+                    <div class="d-flex align-items-center">
+                      <div class="me-3">
+                        <i class="fas fa-door-open text-muted"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold">{{ reservation.room.RoomName }}</div>
+                        <small class="text-muted">容量: {{ reservation.room.capacity }}人</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold">{{ reservation.Title }}</div>
+                    {% if reservation.Description %}
+                    <small class="text-muted">{{ reservation.Description[:50] }}{% if reservation.Description|length > 50 %}...{% endif %}</small>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold">{{ reservation.StartTime.strftime('%m-%d') }}</div>
+                    <small class="text-muted">{{ reservation.StartTime.strftime('%H:%M') }}</small>
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold">{{ reservation.EndTime.strftime('%m-%d') }}</div>
+                    <small class="text-muted">{{ reservation.EndTime.strftime('%H:%M') }}</small>
+                  </td>
+                  <td class="align-middle">
+                    {% if reservation.Status == 'Pending' %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-clock me-1"></i>待确认
+                    </span>
+                    {% elif reservation.Status == 'Confirmed' %}
+                    <span class="badge bg-success">
+                      <i class="fas fa-check me-1"></i>已确认
+                    </span>
+                    {% elif reservation.Status == 'Cancelled' %}
+                    <span class="badge bg-danger">
+                      <i class="fas fa-times me-1"></i>已取消
+                    </span>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle text-center">
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('edit_reservation', id=reservation.id) }}" 
+                         class="btn btn-outline-primary btn-sm"
+                         data-bs-toggle="tooltip" title="编辑预订">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                         class="btn btn-outline-info btn-sm"
+                         data-bs-toggle="tooltip" title="会议资料">
+                        <i class="fas fa-file-alt"></i>
+                      </a>
+                      <a href="{{ url_for('cancel_reservation', id=reservation.id) }}" 
+                         class="btn btn-outline-danger btn-sm"
+                         onclick="return confirm('确定要取消这个预订吗？')"
+                         data-bs-toggle="tooltip" title="取消预订">
+                        <i class="fas fa-times"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5 my-reservations-empty">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">暂无预订记录</h5>
+            <p class="text-muted">点击上方按钮开始预订您的第一个会议室</p>
+            <a href="{{ url_for('new_reservation') }}" class="btn btn-primary">
+              <i class="fas fa-plus me-2"></i>立即预订
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 过期会议列表 -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow expired-meetings-card">
+        <div class="card-header bg-white border-bottom">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-calendar-times me-2 text-danger"></i>过期会议
+              </h5>
+            </div>
+            <div class="col-auto">
+              <span class="badge bg-danger" id="expiredCount">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0 expired-meetings-body">
+          {% set expired_reservations = current_user.reservations|expired %}
+          {% if not expired_reservations %}
+            {% set expired_reservations = [] %}
+          {% endif %}
+          {% if expired_reservations %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-header-modern">
+                <tr>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon room-icon">
+                        <i class="fas fa-door-open"></i>
+                      </div>
+                      <span class="header-text">会议室</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon title-icon">
+                        <i class="fas fa-heading"></i>
+                      </div>
+                      <span class="header-text">会议标题</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon start-icon">
+                        <i class="fas fa-play"></i>
+                      </div>
+                      <span class="header-text">会议时间</span>
+                    </div>
+                  </th>
+                  <th class="border-0 header-cell">
+                    <div class="header-content">
+                      <div class="header-icon status-icon">
+                        <i class="fas fa-info-circle"></i>
+                      </div>
+                      <span class="header-text">过期时长</span>
+                    </div>
+                  </th>
+                  <th class="border-0 text-center header-cell">
+                    <div class="header-content justify-content-center">
+                      <div class="header-icon action-icon">
+                        <i class="fas fa-cogs"></i>
+                      </div>
+                      <span class="header-text">操作</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for reservation in expired_reservations[:10] %}
+                <tr class="expired-row">
+                  <td class="align-middle">
+                    <div class="d-flex align-items-center">
+                      <div class="me-3">
+                        <i class="fas fa-door-open text-danger"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-muted">{{ reservation.room.RoomName }}</div>
+                        <small class="text-muted">容量: {{ reservation.room.capacity }}人</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold text-muted">{{ reservation.Title }}</div>
+                    {% if reservation.Description %}
+                    <small class="text-muted">{{ reservation.Description[:50] }}{% if reservation.Description|length > 50 %}...{% endif %}</small>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    <div class="fw-semibold text-muted">{{ reservation.StartTime.strftime('%m-%d %H:%M') }}</div>
+                    <small class="text-muted">至 {{ reservation.EndTime.strftime('%H:%M') }}</small>
+                  </td>
+                  <td class="align-middle">
+                    {% set time_diff = reservation.EndTime|days_since %}
+                    {% if time_diff == 0 %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-clock me-1"></i>今日过期
+                    </span>
+                    {% elif time_diff <= 7 %}
+                    <span class="badge bg-danger">
+                      <i class="fas fa-exclamation-triangle me-1"></i>{{ time_diff }}天前
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary">
+                      <i class="fas fa-history me-1"></i>{{ time_diff }}天前
+                    </span>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle text-center">
+                    <div class="btn-group" role="group">
+                      <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                         class="btn btn-outline-info btn-sm"
+                         data-bs-toggle="tooltip" title="查看资料">
+                        <i class="fas fa-file-alt"></i>
+                      </a>
+                      <button type="button" 
+                              class="btn btn-outline-secondary btn-sm"
+                              data-bs-toggle="modal" 
+                              data-bs-target="#expiredDetailModal"
+                              data-reservation-id="{{ reservation.id }}"
+                              data-bs-toggle="tooltip" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if expired_reservations|length > 10 %}
+          <div class="card-footer bg-light text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#allExpiredModal">
+              查看全部 {{ expired_reservations|length }} 个过期会议
+            </button>
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="text-center py-5 expired-meetings-empty">
+            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+            <p class="text-success">暂无过期会议</p>
+            <p class="text-muted">您的所有会议都按时进行，表现优秀！</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 我的预订概览弹窗 -->
+<div class="modal fade" id="reservationsModal" tabindex="-1" aria-labelledby="reservationsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="reservationsModalLabel">
+          <i class="fas fa-calendar-check me-2"></i>我的预订概览
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h4 class="text-primary">{{ current_user.reservations|active|length }}</h4>
+              <small class="text-muted">活跃预订数</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h4 class="text-success">{{ current_user.reservations|selectattr("Status", "equalto", "Confirmed")|list|length }}</h4>
+              <small class="text-muted">已确认</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h4 class="text-warning">{{ current_user.reservations|selectattr("Status", "equalto", "Pending")|list|length }}</h4>
+              <small class="text-muted">待确认</small>
+            </div>
+          </div>
+        </div>
+        {% if current_user.reservations %}
+        <h6 class="mb-3">最近预订</h6>
+        <div class="list-group">
+          {% for reservation in current_user.reservations[:5] %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">{{ reservation.Title }}</h6>
+                <p class="mb-1 text-muted">{{ reservation.room.RoomName }}</p>
+                <small>{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}</small>
+              </div>
+              <span class="badge bg-{{ 'success' if reservation.Status == 'Confirmed' else 'warning' }}">
+                {{ '已确认' if reservation.Status == 'Confirmed' else '待确认' }}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+          <p class="text-muted">暂无预订记录</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('view_all_reservations') }}" class="btn btn-primary">查看全部预订</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 已确认预订弹窗 -->
+<div class="modal fade" id="confirmedModal" tabindex="-1" aria-labelledby="confirmedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="confirmedModalLabel">
+          <i class="fas fa-check-circle me-2"></i>已确认预订
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% set confirmed_reservations = current_user.reservations|selectattr("Status", "equalto", "Confirmed")|list %}
+        {% if confirmed_reservations %}
+        <div class="mb-3">
+          <div class="alert alert-success d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>您有 <strong>{{ confirmed_reservations|length }}</strong> 个已确认的预订</div>
+          </div>
+        </div>
+        <div class="list-group">
+          {% for reservation in confirmed_reservations %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">{{ reservation.Title }}</h6>
+                <p class="mb-1 text-muted">{{ reservation.room.RoomName }} · 容量: {{ reservation.room.capacity }}人</p>
+                <small>{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}</small>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success mb-2">已确认</span>
+                <br>
+                <small class="text-muted">预订ID: {{ reservation.id }}</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-calendar-check fa-2x text-muted mb-3"></i>
+          <p class="text-muted">暂无已确认的预订</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('new_reservation') }}" class="btn btn-success">新建预订</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 待确认预订弹窗 -->
+<div class="modal fade" id="pendingModal" tabindex="-1" aria-labelledby="pendingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="pendingModalLabel">
+          <i class="fas fa-hourglass-half me-2"></i>待确认预订
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% set pending_reservations = current_user.reservations|selectattr("Status", "equalto", "Pending")|list %}
+        {% if pending_reservations %}
+        <div class="mb-3">
+          <div class="alert alert-warning d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>您有 <strong>{{ pending_reservations|length }}</strong> 个待确认的预订，请耐心等待管理员审核</div>
+          </div>
+        </div>
+        <div class="list-group">
+          {% for reservation in pending_reservations %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">{{ reservation.Title }}</h6>
+                <p class="mb-1 text-muted">{{ reservation.room.RoomName }} · 容量: {{ reservation.room.capacity }}人</p>
+                <small>{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}</small>
+                {% if reservation.Description %}
+                <br><small class="text-muted">备注: {{ reservation.Description }}</small>
+                {% endif %}
+              </div>
+              <div class="text-end">
+                <span class="badge bg-warning text-dark mb-2">待确认</span>
+                <br>
+                <small class="text-muted">提交时间: {{ reservation.StartTime.strftime('%m-%d') }}</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
+          <p class="text-muted">暂无待确认的预订</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('new_reservation') }}" class="btn btn-warning">新建预订</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 会议资料弹窗 -->
+<div class="modal fade" id="materialsModal" tabindex="-1" aria-labelledby="materialsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="materialsModalLabel">
+          <i class="fas fa-file-alt me-2"></i>我的会议资料
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if user_materials %}
+        <div class="mb-3">
+          <div class="alert alert-info d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>您共有 <strong>{{ user_materials_count }}</strong> 个会议资料文件</div>
+          </div>
+        </div>
+        <div class="row">
+          {% for material in user_materials[:6] %}
+          <div class="col-md-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-start">
+                  <div class="me-3">
+                    {% if material.FileType in ['doc', 'docx'] %}
+                    <i class="fas fa-file-word fa-2x text-primary"></i>
+                    {% elif material.FileType in ['pdf'] %}
+                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                    {% elif material.FileType in ['ppt', 'pptx'] %}
+                    <i class="fas fa-file-powerpoint fa-2x text-warning"></i>
+                    {% elif material.FileType in ['xls', 'xlsx'] %}
+                    <i class="fas fa-file-excel fa-2x text-success"></i>
+                    {% else %}
+                    <i class="fas fa-file fa-2x text-secondary"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="card-title mb-1">{{ material.FileName }}</h6>
+                    <p class="card-text small text-muted">
+                      大小: {{ "%.2f"|format(material.FileSize / 1024) }} KB
+                    </p>
+                    <p class="card-text small text-muted">
+                      上传时间: {{ material.UploadTime.strftime('%Y-%m-%d') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if user_materials_count > 6 %}
+        <div class="text-center">
+          <p class="text-muted">还有 {{ user_materials_count - 6 }} 个文件...</p>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-folder-open fa-2x text-muted mb-3"></i>
+          <p class="text-muted">暂无会议资料</p>
+          <p class="text-muted small">您可以在会议预订后上传相关资料</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('my_materials') }}" class="btn btn-info">管理资料</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 已取消预订弹窗 -->
+<div class="modal fade" id="cancelledModal" tabindex="-1" aria-labelledby="cancelledModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="cancelledModalLabel">
+          <i class="fas fa-times-circle me-2"></i>已取消预订
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% set cancelled_reservations = current_user.reservations|selectattr("Status", "equalto", "Cancelled")|list %}
+        {% if cancelled_reservations %}
+        <div class="mb-3">
+          <div class="alert alert-danger d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>您有 <strong>{{ cancelled_reservations|length }}</strong> 个已取消的预订记录</div>
+          </div>
+        </div>
+        <div class="list-group">
+          {% for reservation in cancelled_reservations %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">{{ reservation.Title }}</h6>
+                <p class="mb-1 text-muted">{{ reservation.room.RoomName }} · 容量: {{ reservation.room.capacity }}人</p>
+                <small>{{ reservation.StartTime.strftime('%Y-%m-%d %H:%M') }} - {{ reservation.EndTime.strftime('%Y-%m-%d %H:%M') }}</small>
+                {% if reservation.Description %}
+                <br><small class="text-muted">备注: {{ reservation.Description }}</small>
+                {% endif %}
+              </div>
+              <div class="text-end">
+                <span class="badge bg-danger mb-2">已取消</span>
+                <br>
+                <small class="text-muted">预订时间: {{ reservation.StartTime.strftime('%m-%d') }}</small>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
+          <p class="text-muted">暂无已取消的预订</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('new_reservation') }}" class="btn btn-primary">新建预订</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 过期会议详情弹窗 -->
+<div class="modal fade" id="expiredDetailModal" tabindex="-1" aria-labelledby="expiredDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="expiredDetailModalLabel">
+          <i class="fas fa-calendar-times me-2"></i>过期会议详情
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="expiredDetailContent">
+          <!-- 会议详情将通过JavaScript动态加载 -->
+          <div class="text-center py-4">
+            <div class="spinner-border text-danger" role="status">
+              <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2 text-muted">正在加载会议详情...</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 全部过期会议弹窗 -->
+<div class="modal fade" id="allExpiredModal" tabindex="-1" aria-labelledby="allExpiredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="allExpiredModalLabel">
+          <i class="fas fa-history me-2"></i>全部过期会议
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% set all_expired = current_user.reservations|expired %}
+        {% if all_expired %}
+        <div class="mb-3">
+          <div class="alert alert-warning d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>共有 <strong>{{ all_expired|length }}</strong> 个过期会议记录</div>
+          </div>
+        </div>
+        
+        <!-- 过期统计 -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+              <h4 class="text-warning">{{ all_expired|selectattr("EndTime")|list|length if all_expired else 0 }}</h4>
+              <small class="text-muted">最近过期</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+              <h4 class="text-danger">{{ all_expired|length }}</h4>
+              <small class="text-muted">过期总数</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-secondary bg-opacity-10 rounded">
+              <h4 class="text-secondary">{{ (all_expired|map(attribute='room.RoomName')|unique|list)|length }}</h4>
+              <small class="text-muted">涉及会议室</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>会议室</th>
+                <th>会议标题</th>
+                <th>会议时间</th>
+                <th>过期时长</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reservation in all_expired %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-door-open text-danger me-2"></i>
+                    <div>
+                      <div class="fw-semibold">{{ reservation.room.RoomName }}</div>
+                      <small class="text-muted">容量: {{ reservation.room.capacity }}人</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ reservation.Title }}</div>
+                  {% if reservation.Description %}
+                  <small class="text-muted">{{ reservation.Description[:30] }}{% if reservation.Description|length > 30 %}...{% endif %}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ reservation.StartTime.strftime('%Y-%m-%d') }}</div>
+                  <small class="text-muted">{{ reservation.StartTime.strftime('%H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}</small>
+                </td>
+                <td>
+                  {% set time_diff = reservation.EndTime|days_since %}
+                  {% if time_diff == 0 %}
+                  <span class="badge bg-warning text-dark">
+                    <i class="fas fa-clock me-1"></i>今日过期
+                  </span>
+                  {% elif time_diff <= 7 %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-exclamation-triangle me-1"></i>{{ time_diff }}天前
+                  </span>
+                  {% else %}
+                  <span class="badge bg-secondary">
+                    <i class="fas fa-history me-1"></i>{{ time_diff }}天前
+                  </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if reservation.Status == 'Confirmed' %}
+                  <span class="badge bg-success bg-opacity-50">已确认</span>
+                  {% elif reservation.Status == 'Pending' %}
+                  <span class="badge bg-warning bg-opacity-50">待确认</span>
+                  {% elif reservation.Status == 'Cancelled' %}
+                  <span class="badge bg-danger bg-opacity-50">已取消</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                       class="btn btn-outline-info btn-sm"
+                       data-bs-toggle="tooltip" title="查看资料">
+                      <i class="fas fa-file-alt"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+          <h5 class="text-success">暂无过期会议</h5>
+          <p class="text-muted">您的所有会议都按时进行，表现优秀！</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="allExpiredModal" tabindex="-1" aria-labelledby="allExpiredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="allExpiredModalLabel">
+          <i class="fas fa-calendar-times me-2"></i>全部过期会议
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% set all_expired = current_user.reservations|expired %}
+        {% if all_expired %}
+        <div class="mb-3">
+          <div class="alert alert-warning d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>共有 <strong>{{ all_expired|length }}</strong> 个过期会议</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>会议室</th>
+                <th>会议标题</th>
+                <th>会议时间</th>
+                <th>过期时长</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reservation in all_expired %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-door-open text-danger me-2"></i>
+                    <div>
+                      <div class="fw-semibold">{{ reservation.room.RoomName }}</div>
+                      <small class="text-muted">容量: {{ reservation.room.capacity }}人</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ reservation.Title }}</div>
+                  {% if reservation.Description %}
+                  <small class="text-muted">{{ reservation.Description[:30] }}{% if reservation.Description|length > 30 %}...{% endif %}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ reservation.StartTime.strftime('%Y-%m-%d') }}</div>
+                  <small class="text-muted">{{ reservation.StartTime.strftime('%H:%M') }} - {{ reservation.EndTime.strftime('%H:%M') }}</small>
+                </td>
+                <td>
+                  {% set time_diff = reservation.EndTime|days_since %}
+                  {% if time_diff == 0 %}
+                  <span class="badge bg-warning text-dark">今日过期</span>
+                  {% elif time_diff <= 7 %}
+                  <span class="badge bg-danger">{{ time_diff }}天前</span>
+                  {% else %}
+                  <span class="badge bg-secondary">{{ time_diff }}天前</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('meeting_materials', booking_id=reservation.id) }}" 
+                     class="btn btn-outline-info btn-sm"
+                     data-bs-toggle="tooltip" title="查看资料">
+                    <i class="fas fa-file-alt"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+          <h5 class="text-success">暂无过期会议</h5>
+          <p class="text-muted">您的所有会议都按时进行，表现优秀！</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .bg-gradient {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+    box-shadow: 0 8px 32px rgba(79, 172, 254, 0.3) !important;
+    border-radius: 1rem !important;
+  }
+  
+  /* 确保控制面板头部背景色正确应用 */
+  .card.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+  }
+  
+  .card {
+    transition: all 0.3s ease;
+    border-radius: 1rem !important;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1) !important;
+  }
+  
+  /* 可点击卡片样式 */
+  .clickable-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .clickable-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0.8rem 2.5rem rgba(0,0,0,0.15) !important;
+  }
+  
+  .clickable-card:active {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 0.3rem 1rem rgba(0,0,0,0.1) !important;
+  }
+  
+  .btn-group .btn {
+    border-radius: 0.375rem !important;
+    margin: 0 1px;
+  }
+  
+  .table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.08);
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* 快捷操作样式 */
+  .btn-outline-primary:hover,
+  .btn-outline-info:hover,
+  .btn-outline-success:hover,
+  .btn-outline-warning:hover,
+  .btn-outline-danger:hover,
+  .btn-outline-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.15);
+  }
+  
+  /* 时间指示器 */
+  .time-indicator {
+    position: relative;
+  }
+  
+  .time-badge {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  
+  /* 通知项目 */
+  .notification-item {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+  }
+  
+  .notification-item:hover {
+    background: rgba(0,0,0,0.05);
+    transform: translateX(5px);
+  }
+  
+  /* 统计卡片增强 */
+  .col-lg-3 .card {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .col-lg-3:nth-child(1) .card {
+    border-left-color: #667eea;
+  }
+  
+  .col-lg-3:nth-child(2) .card {
+    border-left-color: #764ba2;
+  }
+  
+  .col-lg-3:nth-child(3) .card {
+    border-left-color: #667eea;
+  }
+  
+  .col-lg-3:nth-child(4) .card {
+    border-left-color: #764ba2;
+  }
+  
+  .col-lg-3 .card:hover {
+    border-left-width: 6px;
+    margin-left: -2px;
+  }
+  
+  /* 列表组样式 */
+  .list-group-item {
+    border: none !important;
+    padding: 1rem 1.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .list-group-item:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    margin-left: 5px;
+    border-left: 3px solid #667eea !important;
+  }
+  
+  /* 按钮统一动画效果 */
+  .btn-light {
+    transition: all 0.3s ease;
+  }
+  
+  .btn-light:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .btn-light:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .col-md-4.text-end {
+      text-align: center !important;
+      margin-top: 1rem;
+    }
+    
+    .d-flex.gap-2 {
+      justify-content: center !important;
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .d-flex.gap-2 {
+      gap: 0.25rem !important;
+    }
+    
+    .btn-lg {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+  
+  /* 动画效果 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.2s; }
+  .card:nth-child(4) { animation-delay: 0.3s; }
+  
+  /* 今日会议高亮 */
+  .list-group-item[data-urgent="true"] {
+    border-left: 3px solid #dc3545 !important;
+    background: linear-gradient(90deg, rgba(220,53,69,0.05) 0%, transparent 100%);
+  }
+  
+  /* 空状态样式 */
+  .empty-state {
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  
+  .empty-state i {
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+  
+  /* 模态框样式增强 */
+  .modal-content {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175);
+  }
+  
+  .modal-header {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.02);
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+  }
+  
+  /* 列表组在模态框中的样式 */
+  .modal .list-group-item {
+    border: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .modal .list-group-item:hover {
+    background-color: rgba(0,0,0,0.02);
+    transform: translateX(5px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  /* 徽章样式增强 */
+  .modal .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 1rem;
+  }
+  
+  /* 统计框样式 */
+  .modal .bg-light {
+    background-color: rgba(248, 249, 250, 0.8) !important;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .modal .bg-light:hover {
+    background-color: rgba(248, 249, 250, 1) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  
+  /* 我的预订卡片特殊样式 - 底部圆角 - 最高优先级 */
+  .my-reservations-card.card.border-0.shadow {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+    border: none !important;
+  }
+  
+  .my-reservations-card.card .card-header.bg-white.border-bottom {
+    border-top-left-radius: 1rem !important;
+    border-top-right-radius: 1rem !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+  
+  .my-reservations-card.card .card-body.p-0.my-reservations-body {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    padding: 0 !important;
+  }
+  
+  .my-reservations-card .table-responsive {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+  }
+  
+  .my-reservations-card .table.table-hover.mb-0 {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+  
+  .my-reservations-card .table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+  
+  .my-reservations-card .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+  
+  .my-reservations-card .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
+  
+  .my-reservations-card .text-center.py-5.my-reservations-empty {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin: 0 !important;
+    padding: 3rem 2rem !important;
+  }
+  
+  /* 过期会议卡片特殊样式 */
+  .expired-meetings-card.card.border-0.shadow {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+    border: none !important;
+  }
+  
+  .expired-meetings-card.card .card-header.bg-white.border-bottom {
+    border-top-left-radius: 1rem !important;
+    border-top-right-radius: 1rem !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+  
+  .expired-meetings-card.card .card-body.p-0.expired-meetings-body {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    padding: 0 !important;
+  }
+  
+  .expired-meetings-card .table-responsive {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+  }
+  
+  .expired-meetings-card .table.table-hover.mb-0 {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+  
+  .expired-meetings-card .table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+  
+  .expired-meetings-card .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+  
+  .expired-meetings-card .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
+  
+  .expired-meetings-card .text-center.py-5.expired-meetings-empty {
+    border-radius: 0 !important;
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin: 0 !important;
+    padding: 3rem 2rem !important;
+  }
+  
+  /* 过期行样式 */
+  .expired-row {
+    opacity: 0.8;
+    transition: all 0.3s ease;
+  }
+  
+  .expired-row:hover {
+    opacity: 1;
+    background-color: rgba(220, 53, 69, 0.05) !important;
+  }
+  
+  /* 过期徽章动画 */
+  .expired-row .badge {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+</style>
+
+<script>
+  // 初始化工具提示和日期显示
+  document.addEventListener('DOMContentLoaded', function() {
+    // 设置当前日期
+    if (typeof moment !== 'undefined') {
+      moment.locale('zh-cn');
+      const currentDateElement = document.getElementById('currentDate');
+      const todayBadgeElement = document.getElementById('todayBadge');
+      
+      if (currentDateElement) {
+        currentDateElement.textContent = moment().format('YYYY年MM月DD日');
+      }
+      
+      if (todayBadgeElement) {
+        todayBadgeElement.textContent = moment().format('MM月DD日');
+      }
+    } else {
+      // 备用方案：使用原生JavaScript
+      const now = new Date();
+      const currentDateElement = document.getElementById('currentDate');
+      const todayBadgeElement = document.getElementById('todayBadge');
+      
+      if (currentDateElement) {
+        currentDateElement.textContent = `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日`;
+      }
+      
+      if (todayBadgeElement) {
+        todayBadgeElement.textContent = `${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日`;
+      }
+    }
+
+    // 初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // 统计卡片点击效果
+    const clickableCards = document.querySelectorAll('.clickable-card');
+    clickableCards.forEach(card => {
+      card.addEventListener('click', function() {
+        // 添加点击动画效果
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 150);
+      });
+    });
+
+    // 强制应用我的预订卡片圆角效果
+    function applyReservationsCardRounding() {
+      const reservationsCard = document.querySelector('.my-reservations-card');
+      if (reservationsCard) {
+        // 强制设置卡片圆角
+        reservationsCard.style.borderRadius = '1rem';
+        reservationsCard.style.overflow = 'hidden';
+        
+        // 设置表格容器圆角
+        const tableResponsive = reservationsCard.querySelector('.table-responsive');
+        if (tableResponsive) {
+          tableResponsive.style.borderBottomLeftRadius = '1rem';
+          tableResponsive.style.borderBottomRightRadius = '1rem';
+          tableResponsive.style.overflow = 'hidden';
+        }
+        
+        // 设置表格圆角
+        const table = reservationsCard.querySelector('.table');
+        if (table) {
+          table.style.borderBottomLeftRadius = '1rem';
+          table.style.borderBottomRightRadius = '1rem';
+          table.style.marginBottom = '0';
+          
+          // 设置最后一行单元格圆角
+          const lastRow = table.querySelector('tbody tr:last-child');
+          if (lastRow) {
+            const cells = lastRow.querySelectorAll('td');
+            if (cells.length > 0) {
+              cells[0].style.borderBottomLeftRadius = '1rem';
+              cells[cells.length - 1].style.borderBottomRightRadius = '1rem';
+              cells.forEach(cell => {
+                cell.style.borderBottom = 'none';
+              });
+            }
+          }
+        }
+        
+        // 设置空状态区域圆角
+        const emptyState = reservationsCard.querySelector('.my-reservations-empty');
+        if (emptyState) {
+          emptyState.style.borderBottomLeftRadius = '1rem';
+          emptyState.style.borderBottomRightRadius = '1rem';
+        }
+      }
+    }
+
+    // 页面加载完成后应用圆角
+    document.addEventListener('DOMContentLoaded', applyReservationsCardRounding);
+    // 也在这里立即执行一次
+    applyReservationsCardRounding();
+
+    // 计算并显示过期会议数量
+    function updateExpiredCount() {
+      const expiredRows = document.querySelectorAll('.expired-row');
+      const expiredCountBadge = document.getElementById('expiredCount');
+      if (expiredCountBadge) {
+        expiredCountBadge.textContent = expiredRows.length;
+      }
+    }
+    
+    // 初始化过期会议数量
+    updateExpiredCount();
+
+    // 处理过期会议详情模态框
+    const expiredDetailModal = document.getElementById('expiredDetailModal');
+    if (expiredDetailModal) {
+      expiredDetailModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const reservationId = button.getAttribute('data-reservation-id');
+        
+        if (reservationId) {
+          // 这里可以添加AJAX调用来获取详细信息
+          // 目前显示一个简单的占位内容
+          const contentDiv = document.getElementById('expiredDetailContent');
+          contentDiv.innerHTML = `
+            <div class="row">
+              <div class="col-12">
+                <div class="alert alert-danger">
+                  <i class="fas fa-calendar-times me-2"></i>
+                  <strong>过期会议信息</strong>
+                </div>
+                <p class="text-muted">会议ID: ${reservationId}</p>
+                <p class="text-muted">详细信息加载功能正在开发中...</p>
+              </div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    // 模态框显示时的动画效果
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      modal.addEventListener('shown.bs.modal', function() {
+        // 为模态框内容添加淡入动画
+        const modalBody = this.querySelector('.modal-body');
+        modalBody.style.opacity = '0';
+        modalBody.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+          modalBody.style.transition = 'all 0.3s ease';
+          modalBody.style.opacity = '1';
+          modalBody.style.transform = 'translateY(0)';
+        }, 100);
+      });
+      
+      modal.addEventListener('hidden.bs.modal', function() {
+        // 重置样式
+        const modalBody = this.querySelector('.modal-body');
+        modalBody.style.opacity = '';
+        modalBody.style.transform = '';
+        modalBody.style.transition = '';
+      });
+    });
+  });
+</script>
+{% endblock %}

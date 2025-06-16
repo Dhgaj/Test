@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    --hover-shadow: 0 0.5rem 2rem rgba(0,0,0,0.1);
+    --border-radius: 1rem;
+    --transition: all 0.3s ease;
+    --blue-border: #4facfe;
+    --orange-border: #ff9a8b;
+    --green-border: #00b894;
+    --cyan-border: #0abde3;
+    --purple-border: #28a745;
+    --red-border: #fd7979;
+    --yellow-border: #feca57;
+    --pink-border: #ff6b9d;
+    --teal-border: #26d0ce;
+    --indigo-border: #6c5ce7;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+  }
+
+  .form-body {
+    padding: 0;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid var(--blue-border);
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-card:nth-child(2) {
+    border-left-color: var(--green-border);
+  }
+
+  .section-card:nth-child(3) {
+    border-left-color: var(--orange-border);
+  }
+
+  .section-card:nth-child(4) {
+    border-left-color: var(--purple-border);
+  }
+
+  .section-card:hover {
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-3px);
+  }
+
+  .section-title {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-floating {
+    margin-bottom: 1rem;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .file-upload-area {
+    border: 3px dashed #e9ecef;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    transition: var(--transition);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .file-upload-area:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+  }
+
+  .btn-submit {
+    background: var(--primary-gradient);
+    border: none;
+    border-radius: 1.5rem;
+    padding: 1rem 3rem;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    margin-right: 1rem;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+    color: white;
+  }
+
+  .back-btn {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .back-btn:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .form-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .card.bg-gradient {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .section-card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .section-card:nth-child(1) { animation-delay: 0.1s; }
+  .section-card:nth-child(2) { animation-delay: 0.2s; }
+  .section-card:nth-child(3) { animation-delay: 0.3s; }
+  .section-card:nth-child(4) { animation-delay: 0.4s; }
+
+  @media (max-width: 576px) {
+    .section-card {
+      padding: 1rem;
+    }
+    
+    .btn-submit {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<div class="container-fluid">
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-cloud-upload-alt me-3"></i>上传会议资料
+              </h2>
+              <p class="mb-0 text-white-50">
+                {{ booking.Title }} - {{ booking.room.RoomName }}
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('meeting_materials', booking_id=booking.ID) }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回资料列表
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="alert alert-info alert-custom alert-dismissible fade show">
+              <i class="fas fa-info-circle me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 表单主体 -->
+  <div class="form-body">
+    <form method="POST" enctype="multipart/form-data">
+      <!-- 基本信息 -->
+      <div class="section-card">
+        <h4 class="section-title">
+          <i class="fas fa-info-circle text-primary"></i>
+          基本信息
+        </h4>
+        
+        <div class="form-floating">
+          <input type="text" class="form-control" id="title" name="title" placeholder="资料标题" required>
+          <label for="title">
+            <i class="fas fa-tag me-2"></i>资料标题 <span class="text-danger">*</span>
+          </label>
+        </div>
+        <div class="form-text">
+          <i class="fas fa-lightbulb text-warning"></i>
+          为您的资料设置一个易于识别的标题
+        </div>
+
+        <div class="form-floating mt-3">
+          <textarea class="form-control" id="description" name="description" placeholder="资料描述" style="height: 120px;"></textarea>
+          <label for="description">
+            <i class="fas fa-align-left me-2"></i>资料描述
+          </label>
+        </div>
+        <div class="form-text">
+          <i class="fas fa-info-circle text-info"></i>
+          添加描述信息可以帮助其他人了解资料内容
+        </div>
+      </div>
+
+      <!-- 文件上传 -->
+      <div class="section-card">
+        <h4 class="section-title">
+          <i class="fas fa-file-upload text-success"></i>
+          文件选择
+        </h4>
+        
+        <div class="file-upload-area">
+          <div class="mb-3">
+            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+            <h5>选择要上传的文件</h5>
+          </div>
+          <input type="file" class="form-control form-control-lg" id="file" name="file" required>
+          <div class="upload-help mt-3">
+            <div class="d-flex align-items-center justify-content-center">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span class="text-muted">支持的文件类型：PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 文件设置 -->
+      <div class="section-card">
+        <h4 class="section-title">
+          <i class="fas fa-cogs text-warning"></i>
+          文件设置
+        </h4>
+        
+        <div class="form-floating">
+          <input type="text" class="form-control" id="display_filename" name="display_filename" placeholder="显示文件名">
+          <label for="display_filename">
+            <i class="fas fa-edit me-2"></i>自定义显示文件名
+          </label>
+        </div>
+        <div class="form-text">
+          <i class="fas fa-question-circle text-info"></i>
+          如果不填写，将使用上传的原始文件名作为显示名称
+        </div>
+
+        <div class="form-floating mt-3">
+          <select class="form-select" id="filename_format" name="filename_format">
+            <option value="timestamp_prefix">时间戳前缀 + 文件名</option>
+            <option value="timestamp_suffix" selected>文件名 + 时间戳后缀（推荐）</option>
+            <option value="original">原始文件名（可能覆盖同名文件）</option>
+            <option value="title_prefix">资料标题 + 文件名</option>
+            <option value="booking_prefix">会议标题 + 文件名</option>
+          </select>
+          <label for="filename_format">
+            <i class="fas fa-file-signature me-2"></i>文件命名方式
+          </label>
+        </div>
+        <div class="form-text">
+          <i class="fas fa-shield-alt text-success"></i>
+          选择文件在服务器上的存储命名方式，推荐使用时间戳后缀避免文件名冲突
+        </div>
+      </div>
+
+      <!-- 提交按钮 -->
+      <div class="section-card text-center">
+        <h4 class="section-title">
+          <i class="fas fa-check-circle text-info"></i>
+          确认上传
+        </h4>
+        
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ url_for('meeting_materials', booking_id=booking.ID) }}" class="back-btn">
+            <i class="fas fa-arrow-left me-2"></i>返回列表
+          </a>
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-upload me-2"></i>开始上传
+          </button>
+        </div>
+        
+        <div class="form-text mt-3 justify-content-center">
+          <i class="fas fa-info-circle text-info"></i>
+          上传完成后，资料将自动关联到当前会议预订
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 文件选择处理
+  const fileInput = document.getElementById('file');
+  const displayFilenameInput = document.getElementById('display_filename');
+  const titleInput = document.getElementById('title');
+  
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const fileName = this.files[0].name;
+      
+      // 如果显示文件名为空，自动填充原始文件名（不含扩展名）
+      if (!displayFilenameInput.value) {
+        const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+        displayFilenameInput.value = nameWithoutExt;
+      }
+      
+      // 如果标题为空，也自动填充
+      if (!titleInput.value) {
+        const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+        titleInput.value = nameWithoutExt;
+      }
+      
+      // 更新上传区域样式
+      const uploadArea = document.querySelector('.file-upload-area');
+      uploadArea.style.borderColor = '#28a745';
+      uploadArea.style.backgroundColor = '#f8fff9';
+    }
+  });
+  
+  // 表单验证
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(e) {
+    const titleInput = document.getElementById('title');
+    const fileInput = document.getElementById('file');
+    
+    if (!titleInput.value.trim()) {
+      e.preventDefault();
+      alert('请输入资料标题');
+      titleInput.focus();
+      return;
+    }
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+      e.preventDefault();
+      alert('请选择要上传的文件');
+      fileInput.focus();
+      return;
+    }
+    
+    // 文件大小限制（例如：10MB）
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const file = fileInput.files[0];
+    if (file.size > maxSize) {
+      e.preventDefault();
+      alert('文件大小不能超过 10MB');
+      return;
+    }
+    
+    // 显示上传进度
+    const submitBtn = document.querySelector('.btn-submit');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>上传中...';
+    submitBtn.disabled = true;
+  });
+});
+</script>
+
+{% endblock %}

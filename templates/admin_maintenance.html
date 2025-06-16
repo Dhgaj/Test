@@ -1,0 +1,785 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+<style>
+  /* 统计卡片样式 */
+  .stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    border: 1px solid #e9ecef;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-card .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .stat-card h4 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-card p {
+    color: #6c757d;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* 头像样式 */
+  .avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+  }
+
+  /* 卡片视图样式 */
+  .maintenance-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .maintenance-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .maintenance-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+  }
+
+  .maintenance-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .maintenance-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .maintenance-room {
+    color: #667eea;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .badge-scheduled {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+  }
+
+  .badge-in-progress {
+    background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+    color: #8b4513;
+  }
+
+  .badge-completed {
+    background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+    color: #065f46;
+  }
+
+  .badge-cancelled {
+    background: linear-gradient(135deg, #fecaca, #f87171);
+    color: #7f1d1d;
+  }
+
+  .maintenance-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+  }
+
+  .maintenance-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .maintenance-details h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  .maintenance-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .maintenance-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+  }
+
+  .info-item {
+    text-align: center;
+  }
+
+  .info-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+  }
+
+  .info-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #495057;
+  }
+
+  .maintenance-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  .action-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-edit:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+  }
+
+  .btn-delete:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+  }
+
+  .maintenance-description {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    color: #6c757d;
+    font-style: italic;
+    border-left: 4px solid #667eea;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .maintenance-cards-grid {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+    
+    .maintenance-info-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .maintenance-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+  <!-- 页面标题和操作栏 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-tools me-3"></i>维护管理
+              </h2>
+              <p class="mb-0 text-white-50">管理所有设备维护计划与执行状态</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <a href="{{ url_for('add_maintenance') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-plus me-2"></i>添加维护计划
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-calendar-plus fa-3x"></i>
+        </div>
+        <h4>{{ maintenance_list|selectattr('0.Status', 'equalto', 'Scheduled')|list|length }}</h4>
+        <p>计划中</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-cog fa-3x"></i>
+        </div>
+        <h4>{{ maintenance_list|selectattr('0.Status', 'equalto', 'In Progress')|list|length }}</h4>
+        <p>进行中</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-check-circle fa-3x"></i>
+        </div>
+        <h4>{{ maintenance_list|selectattr('0.Status', 'equalto', 'Completed')|list|length }}</h4>
+        <p>已完成</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stat-card">
+        <div class="icon">
+          <i class="fas fa-times-circle fa-3x"></i>
+        </div>
+        <h4>{{ maintenance_list|selectattr('0.Status', 'equalto', 'Cancelled')|list|length }}</h4>
+        <p>已取消</p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- 搜索和过滤控件 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="maintenanceSearch" 
+                       placeholder="搜索会议室、描述...">
+              </div>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <select class="form-select" id="statusFilter">
+                <option value="">所有状态</option>
+                <option value="Scheduled">计划中</option>
+                <option value="In Progress">进行中</option>
+                <option value="Completed">已完成</option>
+                <option value="Cancelled">已取消</option>
+              </select>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <input type="date" class="form-control" id="startDate" placeholder="开始日期">
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+              <input type="date" class="form-control" id="endDate" placeholder="结束日期">
+            </div>
+            <div class="col-md-2">
+              <div class="btn-group w-100" role="group">
+                <button type="button" class="btn btn-outline-primary active" id="tableViewBtn">
+                  <i class="fas fa-table me-1"></i>列表
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="cardViewBtn">
+                  <i class="fas fa-th-large me-1"></i>卡片
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表格视图 -->
+  <div id="tableView" class="view-content">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-header-modern">
+              <tr>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon room-icon">
+                      <i class="fas fa-door-open"></i>
+                    </div>
+                    <span class="header-text">会议室</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon time-icon">
+                      <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <span class="header-text">维护日期</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon start-icon">
+                      <i class="fas fa-play"></i>
+                    </div>
+                    <span class="header-text">开始时间</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon end-icon">
+                      <i class="fas fa-stop"></i>
+                    </div>
+                    <span class="header-text">结束时间</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon status-icon">
+                      <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span class="header-text">状态</span>
+                  </div>
+                </th>
+                <th class="header-cell">
+                  <div class="header-content">
+                    <div class="header-icon file-icon">
+                      <i class="fas fa-file-text"></i>
+                    </div>
+                    <span class="header-text">描述</span>
+                  </div>
+                </th>
+                <th class="header-cell text-center">
+                  <div class="header-content justify-content-center">
+                    <div class="header-icon action-icon">
+                      <i class="fas fa-tools"></i>
+                    </div>
+                    <span class="header-text">操作</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="maintenanceTableBody">
+              {% for maintenance, room in maintenance_list %}
+              <tr data-maintenance-id="{{ maintenance.ID }}" 
+                  data-status="{{ maintenance.Status }}"
+                  data-room="{{ room.RoomName|lower }}"
+                  data-description="{{ maintenance.Description|lower }}"
+                  data-date="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}">
+                <td>
+                  <i class="fas fa-door-open me-2 text-primary"></i>
+                  {{ room.RoomName }}
+                </td>
+                <td>{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}</td>
+                <td>{{ maintenance.StartTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ maintenance.EndTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                  {% if maintenance.Status == 'Scheduled' %}
+                  <span class="badge bg-primary">
+                    <i class="fas fa-calendar-plus me-1"></i>计划中
+                  </span>
+                  {% elif maintenance.Status == 'In Progress' %}
+                  <span class="badge bg-warning">
+                    <i class="fas fa-cog me-1"></i>进行中
+                  </span>
+                  {% elif maintenance.Status == 'Completed' %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-check-circle me-1"></i>已完成
+                  </span>
+                  {% else %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times-circle me-1"></i>已取消
+                  </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="text-truncate" style="max-width: 200px;" title="{{ maintenance.Description }}">
+                    {{ maintenance.Description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{{ url_for('edit_maintenance', id=maintenance.ID) }}" 
+                       class="btn btn-sm btn-primary"
+                       title="编辑维护计划">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{{ url_for('delete_maintenance', id=maintenance.ID) }}" 
+                       class="btn btn-sm btn-danger delete-btn"
+                       data-room-name="{{ room.RoomName }}"
+                       data-maintenance-date="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}"
+                       title="删除维护计划">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卡片视图 -->
+  <div id="cardView" class="view-content" style="display: none;">
+    <div class="maintenance-cards-grid" id="maintenanceCardsGrid">
+      {% for maintenance, room in maintenance_list %}
+      <div class="maintenance-card" 
+           data-maintenance-id="{{ maintenance.ID }}" 
+           data-status="{{ maintenance.Status }}"
+           data-room="{{ room.RoomName|lower }}"
+           data-description="{{ maintenance.Description|lower }}"
+           data-date="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}">
+        
+        <div class="maintenance-header-info">
+          <div>
+            <h3 class="maintenance-title">{{ room.RoomName }}</h3>
+            <div class="maintenance-room">
+              <i class="fas fa-calendar me-1"></i>
+              {{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}
+            </div>
+          </div>
+          {% if maintenance.Status == 'Scheduled' %}
+          <span class="status-badge badge-scheduled">
+            <i class="fas fa-calendar-plus"></i>计划中
+          </span>
+          {% elif maintenance.Status == 'In Progress' %}
+          <span class="status-badge badge-in-progress">
+            <i class="fas fa-cog"></i>进行中
+          </span>
+          {% elif maintenance.Status == 'Completed' %}
+          <span class="status-badge badge-completed">
+            <i class="fas fa-check-circle"></i>已完成
+          </span>
+          {% else %}
+          <span class="status-badge badge-cancelled">
+            <i class="fas fa-times-circle"></i>已取消
+          </span>
+          {% endif %}
+        </div>
+        
+        <div class="maintenance-info">
+          <div class="maintenance-icon">
+            <i class="fas fa-tools"></i>
+          </div>
+          <div class="maintenance-details">
+            <h5>维护计划</h5>
+            <p>{{ maintenance.Status == 'Scheduled' and '等待执行' or (maintenance.Status == 'In Progress' and '正在执行' or (maintenance.Status == 'Completed' and '已完成执行' or '已取消')) }}</p>
+          </div>
+        </div>
+        
+        <div class="maintenance-info-grid">
+          <div class="info-item">
+            <div class="info-label">开始时间</div>
+            <div class="info-value">{{ maintenance.StartTime.strftime('%H:%M') }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">结束时间</div>
+            <div class="info-value">{{ maintenance.EndTime.strftime('%Y-%m-%d %H:%M') }}</div>
+          </div>
+        </div>
+        
+        {% if maintenance.Description %}
+        <div class="maintenance-description">
+          <i class="fas fa-info-circle me-2"></i>
+          {{ maintenance.Description }}
+        </div>
+        {% endif %}
+        
+        <div class="maintenance-actions">
+          <a href="{{ url_for('edit_maintenance', id=maintenance.ID) }}" 
+             class="action-btn btn-edit">
+            <i class="fas fa-edit"></i>编辑
+          </a>
+          <a href="{{ url_for('delete_maintenance', id=maintenance.ID) }}" 
+             class="action-btn btn-delete delete-btn"
+             data-room-name="{{ room.RoomName }}"
+             data-maintenance-date="{{ maintenance.MaintenanceDate.strftime('%Y-%m-%d') }}">
+            <i class="fas fa-trash"></i>删除
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 空状态 -->
+  <div id="emptyState" class="text-center py-5" style="display: none;">
+    <i class="fas fa-tools fa-4x text-muted mb-3"></i>
+    <h4 class="text-muted">没有找到维护记录</h4>
+    <p class="text-muted">尝试调整筛选条件或添加新的维护计划</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('maintenanceSearch');
+  const statusFilter = document.getElementById('statusFilter');
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const tableViewBtn = document.getElementById('tableViewBtn');
+  const cardViewBtn = document.getElementById('cardViewBtn');
+  const tableView = document.getElementById('tableView');
+  const cardView = document.getElementById('cardView');
+  const emptyState = document.getElementById('emptyState');
+
+  // 视图切换
+  function switchView(viewType) {
+    if (viewType === 'table') {
+      tableView.style.display = 'block';
+      cardView.style.display = 'none';
+      tableViewBtn.classList.add('active');
+      cardViewBtn.classList.remove('active');
+    } else {
+      tableView.style.display = 'none';
+      cardView.style.display = 'block';
+      tableViewBtn.classList.remove('active');
+      cardViewBtn.classList.add('active');
+    }
+    // 重新触发过滤以正确显示空状态
+    filterMaintenance();
+  }
+
+  tableViewBtn.addEventListener('click', () => switchView('table'));
+  cardViewBtn.addEventListener('click', () => switchView('card'));
+
+  // 过滤功能
+  function filterMaintenance() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const statusFilterValue = statusFilter.value;
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    
+    const isTableView = tableView.style.display !== 'none';
+    const items = isTableView 
+      ? document.querySelectorAll('#maintenanceTableBody tr')
+      : document.querySelectorAll('.maintenance-card');
+    
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const room = item.dataset.room;
+      const description = item.dataset.description;
+      const status = item.dataset.status;
+      const date = item.dataset.date;
+      
+      // 检查搜索匹配
+      const matchesSearch = room.includes(searchTerm) || 
+                           description.includes(searchTerm);
+      
+      // 检查状态匹配
+      const matchesStatus = !statusFilterValue || status === statusFilterValue;
+      
+      // 检查日期范围匹配
+      let matchesDateRange = true;
+      if (startDate && endDate) {
+        matchesDateRange = date >= startDate && date <= endDate;
+      } else if (startDate) {
+        matchesDateRange = date >= startDate;
+      } else if (endDate) {
+        matchesDateRange = date <= endDate;
+      }
+      
+      if (matchesSearch && matchesStatus && matchesDateRange) {
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    // 显示/隐藏空状态
+    if (visibleCount === 0) {
+      emptyState.style.display = 'block';
+      if (isTableView) {
+        tableView.querySelector('.table-responsive').style.display = 'none';
+      } else {
+        cardView.querySelector('.maintenance-cards-grid').style.display = 'none';
+      }
+    } else {
+      emptyState.style.display = 'none';
+      if (isTableView) {
+        tableView.querySelector('.table-responsive').style.display = 'block';
+      } else {
+        cardView.querySelector('.maintenance-cards-grid').style.display = 'grid';
+      }
+    }
+  }
+
+  // 绑定事件监听器
+  if (searchInput) searchInput.addEventListener('input', filterMaintenance);
+  if (statusFilter) statusFilter.addEventListener('change', filterMaintenance);
+  if (startDateInput) startDateInput.addEventListener('change', filterMaintenance);
+  if (endDateInput) endDateInput.addEventListener('change', filterMaintenance);
+
+  // 确认删除函数
+  let deleteMaintenanceUrl = '';
+  
+  function confirmDelete(roomName, date, url) {
+    deleteMaintenanceUrl = url;
+    document.getElementById('deleteMaintenanceRoom').textContent = roomName;
+    document.getElementById('deleteMaintenanceDate').textContent = date;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    deleteModal.show();
+    return false;
+  }
+
+  // 处理删除按钮点击
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.delete-btn');
+      const roomName = btn.dataset.roomName;
+      const maintenanceDate = btn.dataset.maintenanceDate;
+      
+      confirmDelete(roomName, maintenanceDate, btn.href);
+    }
+  });
+  
+  // 确认删除按钮事件
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (deleteMaintenanceUrl) {
+      window.location.href = deleteMaintenanceUrl;
+    }
+  });
+
+  // 初始化过滤
+  filterMaintenance();
+});
+</script>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>确认删除维护计划
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <i class="fas fa-tools fa-3x text-danger mb-3"></i>
+          <h6 class="mb-3">您确定要删除以下维护计划吗？</h6>
+          <div class="alert alert-warning">
+            <strong>会议室：</strong><span id="deleteMaintenanceRoom"></span><br>
+            <strong>日期：</strong><span id="deleteMaintenanceDate"></span>
+          </div>
+          <p class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            此操作将永久删除该维护计划，且无法恢复。
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>取消
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-2"></i>确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
