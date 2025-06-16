@@ -50,23 +50,23 @@ UPLOAD_FOLDER_AVATARS = 'static/uploads/avatars'
 
 
 # gmail 邮件服务器配置
-# MAIL_CONFIG = {
-#     'MAIL_SERVER': 'smtp.gmail.com',                    # 邮件服务器地址
-#     'MAIL_PORT': 587,                                   # 邮件服务器端口
-#     'MAIL_USERNAME': 'sifanlian@gmail.com',             # 邮箱用户名
-#     'MAIL_PASSWORD': 'vqkc zycl ufnk nngf',             # 邮箱密码或应用专用密码
-#     'MAIL_DEFAULT_SENDER': 'sifanlian@gmail.com',       # 默认发件人
-#     'MAIL_USE_TLS': True,                               # 使用TLS加密
-#     'MAIL_USE_SSL': False                               # 不使用SSL加密
-# }
-
-# 163 mail 邮件服务器配置
 MAIL_CONFIG = {
-    'MAIL_SERVER': 'smtp.vip.163.com',                    # 邮件服务器地址
-    'MAIL_PORT': 25,                                   # 邮件服务器端口
-    'MAIL_USERNAME': '32306400017.gzhu@vip.163.com',             # 邮箱用户名
-    'MAIL_PASSWORD': 'WMs2Z3tefGTmbx8q',             # 邮箱密码或应用专用密码
-    'MAIL_DEFAULT_SENDER': '32306400017.gzhu@vip.163.com',       # 默认发件人
+    'MAIL_SERVER': 'smtp.gmail.com',                    # 邮件服务器地址
+    'MAIL_PORT': 587,                                   # 邮件服务器端口
+    'MAIL_USERNAME': 'sifanlian@gmail.com',             # 邮箱用户名
+    'MAIL_PASSWORD': 'vqkc zycl ufnk nngf',             # 邮箱密码或应用专用密码
+    'MAIL_DEFAULT_SENDER': 'sifanlian@gmail.com',       # 默认发件人
     'MAIL_USE_TLS': True,                               # 使用TLS加密
     'MAIL_USE_SSL': False                               # 不使用SSL加密
 }
+
+# 163 mail 邮件服务器配置
+# MAIL_CONFIG = {
+#     'MAIL_SERVER': 'smtp.vip.163.com',                    # 邮件服务器地址
+#     'MAIL_PORT': 25,                                   # 邮件服务器端口
+#     'MAIL_USERNAME': '32306400017.gzhu@vip.163.com',             # 邮箱用户名
+#     'MAIL_PASSWORD': 'WMs2Z3tefGTmbx8q',             # 邮箱密码或应用专用密码
+#     'MAIL_DEFAULT_SENDER': '32306400017.gzhu@vip.163.com',       # 默认发件人
+#     'MAIL_USE_TLS': True,                               # 使用TLS加密
+#     'MAIL_USE_SSL': False                               # 不使用SSL加密
+# }

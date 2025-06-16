@@ -113,7 +113,6 @@ def get_rooms(current_user):
 @token_required
 def get_room(current_user, room_id):
     room = db.get_or_404(Room, room_id)
-    
     return jsonify({
         'room': {
             'id': room.RoomID,

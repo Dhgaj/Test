@@ -150,6 +150,7 @@ except ImportError:
     # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
     # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
     # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
+    # 本地测试环境
     # DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
     # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
     # DB_HOST = os.environ.get('DB_HOST', 'localhost')
