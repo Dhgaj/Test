@@ -150,15 +150,15 @@ except ImportError:
     # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
     # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
     # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
-    DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
-    DB_HOST = os.environ.get('DB_HOST', 'localhost')
-    DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
+    # DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
+    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
+    # DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
     # PythonAnywhere
-    # DB_USERNAME = os.environ.get('DB_USERNAME', 'ICCS')
-    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-    # DB_HOST     = os.environ.get('DB_HOST', 'ICCS.mysql.pythonanywhere-services.com')
-    # DB_NAME     = os.environ.get('DB_NAME', 'ICCS$iccs')
+    DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+    DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
+    DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
     DB_PORT = int(os.environ.get('DB_PORT', 3306))
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
