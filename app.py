@@ -151,16 +151,16 @@ except ImportError:
     # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
     # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
     # 本地测试环境
-    # DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
-    # DB_HOST = os.environ.get('DB_HOST', 'localhost')
-    # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
+    DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
     # PythonAnywhere
-    DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-    DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
-    DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
-    DB_PORT = int(os.environ.get('DB_PORT', 3306))
+    # DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
+    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+    # DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
+    # DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
+    # DB_PORT = int(os.environ.get('DB_PORT', 3306))
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # 安全配置
@@ -2319,7 +2319,7 @@ def reset_password(token):
         flash('密码重置成功！请使用新密码登录。')
         return redirect(url_for('login'))
         
-    return render_template('reset_password.html')
+    return render_template('reset_password.html', token=token)
 
 
 @app.route('/admin/rooms')
