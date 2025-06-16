@@ -99,8 +99,6 @@ import os
 import smtplib
 import json
 import threading
-# import hashlib
-# import traceback
 import re
 import atexit
 import config
@@ -138,36 +136,55 @@ def secure_filename(filename):
 app = Flask(__name__)
 
 # 加载配置
-try:
-    app.config.from_object(config)
-    print("从 config.py 加载配置成功")
-except ImportError:
-    load_dotenv()
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-change-in-production')
-    # 数据库配置
-    # 云服务器
-    # DB_USERNAME = os.environ.get('DB_USERNAME', 'meetingroom')
-    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-    # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
-    # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
-    # 本地测试环境
-    DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'LSFo4o226lsf..')
-    DB_HOST = os.environ.get('DB_HOST', 'localhost')
-    DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
-    # PythonAnywhere
-    # DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
-    # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-    # DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
-    # DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
-    # DB_PORT = int(os.environ.get('DB_PORT', 3306))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    # 安全配置
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['REMEMBER_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    print("从环境变量加载配置")
+def load_config(app):
+    """加载应用配置"""
+    try:
+        app.config.from_object(config)
+        print("从 config.py 加载配置成功")
+    except ImportError:
+        print("config.py 不存在，从环境变量加载配置")
+        load_dotenv()
+        
+        # 基础配置
+        app.config["SECRET_KEY"] = os.environ.get(
+            "SECRET_KEY", "default-secret-key-change-in-production"
+        )
+        
+        # 数据库配置
+        # 云服务器
+        # DB_USERNAME = os.environ.get('DB_USERNAME', 'meetingroom')
+        # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+        # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
+        # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
+        # 本地测试环境
+        DB_USERNAME = os.environ.get("DB_USERNAME", "root")
+        DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+        DB_HOST = os.environ.get("DB_HOST", "localhost")
+        DB_NAME = os.environ.get("DB_NAME", "test_meeting_rooms")
+        DB_PORT = os.environ.get("DB_PORT", "3306")
+        # PythonAnywhere
+        # DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
+        # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+        # DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
+        # DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
+        # DB_PORT = int(os.environ.get('DB_PORT', 3306))
+
+        if not DB_PASSWORD:
+            print("警告: 数据库密码未设置，请设置 DB_PASSWORD 环境变量")
+        
+        app.config["SQLALCHEMY_DATABASE_URI"] = (
+            f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        )
+        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+        
+        # 安全配置
+        app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "True").lower() == "true"
+        app.config["REMEMBER_COOKIE_SECURE"] = os.environ.get("REMEMBER_COOKIE_SECURE", "True").lower() == "true"
+        app.config["SESSION_COOKIE_HTTPONLY"] = True
+        
+        print("从环境变量加载配置完成")
+load_config(app)
+
 
 # 初始化数据库实例
 db = SQLAlchemy(app)
