@@ -1695,21 +1695,38 @@ def admin_reservations():
     管理员查看所有预订的路由。
     该函数执行以下操作：
     1. 检查当前用户是否为管理员,如果不是则提示需要管理员权限。
-    2. 查询所有预订信息,并按开始时间降序排列。
-    3. 渲染管理员预订管理页面,并传递预订信息和管理员视图标志。
+    2. 查询所有预订信息,支持分页显示。
+    3. 渲染管理员预订管理页面,并传递预订信息和分页信息。
     返回:
         werkzeug.wrappers.Response: 渲染管理员预订管理页面的响应对象。
     """
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
-    reservations = Reservation.query.order_by(
-        Reservation.StartTime.desc()).all()
+    
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)  # 每页显示条数，默认10条
+    
+    # 限制每页最大显示条数
+    if per_page > 100:
+        per_page = 100
+    
+    # 查询预订信息并分页
+    reservations_pagination = Reservation.query.order_by(
+        Reservation.StartTime.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
+    
+    reservations = reservations_pagination.items
     
     # 获取今天的日期用于今日预订统计
     today = datetime.now().date()
     
-    return render_template('admin_reservations.html', reservations=reservations, admin_view=True, today=today)
+    return render_template('admin_reservations.html', 
+                         reservations=reservations, 
+                         pagination=reservations_pagination,
+                         admin_view=True, 
+                         today=today)
 
 # 查看所有预订情况的路由。
 @app.route('/all_reservations')

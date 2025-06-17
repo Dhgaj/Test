@@ -70,23 +70,27 @@
     text-transform: uppercase;
   }
 
-  /* 卡片视图样式 - 增强圆角 */
+  /* 卡片视图样式 - 增强圆角和对齐 */
   .room-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 2rem; /* 增加间距 */
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2rem;
     padding: 1.5rem;
+    align-items: stretch; /* 确保所有卡片高度一致 */
   }
 
   .room-card {
     background: white;
     border: 2px solid #e9ecef;
-    border-radius: 20px; /* 增加圆角 */
+    border-radius: 20px;
     padding: 1.5rem;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 更流畅的动画 */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* 确保卡片填满网格高度 */
   }
 
   .room-card::before {
@@ -101,9 +105,9 @@
   }
 
   .room-card:hover {
-    transform: translateY(-10px) scale(1.02); /* 增强悬停效果 */
+    transform: translateY(-10px) scale(1.02);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
-    border-radius: 25px; /* 悬停时更大圆角 */
+    border-radius: 25px;
     border-color: #667eea;
   }
 
@@ -112,6 +116,7 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1.5rem;
+    min-height: 60px; /* 确保头部区域高度一致 */
   }
 
   .room-title {
@@ -119,12 +124,76 @@
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 0.5rem;
+    line-height: 1.3; /* 改善行高 */
   }
 
   .room-number {
     color: #667eea;
     font-weight: 600;
     font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  /* 卡片内容区域 */
+  .room-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .room-details {
+    margin-bottom: 1.5rem;
+  }
+
+  .room-actions {
+    margin-top: auto; /* 将操作按钮推到底部 */
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  /* 改进操作按钮样式 */
+  .action-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+  }
+
+  .btn-edit:hover {
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    color: white;
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #fc8181, #e53e3e);
+    color: white;
+    border: none;
+  }
+
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #f56565, #c53030);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    color: white;
   }
 
   .status-badge {
@@ -277,7 +346,7 @@
 
   /* 表格样式增强 */
   .card {
-    border-radius: 20px !important; /* 增加表格容器圆角 */
+    border-radius: 20px !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
     overflow: hidden;
   }
@@ -285,6 +354,7 @@
   .table {
     border-collapse: separate;
     border-spacing: 0;
+    margin-bottom: 0; /* 移除默认底部边距 */
   }
 
   .table thead th {
@@ -292,6 +362,30 @@
     border-bottom: 2px solid #dee2e6;
     padding: 1rem;
     font-weight: 600;
+  }
+
+  /* 表格第一行的圆角处理 */
+  .table thead th:first-child {
+    border-top-left-radius: 20px;
+  }
+
+  .table thead th:last-child {
+    border-top-right-radius: 20px;
+  }
+
+  /* 表格最后一行的圆角处理 */
+  .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 20px;
+    border-bottom: none;
+  }
+
+  .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 20px;
+    border-bottom: none;
+  }
+
+  .table tbody tr:last-child td {
+    border-bottom: none;
   }
 
   .table tbody tr {
@@ -388,11 +482,19 @@
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
   }
 
-  /* 响应式设计 */
+  /* 响应式设计改进 */
+  @media (max-width: 1200px) {
+    .room-cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+  }
+
   @media (max-width: 768px) {
     .room-cards-grid {
       grid-template-columns: 1fr;
       padding: 1rem;
+      gap: 1rem;
     }
     
     .room-info-grid {
@@ -401,6 +503,12 @@
     
     .room-actions {
       flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .action-btn {
+      flex: none;
+      padding: 0.75rem;
     }
 
     .stat-card {
@@ -409,6 +517,33 @@
 
     .room-card {
       border-radius: 16px;
+      padding: 1.25rem;
+    }
+    
+    .room-header-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      min-height: auto;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .room-cards-grid {
+      padding: 0.75rem;
+    }
+    
+    .room-card {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    
+    .room-title {
+      font-size: 1.2rem;
+    }
+    
+    .room-actions {
+      padding-top: 0.75rem;
     }
   }
 
@@ -702,93 +837,97 @@
            data-room-number="{{ room.room_number|lower if room.room_number else '' }}"
            data-location="{{ (room.building + ' ' + room.floor if room.building and room.floor else room.Location if room.Location else '')|lower }}">
         
-        <div class="room-header-info">
-          <div>
-            <h3 class="room-title">{{ room.name }}</h3>
-            <div class="room-number">
-              <i class="fas fa-hashtag me-1"></i>
-              {{ room.room_number or '未设置' }}
+        <div class="room-card-content">
+          <div class="room-header-info">
+            <div>
+              <h3 class="room-title">{{ room.name }}</h3>
+              <div class="room-number">
+                <i class="fas fa-hashtag me-1"></i>
+                {{ room.room_number or '未设置' }}
+              </div>
             </div>
-          </div>
-          {% if room.RoomType == 'Online' %}
-          <span class="status-badge badge-online">
-            <i class="fas fa-laptop"></i>线上
-          </span>
-          {% else %}
-          <span class="status-badge badge-offline">
-            <i class="fas fa-building"></i>线下
-          </span>
-          {% endif %}
-        </div>
-        
-        <div class="room-info">
-          <div class="room-icon">
             {% if room.RoomType == 'Online' %}
-            <i class="fas fa-laptop"></i>
+            <span class="status-badge badge-online">
+              <i class="fas fa-laptop"></i>线上
+            </span>
             {% else %}
-            <i class="fas fa-door-open"></i>
+            <span class="status-badge badge-offline">
+              <i class="fas fa-building"></i>线下
+            </span>
             {% endif %}
           </div>
+          
           <div class="room-details">
-            <h5>{{ room.RoomType == 'Online' and '线上会议室' or '线下会议室' }}</h5>
-            <p>
-              {% if room.RoomType == 'Offline' %}
-                {% if room.floor and room.building %}
-                  {{ room.building }} {{ room.floor }}
-                {% elif room.Location %}
-                  {{ room.Location }}
+            <div class="room-info">
+              <div class="room-icon">
+                {% if room.RoomType == 'Online' %}
+                <i class="fas fa-laptop"></i>
                 {% else %}
-                  位置信息未设置
+                <i class="fas fa-door-open"></i>
                 {% endif %}
-              {% else %}
-                {% if room.MeetingLink %}
-                  <div class="d-flex align-items-center gap-2 mt-2">
-                    <a href="{{ room.MeetingLink }}" target="_blank" class="text-decoration-none text-primary" title="点击访问会议链接">
-                      <i class="fas fa-link me-1"></i>会议链接
-                    </a>
-                    <button class="btn btn-sm btn-outline-secondary copy-link-btn" 
-                            data-link="{{ room.MeetingLink }}" 
-                            title="复制链接"
-                            style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">
-                      <i class="fas fa-copy"></i>
-                    </button>
-                  </div>
-                {% else %}
-                  虚拟会议空间
-                {% endif %}
-              {% endif %}
-            </p>
+              </div>
+              <div class="room-details-content">
+                <h5>{{ room.RoomType == 'Online' and '线上会议室' or '线下会议室' }}</h5>
+                <p>
+                  {% if room.RoomType == 'Offline' %}
+                    {% if room.floor and room.building %}
+                      {{ room.building }} {{ room.floor }}
+                    {% elif room.Location %}
+                      {{ room.Location }}
+                    {% else %}
+                      位置信息未设置
+                    {% endif %}
+                  {% else %}
+                    {% if room.MeetingLink %}
+                      <div class="d-flex align-items-center gap-2 mt-2">
+                        <a href="{{ room.MeetingLink }}" target="_blank" class="text-decoration-none text-primary" title="点击访问会议链接">
+                          <i class="fas fa-link me-1"></i>会议链接
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary copy-link-btn" 
+                                data-link="{{ room.MeetingLink }}" 
+                                title="复制链接"
+                                style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    {% else %}
+                      虚拟会议空间
+                    {% endif %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            
+            <div class="room-info-grid">
+              <div class="info-item">
+                <div class="info-label">容量</div>
+                <div class="info-value">{{ room.capacity }}人</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">类型</div>
+                <div class="info-value">{{ room.RoomType == 'Online' and '线上' or '线下' }}</div>
+              </div>
+            </div>
+            
+            {% if room.description %}
+            <div class="room-description">
+              <i class="fas fa-info-circle me-2"></i>
+              {{ room.description }}
+            </div>
+            {% endif %}
           </div>
-        </div>
-        
-        <div class="room-info-grid">
-          <div class="info-item">
-            <div class="info-label">容量</div>
-            <div class="info-value">{{ room.capacity }}人</div>
+          
+          <div class="room-actions">
+            <a href="{{ url_for('edit_room', id=room.id) }}" 
+               class="action-btn btn-edit">
+              <i class="fas fa-edit"></i>编辑
+            </a>
+            <a href="javascript:void(0)" 
+               class="action-btn btn-delete"
+               onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')">
+              <i class="fas fa-trash"></i>删除
+            </a>
           </div>
-          <div class="info-item">
-            <div class="info-label">类型</div>
-            <div class="info-value">{{ room.RoomType == 'Online' and '线上' or '线下' }}</div>
-          </div>
-        </div>
-        
-        {% if room.description %}
-        <div class="room-description">
-          <i class="fas fa-info-circle me-2"></i>
-          {{ room.description }}
-        </div>
-        {% endif %}
-        
-        <div class="room-actions">
-          <a href="{{ url_for('edit_room', id=room.id) }}" 
-             class="action-btn btn-edit">
-            <i class="fas fa-edit"></i>编辑
-          </a>
-          <a href="javascript:void(0)" 
-             class="action-btn btn-delete"
-             onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')">>
-            <i class="fas fa-trash"></i>删除
-          </a>
         </div>
       </div>
       {% endfor %}

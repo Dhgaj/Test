@@ -499,6 +499,50 @@
     color: black !important;
   }
 
+  /* 分页样式 */
+  .pagination {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .pagination .page-item .page-link {
+    border: none;
+    color: #495057;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+  }
+
+  .pagination .page-item:hover .page-link {
+    background-color: #f8f9fa;
+    color: #495057;
+    transform: translateY(-1px);
+  }
+
+  .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+  }
+
+  .form-select-sm {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+  }
+
+  .form-select-sm:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+
   .reservation-list-black i {
     color: black !important;
   }
@@ -538,6 +582,42 @@
   }
 
   /* 表单控件统一样式 */
+  
+  /* 预约列表表格圆角样式 */
+  .card .table-responsive {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+  
+  .card .table {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .card .table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+  
+  .card .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+  
+  .card .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
+  
+  /* 确保卡片整体圆角 */
+  .card {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+  
+  .card .card-body {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+  }
 </style>
 
   <!-- 页面标题和操作栏 -->
@@ -826,6 +906,7 @@
               </tr>
             </thead>
             <tbody id="reservationTableBody">
+              {% if reservations %}
               {% for reservation in reservations %}
               <tr data-reservation-id="{{ reservation.ID }}" 
                   data-status="{{ reservation.Status }}"
@@ -887,8 +968,10 @@
                   <div class="btn-group" role="group">
                     {% if reservation.Status == 'Pending' %}
                     <a href="javascript:void(0)" 
-                       class="btn btn-sm btn-success"
-                       onclick="confirmReservation('{{ reservation.ID }}', '{{ reservation.Title }}', '{{ url_for('confirm_reservation', id=reservation.ID) }}')"
+                       class="btn btn-sm btn-success confirm-reservation-btn"
+                       data-id="{{ reservation.ID }}"
+                       data-title="{{ reservation.Title }}"
+                       data-url="{{ url_for('confirm_reservation', id=reservation.ID) }}"
                        title="确认预约">
                       <i class="fas fa-check"></i>
                     </a>
@@ -899,8 +982,9 @@
                       <i class="fas fa-edit"></i>
                     </a>
                     <a href="javascript:void(0)" 
-                       class="btn btn-sm btn-danger"
-                       onclick="confirmDelete('{{ reservation.Title }}', '{{ url_for('delete_reservation', id=reservation.ID) }}')"
+                       class="btn btn-sm btn-danger delete-reservation-btn"
+                       data-title="{{ reservation.Title }}"
+                       data-url="{{ url_for('delete_reservation', id=reservation.ID) }}"
                        title="删除预约">
                       <i class="fas fa-trash"></i>
                     </a>
@@ -908,6 +992,17 @@
                 </td>
               </tr>
               {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="8" class="text-center py-5">
+                  <div class="empty-state-content">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">暂无预约记录</h5>
+                    <p class="text-muted">还没有任何预约记录，等待用户创建预约。</p>
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -936,6 +1031,7 @@
     </div>
     
     <div class="reservation-cards-grid reservation-list-black" id="reservationCardsGrid">
+      {% if reservations %}
       {% for reservation in reservations %}
       <div class="reservation-card" 
            data-reservation-id="{{ reservation.ID }}" 
@@ -1009,8 +1105,10 @@
         <div class="reservation-actions">
           {% if reservation.Status == 'Pending' %}
           <a href="javascript:void(0)" 
-             class="action-btn btn-confirm"
-             onclick="confirmReservation('{{ reservation.ID }}', '{{ reservation.Title }}', '{{ url_for('confirm_reservation', id=reservation.ID) }}')">
+             class="action-btn btn-confirm confirm-reservation-btn"
+             data-id="{{ reservation.ID }}"
+             data-title="{{ reservation.Title }}"
+             data-url="{{ url_for('confirm_reservation', id=reservation.ID) }}">
             <i class="fas fa-check"></i>确认
           </a>
           {% endif %}
@@ -1019,14 +1117,121 @@
             <i class="fas fa-edit"></i>编辑
           </a>
           <a href="javascript:void(0)" 
-             class="action-btn btn-delete"
-             onclick="confirmDelete('{{ reservation.Title }}', '{{ url_for('delete_reservation', id=reservation.ID) }}')">>
+             class="action-btn btn-delete delete-reservation-btn"
+             data-title="{{ reservation.Title }}"
+             data-url="{{ url_for('delete_reservation', id=reservation.ID) }}">
             <i class="fas fa-trash"></i>删除
           </a>
         </div>
       </div>
       {% endfor %}
+      {% else %}
+      <div class="text-center py-5 col-12">
+        <div class="empty-state-content">
+          <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+          <h4 class="text-muted">暂无预约记录</h4>
+          <p class="text-muted">还没有任何预约记录，等待用户创建预约。</p>
+        </div>
+      </div>
+      {% endif %}
     </div>
+  </div>
+
+  <!-- 共享分页控件 -->
+  <div class="mt-4">
+    <!-- 分页信息和每页显示控件 -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <span class="text-muted">
+          显示第 {{ (pagination.page - 1) * pagination.per_page + 1 }} - 
+          {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }} 条，
+          共 {{ pagination.total }} 条记录
+        </span>
+      </div>
+      
+      <!-- 每页显示条数选择 -->
+      <div class="d-flex align-items-center">
+        <span class="text-muted me-2">每页显示：</span>
+        <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+          <option value="10" {% if request.args.get('per_page', 10, type=int) == 10 %}selected{% endif %}>10</option>
+          <option value="20" {% if request.args.get('per_page', 10, type=int) == 20 %}selected{% endif %}>20</option>
+          <option value="50" {% if request.args.get('per_page', 10, type=int) == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if request.args.get('per_page', 10, type=int) == 100 %}selected{% endif %}>100</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- 分页导航 -->
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <!-- 首页 -->
+          {% if pagination.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=1, per_page=request.args.get('per_page', 10, type=int)) }}">
+              <i class="fas fa-angle-double-left"></i>
+            </a>
+          </li>
+          <!-- 上一页 -->
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.prev_num, per_page=request.args.get('per_page', 10, type=int)) }}">
+              <i class="fas fa-angle-left"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+          </li>
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+          </li>
+          {% endif %}
+          
+          <!-- 页码 -->
+          {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+              {% if page_num != pagination.page %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin_reservations', page=page_num, per_page=request.args.get('per_page', 10, type=int)) }}">{{ page_num }}</a>
+              </li>
+              {% else %}
+              <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+              </li>
+              {% endif %}
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">…</span>
+            </li>
+            {% endif %}
+          {% endfor %}
+          
+          <!-- 下一页 -->
+          {% if pagination.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.next_num, per_page=request.args.get('per_page', 10, type=int)) }}">
+              <i class="fas fa-angle-right"></i>
+            </a>
+          </li>
+          <!-- 末页 -->
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.pages, per_page=request.args.get('per_page', 10, type=int)) }}">
+              <i class="fas fa-angle-double-right"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+          </li>
+          <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
   </div>
 
   <!-- 空状态 -->
@@ -1048,6 +1253,14 @@
 </div>
 
 <script>
+// 更改每页显示条数
+function changePerPage(perPage) {
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.set('per_page', perPage);
+  urlParams.set('page', 1); // 重置到第一页
+  window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('reservationSearch');
   const statusFilter = document.getElementById('statusFilter');
@@ -1621,6 +1834,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="modal-body">
         <div class="text-center mb-3">
           <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+         
           <h6 class="mb-3">您确定要确认以下预约吗？</h6>
           <div class="alert alert-info">
             <strong id="confirmReservationTitle"></strong>
@@ -1678,4 +1892,49 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 处理确认预约按钮
+    document.querySelectorAll('.confirm-reservation-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            const url = this.dataset.url;
+            confirmReservation(id, title, url);
+        });
+    });
+    
+    // 处理删除预约按钮
+    document.querySelectorAll('.delete-reservation-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const title = this.dataset.title;
+            const url = this.dataset.url;
+            confirmDelete(title, url);
+        });
+    });
+});
+
+// 确认预约函数
+function confirmReservation(id, title, url) {
+    document.getElementById('confirmReservationTitle').textContent = title;
+    document.getElementById('confirmReservationBtn').onclick = function() {
+        window.location.href = url;
+    };
+    var modal = new bootstrap.Modal(document.getElementById('confirmReservationModal'));
+    modal.show();
+}
+
+// 确认删除函数
+function confirmDelete(title, url) {
+    document.getElementById('deleteReservationTitle').textContent = title;
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        window.location.href = url;
+    };
+    var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    modal.show();
+}
+</script>
 {% endblock %}
