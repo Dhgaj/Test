@@ -101,32 +101,14 @@ import threading
 import re
 import atexit
 import config
-import unicodedata
 from dotenv import load_dotenv
+from file_utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.utils import secure_filename as werkzeug_secure_filename
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
-
-
-def secure_filename(filename):
-    """对中文文件名的支持"""
-    if not filename:
-        return ""
-    # 规范化Unicode字符串
-    filename = unicodedata.normalize('NFKD', filename)
-    # 移除文件名中的非法字符
-    filename = re.sub(r'[^\w\s.-]', '', filename)
-    # 替换空格为下划线
-    filename = re.sub(r'\s+', '_', filename).strip('._')    
-    # 如果处理后为空,则回退到werkzeug的原始实现
-    if not filename:
-        return werkzeug_secure_filename(filename)
-    return filename
-
 
 # 创建 Flask 应用实例
 app = Flask(__name__)
@@ -177,10 +159,9 @@ def load_config(app):
         app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "True").lower() == "true"
         app.config["REMEMBER_COOKIE_SECURE"] = os.environ.get("REMEMBER_COOKIE_SECURE", "True").lower() == "true"
         app.config["SESSION_COOKIE_HTTPONLY"] = True
-        
         print("从环境变量加载配置完成")
-load_config(app)
 
+load_config(app)
 # 添加内置类型到模板全局变量
 app.jinja_env.globals['int'] = int
 app.jinja_env.globals['str'] = str
@@ -1550,7 +1531,7 @@ def admin_reservations():
     
     # 获取分页参数
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)  # 每页显示条数,默认10条
+    per_page = request.args.get('per_page', 10, type=int)
     
     # 限制每页最大显示条数
     if per_page > 100:
@@ -2207,13 +2188,78 @@ def admin_rooms():
     """
     管理员查看所有会议室的路由。
     该函数执行以下操作：
-    1. 查询所有会议室信息。
+    1. 查询所有会议室信息，支持分页和筛选。
     2. 渲染管理员会议室管理页面,并传递会议室信息。
     返回:
         werkzeug.wrappers.Response: 渲染管理员会议室管理页面的响应对象。
     """
-    rooms = Room.query.all()
-    return render_template('admin_rooms.html', rooms=rooms)
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 15, type=int)  # 每页显示15个会议室
+    
+    # 获取筛选参数
+    search = request.args.get('search', '').strip()
+    room_type_filter = request.args.get('room_type', '')
+    min_capacity = request.args.get('min_capacity', type=int)
+    max_capacity = request.args.get('max_capacity', type=int)
+    status_filter = request.args.get('status', '')
+    
+    # 构建查询
+    query = Room.query
+    
+    # 应用搜索条件
+    if search:
+        query = query.filter(
+            db.or_(
+                Room.RoomName.contains(search),
+                Room.RoomNumber.contains(search),
+                Room.Location.contains(search),
+                Room.Building.contains(search),
+                Room.Floor.contains(search)
+            )
+        )
+    
+    # 应用筛选条件
+    if room_type_filter and room_type_filter != 'all':
+        query = query.filter(Room.RoomType == room_type_filter)
+    
+    if status_filter and status_filter != 'all':
+        query = query.filter(Room.Status == status_filter)
+    
+    if min_capacity:
+        query = query.filter(Room.Capacity >= min_capacity)
+    
+    if max_capacity:
+        query = query.filter(Room.Capacity <= max_capacity)
+    
+    # 按会议室名称排序并分页
+    rooms_pagination = query.order_by(Room.RoomName).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+    
+    # 计算统计信息（基于所有会议室，不受分页影响）
+    all_rooms = Room.query.all()
+    total_rooms = len(all_rooms)
+    online_rooms = len([r for r in all_rooms if r.RoomType == 'Online'])
+    offline_rooms = len([r for r in all_rooms if r.RoomType == 'Offline'])
+    
+    return render_template('admin_rooms.html', 
+                         rooms=rooms_pagination.items,
+                         pagination=rooms_pagination,
+                         current_filters={
+                             'search': search,
+                             'room_type': room_type_filter,
+                             'min_capacity': min_capacity,
+                             'max_capacity': max_capacity,
+                             'status': status_filter
+                         },
+                         stats={
+                             'total_rooms': total_rooms,
+                             'online_rooms': online_rooms,
+                             'offline_rooms': offline_rooms
+                         })
 
 
 @app.route('/request_change_password', methods=['GET', 'POST'])
@@ -3300,15 +3346,40 @@ def view_room_status():
     """
     查看会议室状态的路由
     显示所有会议室的当前状态、设备情况和维护计划
+    支持分页功能
     """
-    rooms = Room.query.all()
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 12, type=int)  # 每页显示12个会议室
+    
+    # 获取筛选参数
+    status_filter = request.args.get('status', '')
+    room_type_filter = request.args.get('room_type', '')
+    
     current_time = datetime.now()
     
     # 自动更新过期的维护记录状态
     update_room_status_after_maintenance()
     
+    # 构建查询
+    query = Room.query
+    
+    # 应用筛选条件
+    if status_filter and status_filter != 'all':
+        query = query.filter(Room.Status == status_filter)
+    
+    if room_type_filter and room_type_filter != 'all':
+        query = query.filter(Room.RoomType == room_type_filter)
+    
+    # 按会议室名称排序并分页
+    rooms_pagination = query.order_by(Room.RoomName).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+    
     room_status = []
-    for room in rooms:
+    for room in rooms_pagination.items:
         # 获取当前正在进行的预订
         current_booking = Reservation.query.filter(
             Reservation.RoomID == room.RoomID,
@@ -3343,7 +3414,13 @@ def view_room_status():
             'maintenance': maintenance
         })
     
-    return render_template('room_status.html', room_status=room_status)
+    return render_template('room_status.html', 
+                         room_status=room_status,
+                         pagination=rooms_pagination,
+                         current_filters={
+                             'status': status_filter,
+                             'room_type': room_type_filter
+                         })
 
 @app.route('/my/materials')
 @login_required
