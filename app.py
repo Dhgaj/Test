@@ -2303,6 +2303,7 @@ def admin_rooms():
     return render_template('admin_rooms.html', 
                          rooms=rooms_pagination.items,
                          pagination=rooms_pagination,
+                         current_per_page=per_page,
                          current_filters={
                              'search': search,
                              'room_type': room_type_filter,
