@@ -809,8 +809,10 @@
   </div>
 
   <!-- 表格视图 -->
-  <div id="tableView" class="view-content">
-    <div class="card">
+  <div class="row">
+    <div class="col-12">
+      <div id="tableView" class="view-content">
+        <div class="card">
       <!-- 表格操作栏 -->
       <div class="card-header bg-white border-bottom">
         <div class="row align-items-center">
@@ -1008,10 +1010,14 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
   </div>
 
   <!-- 卡片视图 -->
-  <div id="cardView" class="view-content" style="display: none;">
+  <div class="row">
+    <div class="col-12">
+      <div id="cardView" class="view-content" style="display: none;">
     <!-- 卡片视图操作栏 -->
     <div class="card mb-3">
       <div class="card-header bg-white border-bottom">
@@ -1135,10 +1141,14 @@
       </div>
       {% endif %}
     </div>
+      </div>
+    </div>
   </div>
 
   <!-- 共享分页控件 -->
-  <div class="mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="mt-4">
     <!-- 分页信息和每页显示控件 -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
@@ -1232,10 +1242,14 @@
       </nav>
     </div>
     {% endif %}
+      </div>
+    </div>
   </div>
 
   <!-- 空状态 -->
-  <div id="emptyState" class="text-center py-5" style="display: none;">
+  <div class="row">
+    <div class="col-12">
+      <div id="emptyState" class="text-center py-5" style="display: none;">
     <div class="empty-state-content">
       <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
       <h4 class="text-muted">没有找到预约记录</h4>
@@ -1247,6 +1261,8 @@
         <a href="{{ url_for('new_reservation') }}" class="btn btn-primary">
           <i class="fas fa-plus me-1"></i>新建预约
         </a>
+      </div>
+    </div>
       </div>
     </div>
   </div>
@@ -1275,23 +1291,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 视图切换
   function switchView(viewType) {
+    const tableViewRow = document.querySelector('#tableView').closest('.row');
+    const cardViewRow = document.querySelector('#cardView').closest('.row');
+    
     if (viewType === 'table') {
+      // 显示表格视图
+      tableViewRow.style.display = 'block';
+      cardViewRow.style.display = 'none';
       tableView.style.display = 'block';
       cardView.style.display = 'none';
       tableViewBtn.classList.add('active');
       cardViewBtn.classList.remove('active');
+      console.log('切换到表格视图');
     } else {
+      // 显示卡片视图
+      tableViewRow.style.display = 'none';
+      cardViewRow.style.display = 'block';
       tableView.style.display = 'none';
       cardView.style.display = 'block';
       tableViewBtn.classList.remove('active');
       cardViewBtn.classList.add('active');
+      console.log('切换到卡片视图');
     }
     // 重新触发过滤以正确显示空状态
     filterReservations();
   }
 
-  tableViewBtn.addEventListener('click', () => switchView('table'));
-  cardViewBtn.addEventListener('click', () => switchView('card'));
+  tableViewBtn.addEventListener('click', () => {
+    console.log('表格视图按钮被点击');
+    switchView('table');
+  });
+  cardViewBtn.addEventListener('click', () => {
+    console.log('卡片视图按钮被点击');
+    switchView('card');
+  });
+
+  // 初始化：确保默认显示表格视图
+  console.log('初始化视图状态');
+  switchView('table');
 
   // 过滤功能
   function filterReservations() {
