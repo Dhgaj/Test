@@ -96,7 +96,6 @@
 - 运行 Flask 应用程序
 """
 import os
-import smtplib
 import json
 import threading
 import re
@@ -104,13 +103,10 @@ import atexit
 import config
 import unicodedata
 from dotenv import load_dotenv
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from itsdangerous import URLSafeTimedSerializer
 from werkzeug.utils import secure_filename as werkzeug_secure_filename
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -142,7 +138,7 @@ def load_config(app):
         app.config.from_object(config)
         print("从 config.py 加载配置成功")
     except ImportError:
-        print("config.py 不存在，从环境变量加载配置")
+        print("config.py 不存在,从环境变量加载配置")
         load_dotenv()
         
         # 基础配置
@@ -170,7 +166,7 @@ def load_config(app):
         # DB_PORT = int(os.environ.get('DB_PORT', 3306))
 
         if not DB_PASSWORD:
-            print("警告: 数据库密码未设置，请设置 DB_PASSWORD 环境变量")
+            print("警告: 数据库密码未设置,请设置 DB_PASSWORD 环境变量")
         
         app.config["SQLALCHEMY_DATABASE_URI"] = (
             f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -185,6 +181,11 @@ def load_config(app):
         print("从环境变量加载配置完成")
 load_config(app)
 
+# 添加内置类型到模板全局变量
+app.jinja_env.globals['int'] = int
+app.jinja_env.globals['str'] = str
+app.jinja_env.globals['float'] = float
+
 
 # 初始化数据库实例
 db = SQLAlchemy(app)
@@ -194,7 +195,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 # 从配置获取最大会议数量
 MAX_TOTAL_MEETINGS = app.config.get('MAX_TOTAL_MEETINGS', 10000)
-# 初始化后台调度器，配置支持多线程并发执行
+# 初始化后台调度器,配置支持多线程并发执行
 executors = {
     # 最多支持的并发任务数
     'default': ThreadPoolExecutor(20), 
@@ -209,140 +210,22 @@ scheduler.start()
 # 确保在应用退出时关闭调度器
 atexit.register(lambda: scheduler.shutdown())
 
-# 发送邮件配置
-try:
-    from config import MAIL_CONFIG
-    MAIL_SERVER = MAIL_CONFIG.get('MAIL_SERVER')
-    MAIL_PORT = int(MAIL_CONFIG.get('MAIL_PORT', 25))
-    MAIL_USERNAME = MAIL_CONFIG.get('MAIL_USERNAME')
-    MAIL_PASSWORD = MAIL_CONFIG.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = MAIL_CONFIG.get('MAIL_DEFAULT_SENDER')
-    MAIL_USE_TLS = MAIL_CONFIG.get('MAIL_USE_TLS', True)
-    MAIL_USE_SSL = MAIL_CONFIG.get('MAIL_USE_SSL', False)
-    # 验证必要的配置是否存在
-    if not all([MAIL_SERVER, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER]):
-        raise ValueError("邮件配置不完整")
-    print("从配置文件读取邮件设置成功")
-except (ImportError, ValueError):
-    # 如果没有配置文件或配置不完整，则从环境变量读取
-    MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() == 'true'
-    # 验证环境变量配置
-    if not all([MAIL_SERVER, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER]):
-        print("警告：邮件配置不完整，邮件功能将被禁用")
-        MAIL_ENABLED = False
-    else:
-        MAIL_ENABLED = True
-        print("从环境变量读取邮件设置成功")
-
 # 加载 .env 文件中的环境变量
 load_dotenv()
 
-# 创建安全序列化器用于令牌生成
-ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+# 初始化邮件服务
+from send_email import init_email_service, send_email, send_email_async, generate_confirmation_token, confirm_token
+
+# 初始化邮件服务
+email_service = init_email_service(app.config['SECRET_KEY'])
+
 
 # 辅助函数
-
-## 邮箱
-def send_email_async(to, subject, template):
-    """
-    异步发送邮件的函数
-    参数:
-        to (str): 收件人邮箱地址
-        subject (str): 邮件主题
-        template (str): 邮件内容HTML模板
-    """
-    def send_mail_thread():
-        try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = MAIL_DEFAULT_SENDER
-            msg['To'] = to
-            
-            part = MIMEText(template, 'html')
-            msg.attach(part)
-            
-            # 根据配置决定使用SSL还是TLS
-            if MAIL_USE_SSL:
-                server = smtplib.SMTP_SSL(MAIL_SERVER, MAIL_PORT)
-            else:
-                server = smtplib.SMTP(MAIL_SERVER, MAIL_PORT)
-                if MAIL_USE_TLS:
-                    server.starttls()
-            
-            # 如果提供了用户名和密码,则进行登录
-            if MAIL_USERNAME and MAIL_PASSWORD:
-                server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            
-            server.sendmail(MAIL_DEFAULT_SENDER, to, msg.as_string())
-            server.quit()
-            print(f"邮件发送成功至: {to}")
-        except Exception as e:
-            print(f"邮件发送失败: {str(e)}")
-    
-    # 启动新线程发送邮件
-    thread = threading.Thread(target=send_mail_thread)
-    thread.start()
-    print(f"开始异步发送邮件至: {to}")
-
-## 邮箱
-def send_email(to, subject, template):
-    """
-    发送邮件的辅助函数,现在调用异步版本
-    参数:
-        to (str): 收件人邮箱地址
-        subject (str): 邮件主题
-        template (str): 邮件内容HTML模板
-    返回:
-        bool: 总是返回TrueTrue,因为异步发送
-    """
-    # 异步发送邮件
-    send_email_async(to, subject, template)
-    return True
-
-## 邮箱
-def generate_confirmation_token(email):
-    """
-    生成邮箱确认令牌
-    参数:
-        email (str): 用户邮箱
-    返回:
-        str: 生成的令牌
-    """
-    return ts.dumps(email, salt='email-confirm-salt')
-
-## 邮箱
-def confirm_token(token, expiration=3600):
-    """
-    验证令牌
-    参数:
-        token (str): 要验证的令牌
-        expiration (int): 过期时间,默认为3600秒(1小时)
-    返回:
-        str或None: 如果令牌有效,返回邮箱地址,否则返回None
-    """
-    try:
-        email = ts.loads(token, salt='email-confirm-salt', max_age=expiration)
-        return email
-    except:
-        return None
 
 ## 时间槽
 def get_time_slots(start_time, end_time, slot_minutes=15):
     """
-    将时间段划分为固定时间槽
-    返回一个时间槽列表
-    参数:
-        start_time (datetime): 开始时间
-        end_time (datetime): 结束时间
-        slot_minutes (int): 每个时间槽的分钟数,默认值为15
-    返回:
-        list: 时间槽列表,每个时间槽为一个datetime对象
+    将时间段划分为固定时间槽,返回一个时间槽列表
     """
     slots = []
     current = start_time
@@ -353,12 +236,7 @@ def get_time_slots(start_time, end_time, slot_minutes=15):
 
 ## 日志 获取客户端IP地址
 def get_client_ip():
-    """
-    获取客户端真实IP地址
-    考虑代理服务器和负载均衡器的情况
-    返回:
-        str: 客户端IP地址
-    """
+    """获取客户端真实IP地址,考虑代理服务器和负载均衡器的情况"""
     # 按优先级顺序检查各种头部
     headers_to_check = [
         'X-Forwarded-For',      
@@ -384,13 +262,7 @@ def get_client_ip():
 
 ## 日志
 def create_log(action, description, user_id=None):
-    """
-    创建系统操作日志
-    参数:
-        action (str): 操作类型
-        description (str): 操作描述
-        user_id (int, optional): 用户ID,如果为None则使用当前用户
-    """
+    """创建系统操作日志"""
     try:
         # 如果没有指定用户ID,尝试使用当前登录用户
         if user_id is None:
@@ -428,10 +300,7 @@ def create_log(action, description, user_id=None):
 
 ## 会议室可用性检查
 def check_room_availability(room_id, start_time, end_time, user_id=None, exclude_reservation_id=None):
-    """
-    检查会议室在指定时间段内的可用性
-    返回 (是否可用, 原因)
-    """
+    """检查会议室在指定时间段内的可用性"""
     # 检查会议室是否存在
     room = db.session.get(Room, room_id)
     if not room:
@@ -492,17 +361,7 @@ def check_room_availability(room_id, start_time, end_time, user_id=None, exclude
 
 ## 用户并发预订检查
 def check_user_concurrent_reservations(user_id, start_time, end_time, max_concurrent=5, exclude_reservation_id=None):
-    """
-    检查用户在指定时间段内的并发预订数量
-    参数:
-        user_id (int): 用户ID
-        start_time (datetime): 开始时间
-        end_time (datetime): 结束时间
-        max_concurrent (int): 最大并发预订数量,默认为5
-        exclude_reservation_id (int, optional): 要排除的预订ID（用于编辑预订时）
-    返回:
-        tuple: (bool, str) 是否可用及原因
-    """
+    """检查用户在指定时间段内的并发预订数量"""
     # 检查用户在该时间段内的并发预订数量
     concurrent_reservations = Reservation.query.filter(
         Reservation.UserID == user_id,
@@ -528,24 +387,19 @@ def check_user_concurrent_reservations(user_id, start_time, end_time, max_concur
 
 ## 自动确认预订
 def auto_confirm_reservation(reservation_id):
-    """
-    自动确认预订函数
-    该函数在预订创建5分钟后被调度器调用，自动将状态从'Pending'更新为'Confirmed'
-    参数:
-        reservation_id (int): 预订ID
-    """
+    """自动确认预订函数,该函数在预订创建5分钟后被调度器调用,自动将状态从'Pending'更新为'Confirmed'"""
     print(f"====== 开始执行自动确认预订 ID: {reservation_id} ======")
     try:
         with app.app_context():
             # 获取预订记录
             reservation = db.session.get(Reservation, reservation_id)
             if not reservation:
-                print(f"预订ID {reservation_id} 不存在，可能已被删除")
+                print(f"预订ID {reservation_id} 不存在,可能已被删除")
                 return
             
             # 检查预订状态是否仍为Pending
             if reservation.Status != 'Pending':
-                print(f"预订ID {reservation_id} 状态已变更为 {reservation.Status}，无需自动确认")
+                print(f"预订ID {reservation_id} 状态已变更为 {reservation.Status},无需自动确认")
                 return
             
             # 更新状态为已确认
@@ -584,12 +438,7 @@ def auto_confirm_reservation(reservation_id):
 
 ## 调度自动确认任务
 def schedule_auto_confirmation(reservation_id):
-    """
-    调度自动确认任务
-    该函数为指定的预订安排5分钟后的自动确认任务
-    参数:
-        reservation_id (int): 预订ID
-    """
+    """调度自动确认任务,该函数为指定的预订安排5分钟后的自动确认任务"""
     try:
         # 计算5分钟后的时间
         confirm_time = datetime.now() + timedelta(minutes=5)
@@ -614,12 +463,7 @@ def schedule_auto_confirmation(reservation_id):
 
 ## 取消自动确认任务
 def cancel_auto_confirmation(reservation_id):
-    """
-    取消已调度的自动确认任务
-    该函数在手动确认或取消预订时被调用，用于移除待执行的自动确认任务
-    参数:
-        reservation_id (int): 预订ID
-    """
+    """取消已调度的自动确认任务,该函数在手动确认或取消预订时被调用,用于移除待执行的自动确认任务"""
     try:
         job_id = f"auto_confirm_{reservation_id}"
         
@@ -643,7 +487,7 @@ def cancel_auto_confirmation(reservation_id):
 def get_pending_auto_confirmations():
     """
     获取所有待执行的自动确认任务信息
-    返回包含任务信息的列表，用于监控和调试
+    返回包含任务信息的列表,用于监控和调试
     """
     try:
         pending_jobs = []
@@ -1470,18 +1314,18 @@ def new_reservation():
                 print(f"已安排预订ID {reservation.ID} 的自动确认任务")
             except Exception as schedule_error:
                 print(f"安排自动确认任务失败: {str(schedule_error)}")
-                # 这里不影响预订创建，只是记录错误
+                # 这里不影响预订创建,只是记录错误
             
             # 向所有管理员发送预订通知
             try:
-                admin_message = f"新预订通知：用户 {current_user.UserName} 预订了会议室 {room.RoomName}，时间：{start_time.strftime('%Y年%m月%d日 %H:%M')} - {end_time.strftime('%H:%M')}，会议主题：{title}"
+                admin_message = f"新预订通知：用户 {current_user.UserName} 预订了会议室 {room.RoomName},时间：{start_time.strftime('%Y年%m月%d日 %H:%M')} - {end_time.strftime('%H:%M')},会议主题：{title}"
                 notification_count = notify_all_admins(admin_message, exclude_user_id=current_user.UserID if current_user.is_admin else None)
                 print(f"已向 {notification_count} 位管理员发送预订通知")
             except Exception as notify_error:
                 print(f"发送管理员通知失败: {str(notify_error)}")
-                # 这里不影响预订创建，只是记录错误
+                # 这里不影响预订创建,只是记录错误
             
-            flash('预订成功，将在5分钟后自动确认')
+            flash('预订成功,将在5分钟后自动确认')
             return redirect(url_for('dashboard'))
         except Exception as e:
             db.session.rollback()
@@ -1524,7 +1368,7 @@ def cancel_reservation(id):
                     f'您预订的会议室 {reservation.room.RoomName} ({reservation.StartTime.strftime("%Y-%m-%d %H:%M")} - {reservation.EndTime.strftime("%H:%M")}) 已被管理员取消。'
                 )
             
-            # 更新预订状态为已取消，而不是删除记录
+            # 更新预订状态为已取消,而不是删除记录
             reservation.Status = 'Cancelled'
             db.session.commit()
             flash('预订已成功取消')
@@ -1596,7 +1440,7 @@ def edit_reservation(id):
             start_time = datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M')
             end_time = datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M')
         except (ValueError, TypeError) as e:
-            flash('日期或时间格式错误，请重新填写')
+            flash('日期或时间格式错误,请重新填写')
             return redirect(url_for('edit_reservation', id=id))
 
         room = db.session.get(Room, room_id)
@@ -1664,7 +1508,7 @@ def edit_reservation(id):
             
             db.session.commit()
             
-            # 如果是管理员编辑，记录操作日志
+            # 如果是管理员编辑,记录操作日志
             if is_admin_view and hasattr(current_user, 'UserID'):
                 try:
                     reservation_info = f'会议室: {room.RoomName}, 时间: {start_time.strftime("%Y-%m-%d %H:%M")}-{end_time.strftime("%H:%M")}, 预订人: {reservation.user.username}'
@@ -1706,7 +1550,7 @@ def admin_reservations():
     
     # 获取分页参数
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)  # 每页显示条数，默认10条
+    per_page = request.args.get('per_page', 10, type=int)  # 每页显示条数,默认10条
     
     # 限制每页最大显示条数
     if per_page > 100:
@@ -1726,7 +1570,8 @@ def admin_reservations():
                          reservations=reservations, 
                          pagination=reservations_pagination,
                          admin_view=True, 
-                         today=today)
+                         today=today,
+                         current_per_page=per_page)
 
 # 查看所有预订情况的路由。
 @app.route('/all_reservations')
@@ -2513,7 +2358,7 @@ def update_room_status_after_maintenance():
     """
     自动更新维护记录状态和会议室状态
     此函数检查所有维护记录并根据当前时间自动更新状态：
-    - Scheduled -> In Progress (开始时间已到，但未结束)
+    - Scheduled -> In Progress (开始时间已到,但未结束)
     - Scheduled/In Progress -> Completed (结束时间已过)
     同时更新相应会议室的状态
     """
@@ -2867,7 +2712,7 @@ def notify_all_admins(message, exclude_user_id=None):
         
         notification_count = 0
         for admin_user in admin_users:
-            # 如果指定了排除用户ID，则跳过该用户
+            # 如果指定了排除用户ID,则跳过该用户
             if exclude_user_id and admin_user.UserID == exclude_user_id:
                 continue
                 
@@ -2979,7 +2824,7 @@ def add_maintenance():
                 duration_minutes = int(estimated_duration)
                 end_time = start_time + timedelta(minutes=duration_minutes)
             except (ValueError, TypeError):
-                flash('时间格式错误，请重新选择')
+                flash('时间格式错误,请重新选择')
                 return redirect(url_for('add_maintenance'))
         else:
             start_time = None
@@ -2991,7 +2836,7 @@ def add_maintenance():
             return redirect(url_for('add_maintenance'))
             
         if not start_time or not end_time or not maintenance_date:
-            flash('时间信息不完整，请重新填写')
+            flash('时间信息不完整,请重新填写')
             return redirect(url_for('add_maintenance'))
 
         if start_time >= end_time:
@@ -3093,7 +2938,7 @@ def edit_maintenance(id):
             end_time = datetime.strptime(end_datetime_str, '%Y-%m-%dT%H:%M')
             maintenance_date = start_time.date()
         except (ValueError, TypeError) as e:
-            flash('日期或时间格式错误，请重新填写')
+            flash('日期或时间格式错误,请重新填写')
             return redirect(url_for('edit_maintenance', id=id))
 
         if start_time >= end_time:
@@ -3115,7 +2960,7 @@ def edit_maintenance(id):
             elif status in ['Scheduled', 'In Progress']:
                 room.Status = 'Maintenance'
             elif status == 'Cancelled':
-                # 维护取消时，检查是否还有其他进行中的维护
+                # 维护取消时,检查是否还有其他进行中的维护
                 other_active = Maintenance.query.filter(
                     Maintenance.RoomID == room_id,
                     Maintenance.Status.in_(['Scheduled', 'In Progress']),
@@ -3133,7 +2978,7 @@ def edit_maintenance(id):
             
             # 根据状态提供具体的反馈消息
             if status == 'Cancelled':
-                flash('维护计划已成功取消，记录已保留在系统中')
+                flash('维护计划已成功取消,记录已保留在系统中')
             elif status == 'Completed':
                 flash('维护计划已标记为完成')
             elif status == 'In Progress':
@@ -3695,7 +3540,7 @@ def admin_auto_confirmation_status():
 def api_pending_auto_confirmations():
     """
     API端点：获取待自动确认的预订信息
-    返回JSON格式的数据，包含预订ID、剩余时间等信息
+    返回JSON格式的数据,包含预订ID、剩余时间等信息
     """
     if not current_user.is_admin:
         return jsonify({'error': '需要管理员权限'}), 403
@@ -3816,16 +3661,16 @@ def admin_logs():
         '权限变更', '用户删除', '异常登录'
     ]
     
-    # 合并现有的和预定义的操作类型，去重并排序
+    # 合并现有的和预定义的操作类型,去重并排序
     action_list = sorted(list(set(existing_action_list + all_possible_actions)))
     
     # 获取所有用户用于过滤器
     users = User.query.all()
     
-    # 计算操作类型统计（基于所有日志，不仅仅是当前页）
+    # 计算操作类型统计（基于所有日志,不仅仅是当前页）
     all_logs_query = db.session.query(Log).join(User, Log.UserID == User.UserID)
     
-    # 对于统计，应用同样的过滤条件（除了分页）
+    # 对于统计,应用同样的过滤条件（除了分页）
     if action_filter:
         all_logs_query = all_logs_query.filter(Log.Action.ilike(f'%{action_filter}%'))
     
@@ -3915,11 +3760,11 @@ def check_room_availability_route():
         # 获取所有会议室
         rooms_query = Room.query
         
-        # 如果指定了会议类型，进行过滤
+        # 如果指定了会议类型,进行过滤
         if meeting_type:
             rooms_query = rooms_query.filter(Room.RoomType == meeting_type)
         
-        # 如果指定了参会人数，进行容量过滤
+        # 如果指定了参会人数,进行容量过滤
         if attendees and attendees > 0:
             rooms_query = rooms_query.filter(Room.Capacity >= attendees)
         
@@ -4003,7 +3848,7 @@ def active_filter(reservations):
 @login_required
 def debug_auto_confirmation():
     """
-    调试自动确认功能，检查调度器状态和数据库状态的一致性
+    调试自动确认功能,检查调度器状态和数据库状态的一致性
     """
     if not current_user.is_admin:
         return jsonify({'error': '需要管理员权限'}), 403
@@ -4092,7 +3937,7 @@ def debug_auto_confirmation():
 @login_required
 def fix_auto_confirmation():
     """
-    修复自动确认功能，为没有调度任务的待确认预订重新创建任务
+    修复自动确认功能,为没有调度任务的待确认预订重新创建任务
     """
     if not current_user.is_admin:
         return jsonify({'error': '需要管理员权限'}), 403
@@ -4116,12 +3961,12 @@ def fix_auto_confirmation():
             if str(reservation.ID) not in scheduler_reservation_ids:
                 try:
                     # 重新安排自动确认任务
-                    # 如果预订是很久之前创建的，立即确认；否则延迟1分钟
+                    # 如果预订是很久之前创建的,立即确认；否则延迟1分钟
                     now = datetime.now()
                     if hasattr(reservation, 'CreateTime') and reservation.CreateTime:
                         time_since_creation = now - reservation.CreateTime
                         if time_since_creation > timedelta(minutes=5):
-                            # 如果预订创建超过5分钟，立即确认
+                            # 如果预订创建超过5分钟,立即确认
                             confirm_time = now + timedelta(seconds=10)
                         else:
                             # 否则按正常流程延迟确认
@@ -4129,7 +3974,7 @@ def fix_auto_confirmation():
                             if confirm_time <= now:
                                 confirm_time = now + timedelta(seconds=10)
                     else:
-                        # 如果没有创建时间，延迟1分钟确认
+                        # 如果没有创建时间,延迟1分钟确认
                         confirm_time = now + timedelta(minutes=1)
                     
                     job_id = f"auto_confirm_{reservation.ID}"
@@ -4143,7 +3988,7 @@ def fix_auto_confirmation():
                     )
                     
                     fixed_count += 1
-                    print(f"已恢复预订ID {reservation.ID} 的自动确认任务，确认时间: {confirm_time}")
+                    print(f"已恢复预订ID {reservation.ID} 的自动确认任务,确认时间: {confirm_time}")
                     
                 except Exception as e:
                     print(f"恢复预订ID {reservation.ID} 的自动确认任务失败: {str(e)}")
@@ -4167,7 +4012,7 @@ def fix_auto_confirmation():
         
         return jsonify({
             'success': True,
-            'message': f'修复完成！重新创建了 {fixed_count} 个任务，清理了 {cleaned_count} 个孤立任务',
+            'message': f'修复完成！重新创建了 {fixed_count} 个任务,清理了 {cleaned_count} 个孤立任务',
             'fixed_count': fixed_count,
             'cleaned_count': cleaned_count,
             'errors': errors
@@ -4183,7 +4028,7 @@ def fix_auto_confirmation():
 def recover_lost_auto_confirmation_jobs():
     """
     应用启动时恢复丢失的自动确认任务
-    该函数在应用启动时检查数据库中的待确认预订，
+    该函数在应用启动时检查数据库中的待确认预订,
     为没有对应调度任务的预订重新创建自动确认任务
     """
     try:
@@ -4208,12 +4053,12 @@ def recover_lost_auto_confirmation_jobs():
             if str(reservation.ID) not in existing_job_ids:
                 try:
                     # 重新安排自动确认任务
-                    # 如果预订是很久之前创建的，立即确认；否则延迟1分钟
+                    # 如果预订是很久之前创建的,立即确认；否则延迟1分钟
                     now = datetime.now()
                     if hasattr(reservation, 'CreateTime') and reservation.CreateTime:
                         time_since_creation = now - reservation.CreateTime
                         if time_since_creation > timedelta(minutes=5):
-                            # 如果预订创建超过5分钟，立即确认
+                            # 如果预订创建超过5分钟,立即确认
                             confirm_time = now + timedelta(seconds=10)
                         else:
                             # 否则按正常流程延迟确认
@@ -4221,7 +4066,7 @@ def recover_lost_auto_confirmation_jobs():
                             if confirm_time <= now:
                                 confirm_time = now + timedelta(seconds=10)
                     else:
-                        # 如果没有创建时间，延迟1分钟确认
+                        # 如果没有创建时间,延迟1分钟确认
                         confirm_time = now + timedelta(minutes=1)
                     
                     job_id = f"auto_confirm_{reservation.ID}"
@@ -4235,12 +4080,12 @@ def recover_lost_auto_confirmation_jobs():
                     )
                     
                     recovered_count += 1
-                    print(f"已恢复预订ID {reservation.ID} 的自动确认任务，确认时间: {confirm_time}")
+                    print(f"已恢复预订ID {reservation.ID} 的自动确认任务,确认时间: {confirm_time}")
                     
                 except Exception as e:
                     print(f"恢复预订ID {reservation.ID} 的自动确认任务失败: {str(e)}")
         
-        print(f"====== 自动确认任务恢复完成，共恢复 {recovered_count} 个任务 ======")
+        print(f"====== 自动确认任务恢复完成,共恢复 {recovered_count} 个任务 ======")
         
     except Exception as e:
         print(f"恢复自动确认任务时发生错误: {str(e)}")

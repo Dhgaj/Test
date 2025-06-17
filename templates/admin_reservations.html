@@ -1163,10 +1163,10 @@
       <div class="d-flex align-items-center">
         <span class="text-muted me-2">每页显示：</span>
         <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
-          <option value="10" {% if request.args.get('per_page', 10, type=int) == 10 %}selected{% endif %}>10</option>
-          <option value="20" {% if request.args.get('per_page', 10, type=int) == 20 %}selected{% endif %}>20</option>
-          <option value="50" {% if request.args.get('per_page', 10, type=int) == 50 %}selected{% endif %}>50</option>
-          <option value="100" {% if request.args.get('per_page', 10, type=int) == 100 %}selected{% endif %}>100</option>
+          <option value="10" {% if current_per_page == 10 %}selected{% endif %}>10</option>
+          <option value="20" {% if current_per_page == 20 %}selected{% endif %}>20</option>
+          <option value="50" {% if current_per_page == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if current_per_page == 100 %}selected{% endif %}>100</option>
         </select>
       </div>
     </div>
@@ -1179,13 +1179,13 @@
           <!-- 首页 -->
           {% if pagination.has_prev %}
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_reservations', page=1, per_page=request.args.get('per_page', 10, type=int)) }}">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=1, per_page=current_per_page) }}">
               <i class="fas fa-angle-double-left"></i>
             </a>
           </li>
           <!-- 上一页 -->
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.prev_num, per_page=request.args.get('per_page', 10, type=int)) }}">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.prev_num, per_page=current_per_page) }}">
               <i class="fas fa-angle-left"></i>
             </a>
           </li>
@@ -1203,7 +1203,7 @@
             {% if page_num %}
               {% if page_num != pagination.page %}
               <li class="page-item">
-                <a class="page-link" href="{{ url_for('admin_reservations', page=page_num, per_page=request.args.get('per_page', 10, type=int)) }}">{{ page_num }}</a>
+                <a class="page-link" href="{{ url_for('admin_reservations', page=page_num, per_page=current_per_page) }}">{{ page_num }}</a>
               </li>
               {% else %}
               <li class="page-item active">
@@ -1220,13 +1220,13 @@
           <!-- 下一页 -->
           {% if pagination.has_next %}
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.next_num, per_page=request.args.get('per_page', 10, type=int)) }}">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.next_num, per_page=current_per_page) }}">
               <i class="fas fa-angle-right"></i>
             </a>
           </li>
           <!-- 末页 -->
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.pages, per_page=request.args.get('per_page', 10, type=int)) }}">
+            <a class="page-link" href="{{ url_for('admin_reservations', page=pagination.pages, per_page=current_per_page) }}">
               <i class="fas fa-angle-double-right"></i>
             </a>
           </li>
