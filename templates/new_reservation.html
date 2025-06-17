@@ -649,6 +649,8 @@ function checkAvailableRooms() {
 
   // 智能筛选会议室显示
   function filterRoomDisplay() {
+    const attendees = parseInt(document.getElementById('attendees').value) || 0; // 获取当前参会人数
+    const meetingType = document.querySelector('input[name="meeting_type"]:checked').value; // 获取当前会议类型
     let filteredRooms = [...allRooms];
     let filterCriteria = [];
 
@@ -993,6 +995,9 @@ document.getElementById('attendees').addEventListener('input', function() {
   // 与会议室容量对比验证
   validateAttendeesCapacity();
   
+  // 实时更新筛选信息
+  updateCapacityFilterInfo();
+  
   // 如果已选择了时间，重新筛选会议室
   const startDatetime = document.getElementById('start_datetime').value;
   const endDatetime = document.getElementById('end_datetime').value;
@@ -1005,6 +1010,45 @@ document.getElementById('attendees').addEventListener('input', function() {
     checkAvailableRooms();
   }
 });
+
+// 实时更新容量筛选信息
+function updateCapacityFilterInfo() {
+  const attendees = parseInt(document.getElementById('attendees').value) || 0;
+  const meetingType = document.querySelector('input[name="meeting_type"]:checked').value;
+  const filterInfo = document.getElementById('filterInfo');
+  const filterText = document.getElementById('filterText');
+  
+  if (attendees > 0) {
+    // 统计符合条件的会议室数量（这里使用预设的会议室数据）
+    const meetingTypeText = meetingType === 'Online' ? '线上' : '线下';
+    const roomSelect = document.getElementById('room_id');
+    let totalRoomsOfType = 0;
+    let suitableRooms = 0;
+    
+    Array.from(roomSelect.options).forEach(option => {
+      if (option.value) {
+        const roomType = option.getAttribute('data-roomtype');
+        const capacity = parseInt(option.getAttribute('data-capacity'));
+        
+        if (roomType === meetingType) {
+          totalRoomsOfType++;
+          if (capacity >= attendees) {
+            suitableRooms++;
+          }
+        }
+      }
+    });
+    
+    if (totalRoomsOfType > 0) {
+      filterText.textContent = `已根据 ${meetingTypeText}会议、容量≥${attendees}人 进行筛选，找到 ${suitableRooms} 个合适的会议室`;
+      filterInfo.style.display = 'block';
+    } else {
+      filterInfo.style.display = 'none';
+    }
+  } else {
+    filterInfo.style.display = 'none';
+  }
+}
 
 // 密码显示/隐藏切换
 document.getElementById('togglePassword').addEventListener('click', function() {
@@ -1119,6 +1163,29 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 触发开始时间变化事件
   handleStartTimeChange();
+  
+  // 初始化筛选信息显示
+  updateCapacityFilterInfo();
+  
+  // 添加会议类型变更监听器
+  document.querySelectorAll('input[name="meeting_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      // 实时更新筛选信息
+      updateCapacityFilterInfo();
+      
+      // 当会议类型变更时，如果已选择时间，重新筛选会议室
+      const startDatetime = document.getElementById('start_datetime').value;
+      const endDatetime = document.getElementById('end_datetime').value;
+      if (startDatetime && endDatetime) {
+        // 清空当前选择的会议室
+        document.getElementById('room_id').selectedIndex = 0;
+        document.getElementById('submitBtn').disabled = true;
+        
+        // 重新筛选会议室
+        checkAvailableRooms();
+      }
+    });
+  });
   
   // 确认预订按钮事件
   document.getElementById('confirmReservationBtn').addEventListener('click', function() {

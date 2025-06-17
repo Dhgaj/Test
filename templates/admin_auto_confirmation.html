@@ -165,9 +165,11 @@
                   <td class="align-middle">
                     <div class="btn-group" role="group">
                       <a href="javascript:void(0)" 
-                         class="btn btn-sm btn-success"
+                         class="btn btn-sm btn-success confirm-reservation-btn"
                          title="立即确认"
-                         onclick="confirmReservation('{{ item.reservation.ID }}', '{{ item.reservation.Title }}', '{{ url_for('confirm_reservation', id=item.reservation.ID) }}')">>
+                         data-reservation-id="{{ item.reservation.ID }}"
+                         data-reservation-title="{{ item.reservation.Title|e }}"
+                         data-confirm-url="{{ url_for('confirm_reservation', id=item.reservation.ID) }}">
                         <i class="fas fa-check"></i>
                       </a>
                       <a href="{{ url_for('edit_reservation', id=item.reservation.ID) }}" 
@@ -318,6 +320,22 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmModal.show();
     return false;
   }
+  
+  // 处理确认预约按钮点击事件
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.confirm-reservation-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.confirm-reservation-btn');
+      const reservationId = btn.dataset.reservationId;
+      const reservationTitle = btn.dataset.reservationTitle;
+      const confirmUrl = btn.dataset.confirmUrl;
+      
+      confirmReservationUrl = confirmUrl;
+      document.getElementById('confirmReservationTitle').textContent = reservationTitle;
+      const confirmModal = new bootstrap.Modal(document.getElementById('confirmReservationModal'));
+      confirmModal.show();
+    }
+  });
   
   // 确认预约按钮事件
   document.getElementById('confirmReservationBtn').addEventListener('click', function() {

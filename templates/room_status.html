@@ -29,7 +29,7 @@
 
   <!-- 状态说明和视图切换 -->
   <div class="row mb-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <!-- 状态徽章说明 -->
       <div class="d-flex gap-2 justify-content-start flex-wrap align-items-center">
         <span class="text-muted me-2">状态：</span>
@@ -41,7 +41,22 @@
         </span>
       </div>
     </div>
-    <div class="col-md-6 text-end">
+    <div class="col-md-4">
+      <!-- 筛选器 -->
+      <div class="d-flex gap-2 align-items-center">
+        <select class="form-select form-select-sm" id="statusFilter" onchange="applyFilters()">
+          <option value="">所有状态</option>
+          <option value="Available" {% if current_filters.status == 'Available' %}selected{% endif %}>可用</option>
+          <option value="Maintenance" {% if current_filters.status == 'Maintenance' %}selected{% endif %}>维护中</option>
+        </select>
+        <select class="form-select form-select-sm" id="roomTypeFilter" onchange="applyFilters()">
+          <option value="">所有类型</option>
+          <option value="Offline" {% if current_filters.room_type == 'Offline' %}selected{% endif %}>线下</option>
+          <option value="Online" {% if current_filters.room_type == 'Online' %}selected{% endif %}>线上</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-md-4 text-end">
       <!-- 视图切换按钮 -->
       <div class="btn-group view-toggle shadow-sm" role="group">
         <button type="button" class="btn btn-outline-primary" id="list-view-btn">
@@ -65,9 +80,7 @@
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <h5 class="mb-2 fw-bold text-dark d-flex align-items-center">
-                  <div class="status-indicator me-3"
-                       style="width: 12px; height: 12px; border-radius: 50%; 
-                              background: {% if status.room.Status == 'Maintenance' %}#ffc107{% else %}#28a745{% endif %};">
+                  <div class="status-indicator me-3 {% if status.room.Status == 'Maintenance' %}status-maintenance{% else %}status-available{% endif %}">
                   </div>
                   <i class="fas fa-door-open me-2 text-primary"></i>
                   {{ status.room.RoomName }}
@@ -365,6 +378,107 @@
     </div>
   </div>
   {% endif %}
+
+  <!-- 分页组件 -->
+  {% if pagination and pagination.pages > 1 %}
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="mt-4">
+        <!-- 分页信息和每页显示控件 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <span class="text-muted">
+              显示第 {{ (pagination.page - 1) * pagination.per_page + 1 }} - 
+              {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }} 条，
+              共 {{ pagination.total }} 条记录
+            </span>
+          </div>
+          
+          <!-- 每页显示条数选择 -->
+          <div class="d-flex align-items-center">
+            <span class="text-muted me-2">每页显示：</span>
+            <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+              <option value="6" {% if request.args.get('per_page', 12)|int == 6 %}selected{% endif %}>6</option>
+              <option value="12" {% if request.args.get('per_page', 12)|int == 12 %}selected{% endif %}>12</option>
+              <option value="24" {% if request.args.get('per_page', 12)|int == 24 %}selected{% endif %}>24</option>
+              <option value="48" {% if request.args.get('per_page', 12)|int == 48 %}selected{% endif %}>48</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- 分页导航 -->
+        <div class="d-flex justify-content-center">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <!-- 首页 -->
+              {% if pagination.has_prev %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('view_room_status', page=1, per_page=request.args.get('per_page', 12), status=request.args.get('status', ''), room_type=request.args.get('room_type', '')) }}">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <!-- 上一页 -->
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('view_room_status', page=pagination.prev_num, per_page=request.args.get('per_page', 12), status=request.args.get('status', ''), room_type=request.args.get('room_type', '')) }}">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-angle-left"></i></span>
+              </li>
+              {% endif %}
+              
+              <!-- 页码 -->
+              {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                  {% if page_num != pagination.page %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('view_room_status', page=page_num, per_page=request.args.get('per_page', 12), status=request.args.get('status', ''), room_type=request.args.get('room_type', '')) }}">{{ page_num }}</a>
+                  </li>
+                  {% else %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                  </li>
+                  {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link">…</span>
+                </li>
+                {% endif %}
+              {% endfor %}
+              
+              <!-- 下一页 -->
+              {% if pagination.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('view_room_status', page=pagination.next_num, per_page=request.args.get('per_page', 12), status=request.args.get('status', ''), room_type=request.args.get('room_type', '')) }}">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <!-- 末页 -->
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('view_room_status', page=pagination.pages, per_page=request.args.get('per_page', 12), status=request.args.get('status', ''), room_type=request.args.get('room_type', '')) }}">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-angle-right"></i></span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- 会议室详情模态框 -->
@@ -389,6 +503,22 @@
 </div>
 
 <style>
+/* 状态指示器样式 */
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-available {
+  background-color: #28a745;
+}
+
+.status-maintenance {
+  background-color: #ffc107;
+}
+
 /* 复制按钮样式 */
 .copy-link-btn {
   border-radius: 6px;
@@ -410,6 +540,50 @@
   background-color: #28a745;
   border-color: #28a745;
   color: white;
+}
+
+/* 分页样式 */
+.pagination {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.pagination .page-item .page-link {
+  border: none;
+  color: #495057;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.pagination .page-item.active .page-link {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+}
+
+.pagination .page-item:hover .page-link {
+  background-color: #f8f9fa;
+  color: #495057;
+  transform: translateY(-1px);
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #f8f9fa;
+}
+
+.form-select-sm {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: all 0.3s ease;
+}
+
+.form-select-sm:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 /* 确保与控制面板的样式一致 */
@@ -631,6 +805,37 @@
 </style>
 
 <script>
+// 更改每页显示条数
+function changePerPage(perPage) {
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.set('per_page', perPage);
+  urlParams.set('page', 1); // 重置到第一页
+  window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
+
+// 应用筛选条件
+function applyFilters() {
+  const statusFilter = document.getElementById('statusFilter').value;
+  const roomTypeFilter = document.getElementById('roomTypeFilter').value;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.set('page', 1); // 重置到第一页
+  
+  if (statusFilter) {
+    urlParams.set('status', statusFilter);
+  } else {
+    urlParams.delete('status');
+  }
+  
+  if (roomTypeFilter) {
+    urlParams.set('room_type', roomTypeFilter);
+  } else {
+    urlParams.delete('room_type');
+  }
+  
+  window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
+
 // 视图切换功能
 document.addEventListener('DOMContentLoaded', function() {
   console.log('页面加载完成，开始初始化视图切换功能');
@@ -835,4 +1040,5 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeCopyButtons();
 });
 </script>
+
 {% endblock %}

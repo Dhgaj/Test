@@ -435,8 +435,9 @@
                           <i class="fas fa-edit"></i>
                         </a>
                         {% if user.id != current_user.id %}
-                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                onclick="confirmDelete('{{ user.username }}', '{{ url_for('admin_delete_user', id=user.id) }}')"
+                        <button type="button" class="btn btn-outline-danger btn-sm delete-user-btn"
+                                data-username="{{ user.username|e }}"
+                                data-delete-url="{{ url_for('admin_delete_user', id=user.id) }}"
                                 data-bs-toggle="tooltip" title="删除用户">
                           <i class="fas fa-trash"></i>
                         </button>
@@ -506,8 +507,9 @@
                         <i class="fas fa-edit me-1"></i>编辑
                       </a>
                       {% if user.id != current_user.id %}
-                      <button type="button" class="btn btn-outline-danger btn-sm"
-                              onclick="confirmDelete('{{ user.username }}', '{{ url_for('admin_delete_user', id=user.id) }}')">
+                      <button type="button" class="btn btn-outline-danger btn-sm delete-user-btn"
+                              data-username="{{ user.username|e }}"
+                              data-delete-url="{{ url_for('admin_delete_user', id=user.id) }}">
                         <i class="fas fa-trash me-1"></i>删除
                       </button>
                       {% endif %}
@@ -685,6 +687,21 @@ document.addEventListener('DOMContentLoaded', function() {
       form.action = deleteUserUrl;
       document.body.appendChild(form);
       form.submit();
+    }
+  });
+
+  // 处理删除按钮点击事件
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-user-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.delete-user-btn');
+      const username = btn.dataset.username;
+      const deleteUrl = btn.dataset.deleteUrl;
+      
+      deleteUserUrl = deleteUrl;
+      document.getElementById('deleteUsername').textContent = username;
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      deleteModal.show();
     }
   });
 

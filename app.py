@@ -614,8 +614,9 @@ class Room(db.Model):
     Building = db.Column(db.String(50), nullable=True)
     # 会议室详细描述
     Description = db.Column(db.Text, nullable=True)
-    # 会议室的预订关系
-    reservations = db.relationship('Reservation', backref='room', lazy=True, foreign_keys='Reservation.RoomID')
+    # 会议室的预订关系 - 使用passive_deletes避免自动更新外键
+    reservations = db.relationship('Reservation', backref='room', lazy=True, 
+                                  foreign_keys='Reservation.RoomID', passive_deletes=True)
     
     # 兼容原有代码
     @property
@@ -1138,24 +1139,78 @@ def delete_room(id):
     该函数执行以下操作：
     1. 检查当前用户是否为管理员,如果不是则提示需要管理员权限。
     2. 根据会议室ID获取会议室信息,如果会议室不存在则返回404错误。
-    3. 删除会议室并提交数据库会话。
-    4. 显示会议室删除成功的消息并重定向到仪表盘。
+    3. 检查是否有进行中的预订，如果有则阻止删除。
+    4. 删除相关的设备、预订和维护记录。
+    5. 删除会议室并提交数据库会话。
+    6. 显示会议室删除成功的消息并重定向到仪表盘。
     返回:
         werkzeug.wrappers.Response: 重定向到仪表盘的响应对象。
     """
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
+    
     room = db.get_or_404(Room, id)
     
-    # 记录管理员删除会议室的操作日志
-    room_info = f'名称: {room.name}, 容量: {room.capacity}人'
-    create_log('管理员删除会议室', f'管理员 {current_user.UserName} 删除了会议室 ({room_info})', current_user.UserID)
+    # 检查是否有进行中的预订
+    from datetime import datetime
+    current_time = datetime.now()
+    active_reservations = Reservation.query.filter(
+        Reservation.RoomID == room.RoomID,
+        Reservation.StartTime <= current_time,
+        Reservation.EndTime > current_time,
+        Reservation.Status.in_(['Confirmed', 'Pending'])
+    ).first()
     
-    db.session.delete(room)
-    db.session.commit()
-    flash('会议室已删除')
-    return redirect(url_for('dashboard'))
+    if active_reservations:
+        flash('无法删除会议室：该会议室目前有进行中的会议', 'error')
+        return redirect(url_for('admin_rooms'))
+    
+    try:
+        # 记录管理员删除会议室的操作日志
+        room_info = f'名称: {room.RoomName}, 容量: {room.Capacity}人'
+        create_log('管理员删除会议室', f'管理员 {current_user.UserName} 删除了会议室 ({room_info})', current_user.UserID)
+        
+        # 1. 先处理所有相关的预订记录 - 设置状态为已取消
+        all_reservations = Reservation.query.filter_by(RoomID=room.RoomID).all()
+        
+        affected_users = set()
+        future_reservations_count = 0
+        
+        for reservation in all_reservations:
+            if reservation.Status not in ['Cancelled']:
+                reservation.Status = 'Cancelled'
+                affected_users.add(reservation.UserID)
+                if reservation.StartTime > current_time:
+                    future_reservations_count += 1
+        
+        # 2. 先提交预订状态的更改
+        db.session.commit()
+        
+        # 3. 删除相关的设备
+        Equipment.query.filter_by(RoomID=room.RoomID).delete()
+        
+        # 4. 删除相关的维护记录
+        Maintenance.query.filter_by(RoomID=room.RoomID).delete()
+        
+        # 5. 删除会议室（现在预订记录已经是取消状态，不会触发外键更新）
+        db.session.delete(room)
+        
+        # 6. 提交所有更改
+        db.session.commit()
+        
+        # 提供详细的删除反馈
+        if future_reservations_count > 0:
+            flash(f'会议室已成功删除。已取消 {future_reservations_count} 个未来的预订，影响 {len(affected_users)} 位用户。', 'warning')
+        else:
+            flash('会议室已成功删除', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'删除会议室时发生错误: {str(e)}', 'error')
+        return redirect(url_for('admin_rooms'))
+    
+    return redirect(url_for('admin_rooms'))
 
 # 新预订
 @app.route('/reservation/new', methods=['GET', 'POST'])
@@ -2484,8 +2539,8 @@ class Equipment(db.Model):
     RoomID = db.Column(db.Integer, db.ForeignKey('MeetingRoom.RoomID'), nullable=False)
     EquipmentName = db.Column(db.String(100), nullable=False)
     Quantity = db.Column(db.Integer, nullable=False, default=1)
-    # 建立与会议室的关系
-    room = db.relationship('Room', backref=db.backref('equipment', lazy=True))
+    # 建立与会议室的关系 - 使用passive_deletes避免自动更新外键
+    room = db.relationship('Room', backref=db.backref('equipment', lazy=True, passive_deletes=True))
 
 
 @app.route('/admin/equipment')
@@ -2824,8 +2879,8 @@ class Maintenance(db.Model):
     Status = db.Column(db.String(50), nullable=False, default='Scheduled')
     CreatedAt = db.Column(db.DateTime, nullable=False, default=datetime.now)
     UpdatedAt = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-    # 建立与会议室的关系
-    room = db.relationship('Room', backref=db.backref('maintenance_records', lazy=True))
+    # 建立与会议室的关系 - 使用passive_deletes避免自动更新外键
+    room = db.relationship('Room', backref=db.backref('maintenance_records', lazy=True, passive_deletes=True))
 
 @app.route('/admin/maintenance')
 @login_required

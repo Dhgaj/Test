@@ -809,8 +809,9 @@
                       <i class="fas fa-edit"></i>
                     </a>
                     <a href="javascript:void(0)" 
-                       class="btn btn-sm btn-danger"
-                       onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')"
+                       class="btn btn-sm btn-danger delete-room-btn"
+                       data-room-name="{{ room.name|e }}"
+                       data-delete-url="{{ url_for('delete_room', id=room.id) }}"
                        title="删除会议室">
                       <i class="fas fa-trash"></i>
                     </a>
@@ -923,8 +924,9 @@
               <i class="fas fa-edit"></i>编辑
             </a>
             <a href="javascript:void(0)" 
-               class="action-btn btn-delete"
-               onclick="confirmDelete('{{ room.name }}', '{{ url_for('delete_room', id=room.id) }}')">
+               class="action-btn btn-delete delete-room-btn"
+               data-room-name="{{ room.name|e }}"
+               data-delete-url="{{ url_for('delete_room', id=room.id) }}">
               <i class="fas fa-trash"></i>删除
             </a>
           </div>
@@ -1055,6 +1057,21 @@ document.addEventListener('DOMContentLoaded', function() {
   typeFilter.addEventListener('change', filterRooms);
   minCapacityInput.addEventListener('input', filterRooms);
   maxCapacityInput.addEventListener('input', filterRooms);
+
+  // 处理删除按钮点击事件
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-room-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.delete-room-btn');
+      const roomName = btn.dataset.roomName;
+      const deleteUrl = btn.dataset.deleteUrl;
+      
+      deleteRoomUrl = deleteUrl;
+      document.getElementById('deleteRoomName').textContent = roomName;
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      deleteModal.show();
+    }
+  });
 
   // 将确认删除函数挂载到全局
   window.confirmDelete = confirmDelete;

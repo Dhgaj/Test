@@ -145,8 +145,8 @@
                       </a>
                       {% if current_user.UserID == material.UserID or current_user.is_admin %}
                       <a href="javascript:void(0)" 
-                         class="btn btn-sm btn-outline-danger" 
-                         onclick="confirmDelete('{{ url_for('delete_material', material_id=material.ID) }}')"
+                         class="btn btn-sm btn-outline-danger delete-material-btn" 
+                         data-delete-url="{{ url_for('delete_material', material_id=material.ID) }}"
                          data-bs-toggle="tooltip" 
                          title="删除文件">
                         <i class="fas fa-trash"></i>
@@ -374,6 +374,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+  // 处理删除按钮点击事件
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-material-btn')) {
+      e.preventDefault();
+      const btn = e.target.closest('.delete-material-btn');
+      const deleteUrl = btn.dataset.deleteUrl;
+      
+      // 调用确认删除函数
+      confirmDelete(deleteUrl);
+    }
   });
   
   // 确认删除按钮事件
