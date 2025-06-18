@@ -102,7 +102,7 @@ import re
 import atexit
 import config
 from dotenv import load_dotenv
-from file_utils import secure_filename
+from file_utils import secure_filename, AvatarHandler, is_allowed_file, get_file_extension
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
@@ -1893,23 +1893,19 @@ def admin_upload_user_avatar(user_id):
             
         file = request.files['avatar']
         
-        # 检查文件名
-        if file.filename == '':
-            return jsonify({'success': False, 'message': '未选择文件'}), 400
-            
-        # 检查文件类型
-        if not allowed_image_file(file.filename):
-            return jsonify({'success': False, 'message': '不支持的文件格式'}), 400
-            
-        # 生成安全的文件名（使用用户ID和时间戳,避免文件名冲突）
-        filename = f"avatar_{user.UserID}_{int(datetime.now().timestamp())}.{file.filename.rsplit('.', 1)[1].lower()}"
-        file_path = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
+        # 使用AvatarHandler保存头像
+        success, filename, error_message = avatar_handler.save_avatar(file, user.UserID)
         
-        # 保存文件
-        file.save(file_path)
+        if not success:
+            return jsonify({'success': False, 'message': error_message}), 400
+        
+        # 删除旧头像（如果存在）
+        if user.Avatar and user.Avatar.startswith('/static/uploads/avatars/'):
+            old_filename = user.Avatar.replace('/static/uploads/avatars/', '')
+            avatar_handler.delete_avatar(old_filename)
         
         # 更新用户头像路径
-        avatar_url = f'/static/uploads/avatars/{filename}'
+        avatar_url = avatar_handler.get_avatar_url(filename)
         user.Avatar = avatar_url
         db.session.commit()
         
@@ -2100,16 +2096,9 @@ def user_profile():
     """
     return render_template('shared/user_profile.html')
     
-# 创建头像上传目录
+# 初始化头像处理器
 AVATAR_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), app.config.get('UPLOAD_FOLDER_AVATARS', 'static/uploads/avatars'))
-os.makedirs(AVATAR_UPLOAD_FOLDER, exist_ok=True)
-
-# 允许的图片类型
-ALLOWED_IMAGE_EXTENSIONS = app.config.get('ALLOWED_IMAGE_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif'})
-
-def allowed_image_file(filename):
-    """检查文件是否为允许的图片格式"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+avatar_handler = AvatarHandler(AVATAR_UPLOAD_FOLDER)
 
 @app.route('/upload_avatar', methods=['POST'])
 @login_required
@@ -2125,23 +2114,19 @@ def upload_avatar():
             
         file = request.files['avatar']
         
-        # 检查文件名
-        if file.filename == '':
-            return jsonify({'success': False, 'message': '未选择文件'}), 400
-            
-        # 检查文件类型
-        if not allowed_image_file(file.filename):
-            return jsonify({'success': False, 'message': '不支持的文件格式'}), 400
-            
-        # 生成安全的文件名（使用用户ID和时间戳,避免文件名冲突）
-        filename = f"avatar_{current_user.UserID}_{int(datetime.now().timestamp())}.{file.filename.rsplit('.', 1)[1].lower()}"
-        file_path = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
+        # 使用AvatarHandler保存头像
+        success, filename, error_message = avatar_handler.save_avatar(file, current_user.UserID)
         
-        # 保存文件
-        file.save(file_path)
+        if not success:
+            return jsonify({'success': False, 'message': error_message}), 400
+        
+        # 删除旧头像（如果存在）
+        if current_user.Avatar and current_user.Avatar.startswith('/static/uploads/avatars/'):
+            old_filename = current_user.Avatar.replace('/static/uploads/avatars/', '')
+            avatar_handler.delete_avatar(old_filename)
         
         # 更新用户头像路径
-        avatar_url = f'/static/uploads/avatars/{filename}'
+        avatar_url = avatar_handler.get_avatar_url(filename)
         current_user.Avatar = avatar_url
         db.session.commit()
         
