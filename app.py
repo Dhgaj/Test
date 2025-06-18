@@ -97,10 +97,12 @@
 """
 import os
 import json
-import threading
 import re
+import hashlib
 import atexit
 import config
+import traceback
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from file_utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
@@ -110,7 +112,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 from send_email import init_email_service, send_email,  generate_confirmation_token, confirm_token, send_email_async
-
+from flask_login import current_user
 
 # 创建 Flask 应用实例
 app = Flask(__name__)
@@ -197,9 +199,6 @@ atexit.register(lambda: scheduler.shutdown())
 load_dotenv()
 
 # 初始化邮件服务
-
-
-# 初始化邮件服务
 email_service = init_email_service(app.config['SECRET_KEY'])
 
 
@@ -249,7 +248,7 @@ def create_log(action, description, user_id=None):
     try:
         # 如果没有指定用户ID,尝试使用当前登录用户
         if user_id is None:
-            from flask_login import current_user
+            
             if current_user.is_authenticated:
                 user_id = current_user.UserID
             else:
@@ -345,7 +344,6 @@ def check_room_availability(room_id, start_time, end_time, user_id=None, exclude
 ## 用户并发预订检查
 def check_user_concurrent_reservations(user_id, start_time, end_time, max_concurrent=5, exclude_reservation_id=None):
     """检查用户在指定时间段内的并发预订数量"""
-    # 检查用户在该时间段内的并发预订数量
     concurrent_reservations = Reservation.query.filter(
         Reservation.UserID == user_id,
         Reservation.EndTime > start_time,
@@ -412,7 +410,7 @@ def auto_confirm_reservation(reservation_id):
             
     except Exception as e:
         print(f"自动确认预订失败: {str(e)}")
-        import traceback
+
         print(f"错误跟踪: {traceback.format_exc()}")
         try:
             db.session.rollback()
@@ -441,7 +439,6 @@ def schedule_auto_confirmation(reservation_id):
         
     except Exception as e:
         print(f"调度自动确认任务失败: {str(e)}")
-        import traceback
         print(f"错误跟踪: {traceback.format_exc()}")
 
 ## 取消自动确认任务
@@ -462,7 +459,6 @@ def cancel_auto_confirmation(reservation_id):
             
     except Exception as e:
         print(f"取消自动确认任务失败: {str(e)}")
-        import traceback
         print(f"错误跟踪: {traceback.format_exc()}")
         return False
 
@@ -543,12 +539,10 @@ class User(UserMixin, db.Model):
 
     def set_password(self, password):
         # 设置用户密码,使用MD5加密
-        import hashlib
+        
         self.Password = hashlib.md5(password.encode()).hexdigest()
 
     def check_password(self, password):
-        # 检查用户密码是否正确,使用MD5加密比较
-        import hashlib
         return self.Password == hashlib.md5(password.encode()).hexdigest()
         
     def generate_verification_token(self):
@@ -800,7 +794,6 @@ def login():
         
         if user:
             # 打印用户存在时的信息
-            import hashlib
             input_password_hash = hashlib.md5(password.encode()).hexdigest()
             print(f"用户ID: {user.UserID}")
             print(f"用户角色: {user.Role}")
@@ -1155,7 +1148,6 @@ def delete_room(id):
     room = db.get_or_404(Room, id)
     
     # 检查是否有进行中的预订
-    from datetime import datetime
     current_time = datetime.now()
     active_reservations = Reservation.query.filter(
         Reservation.RoomID == room.RoomID,
@@ -1370,7 +1362,6 @@ def new_reservation():
             print(f"====== 预订失败 ======")
             print(f"错误类型: {type(e).__name__}")
             print(f"错误消息: {str(e)}")
-            import traceback
             print(f"错误跟踪: {traceback.format_exc()}")
             flash(f'预订失败: {str(e)}')
             return redirect(url_for('new_reservation'))
@@ -2051,9 +2042,7 @@ def available_rooms():
         can_reserve = check_result[0]  # 布尔值
         can_reserve_message = check_result[1]  # 消息
         
-        # 从消息中提取并发预订数量
-        # 假设消息格式为"当前已预订: X个,还可预订: Y个会议室"
-        import re
+        # 从消息中提取并发预订数
         concurrent_match = re.search(r'当前已预订:\s*(\d+)', can_reserve_message)
         if concurrent_match:
             user_concurrent_count = int(concurrent_match.group(1))
@@ -3443,7 +3432,7 @@ def admin_send_notification():
     ).count()
     
     # 获取最近30天的发送统计
-    from datetime import datetime, timedelta
+    
     thirty_days_ago = datetime.now() - timedelta(days=30)
     recent_notifications = db.session.query(Notification).filter(
         Notification.Timestamp >= thirty_days_ago
@@ -4289,7 +4278,6 @@ def recover_lost_auto_confirmation_jobs():
         
     except Exception as e:
         print(f"恢复自动确认任务时发生错误: {str(e)}")
-        import traceback
         print(f"错误跟踪: {traceback.format_exc()}")
 
 

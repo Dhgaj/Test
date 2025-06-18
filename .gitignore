@@ -27,3 +27,5 @@ Trash
 app/
 
 test_*
+
+backups/
