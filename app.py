@@ -3789,7 +3789,7 @@ def admin_logs():
     
     # 获取分页参数
     page = request.args.get('page', 1, type=int)
-    per_page = 20  # 每页显示20条记录
+    per_page = request.args.get('per_page', 20, type=int)  # 每页显示条数，默认20条
     
     # 获取过滤参数
     action_filter = request.args.get('action', '')
@@ -3907,6 +3907,7 @@ def admin_logs():
                          action_list=action_list,
                          users=users,
                          action_stats=action_stats,
+                         current_per_page=per_page,
                          current_filters={
                              'action': action_filter,
                              'user': user_filter,

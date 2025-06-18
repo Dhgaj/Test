@@ -26,7 +26,134 @@
     --red-border: #fd7979;
   }
     
-  /* 统计卡片样式 */
+  /* 分页样式 */
+  .pagination {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .pagination .page-item .page-link {
+    border: none;
+    color: #495057;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+  }
+
+  .pagination .page-item:hover .page-link {
+    background-color: #f8f9fa;
+    color: #495057;
+    transform: translateY(-1px);
+  }
+
+  .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+  }
+
+  .form-select-sm {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+  }
+
+  .form-select-sm:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+
+  /* 表格圆角样式 */
+  .card .table-responsive {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+  
+  .card .table {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .card .table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  .card .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+
+  .card .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
+
+  /* 卡片头部圆角 */
+  .card .card-header {
+    border-top-left-radius: 1rem !important;
+    border-top-right-radius: 1rem !important;
+  }
+
+  /* 强制应用底部圆角 */
+  .card .card-body.p-0 {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+
+  /* 更强的表格底部圆角样式 */
+  .logs-table .table-responsive {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+
+  .logs-table .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+
+  .logs-table .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
+
+  .logs-table .table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  /* 额外的强制圆角样式 */
+  .logs-table {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+
+  .logs-table .card-body {
+    border-bottom-left-radius: 1rem !important;
+    border-bottom-right-radius: 1rem !important;
+  }
+
+  /* 直接针对表格的样式 */
+  .logs-table table {
+    border-collapse: collapse !important;
+  }
+
+  .logs-table table tbody tr:last-child td {
+    border-bottom: none !important;
+  }
+
+  .logs-table table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem !important;
+  }
+
+  .logs-table table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem !important;
+  }
   .stat-card {
     background: white;
     border-radius: 15px;
@@ -1606,7 +1733,7 @@
   </div>
 
   <!-- 日志表格 -->
-  <div class="card">
+  <div class="card shadow-sm logs-table" style="border-radius: 1rem; border: none; overflow: hidden;">
     <div class="card-header bg-gradient">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0 text-white">
@@ -1838,71 +1965,113 @@
     {% endif %}
   </div>
 
-  <!-- 分页导航 -->
-  {% if logs.pages > 1 %}
-  <div class="section-card" style="border-left-color: var(--indigo-border);">
-    <div class="section-title">
-      <i class="fas fa-layer-group"></i>
-      分页导航
-    </div>
-    <nav aria-label="日志分页">
-      <ul class="pagination justify-content-center">
-        <!-- 上一页 -->
-        <li class="page-item {{ 'disabled' if not logs.has_prev }}">
-          {% if logs.has_prev %}
-          <a class="page-link" href="{{ url_for('admin_logs', page=logs.prev_num, 
-              action=current_filters.action, user=current_filters.user,
-              date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
-            <i class="fas fa-chevron-left"></i> 上一页
-          </a>
-          {% else %}
-          <span class="page-link">
-            <i class="fas fa-chevron-left"></i> 上一页
+  <!-- 分页信息和每页显示控件 -->
+  <div class="col-12">
+    <div class="mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <span class="text-muted">
+            显示第 {{ (logs.page - 1) * logs.per_page + 1 }} - 
+            {{ logs.page * logs.per_page if logs.page * logs.per_page < logs.total else logs.total }} 条，
+            共 {{ logs.total }} 条记录
           </span>
-          {% endif %}
-        </li>
-
-        <!-- 页码 -->
-        {% for page_num in logs.iter_pages() %}
-          {% if page_num %}
-            {% if page_num != logs.page %}
+        </div>
+        
+        <!-- 每页显示条数选择 -->
+        <div class="d-flex align-items-center">
+          <span class="text-muted me-2">每页显示：</span>
+          <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+            <option value="10" {% if current_per_page == 10 %}selected{% endif %}>10</option>
+            <option value="20" {% if current_per_page == 20 %}selected{% endif %}>20</option>
+            <option value="50" {% if current_per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if current_per_page == 100 %}selected{% endif %}>100</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 分页导航 -->
+      {% if logs.pages > 1 %}
+      <div class="d-flex justify-content-center">
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <!-- 首页 -->
+            {% if logs.has_prev %}
             <li class="page-item">
-              <a class="page-link" href="{{ url_for('admin_logs', page=page_num,
+              <a class="page-link" href="{{ url_for('admin_logs', page=1, per_page=current_per_page,
                   action=current_filters.action, user=current_filters.user,
                   date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
-                {{ page_num }}
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            </li>
+            <!-- 上一页 -->
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin_logs', page=logs.prev_num, per_page=current_per_page,
+                  action=current_filters.action, user=current_filters.user,
+                  date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+                <i class="fas fa-angle-left"></i>
               </a>
             </li>
             {% else %}
-            <li class="page-item active">
-              <span class="page-link">{{ page_num }}</span>
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-left"></i></span>
             </li>
             {% endif %}
-          {% else %}
-          <li class="page-item disabled">
-            <span class="page-link">…</span>
-          </li>
-          {% endif %}
-        {% endfor %}
-
-        <!-- 下一页 -->
-        <li class="page-item {{ 'disabled' if not logs.has_next }}">
-          {% if logs.has_next %}
-          <a class="page-link" href="{{ url_for('admin_logs', page=logs.next_num,
-              action=current_filters.action, user=current_filters.user,
-              date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
-            下一页 <i class="fas fa-chevron-right"></i>
-          </a>
-          {% else %}
-          <span class="page-link">
-            下一页 <i class="fas fa-chevron-right"></i>
-          </span>
-          {% endif %}
-        </li>
-      </ul>
-    </nav>
+            
+            <!-- 页码 -->
+            {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+              {% if page_num %}
+                {% if page_num != logs.page %}
+                <li class="page-item">
+                  <a class="page-link" href="{{ url_for('admin_logs', page=page_num, per_page=current_per_page,
+                      action=current_filters.action, user=current_filters.user,
+                      date_from=current_filters.date_from, date_to=current_filters.date_to) }}">{{ page_num }}</a>
+                </li>
+                {% else %}
+                <li class="page-item active">
+                  <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% endif %}
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">…</span>
+              </li>
+              {% endif %}
+            {% endfor %}
+            
+            <!-- 下一页 -->
+            {% if logs.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin_logs', page=logs.next_num, per_page=current_per_page,
+                  action=current_filters.action, user=current_filters.user,
+                  date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+                <i class="fas fa-angle-right"></i>
+              </a>
+            </li>
+            <!-- 末页 -->
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('admin_logs', page=logs.pages, per_page=current_per_page,
+                  action=current_filters.action, user=current_filters.user,
+                  date_from=current_filters.date_from, date_to=current_filters.date_to) }}">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-right"></i></span>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% endif %}
+    </div>
   </div>
-  {% endif %}
 </div>
 
 <script>
@@ -2671,6 +2840,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 1000);
 });
+
+// 分页相关函数
+function changePerPage(perPage) {
+  const currentUrl = new URL(window.location);
+  currentUrl.searchParams.set('per_page', perPage);
+  currentUrl.searchParams.set('page', '1'); // 重置到第一页
+  window.location.href = currentUrl.toString();
+}
 
 </script>
 {% endblock %}
