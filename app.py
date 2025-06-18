@@ -2580,9 +2580,33 @@ def admin_equipment():
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
     
-    # 获取所有设备信息,并关联会议室信息
-    equipment_list = db.session.query(Equipment, Room).join(Room).all()
-    return render_template('admin_equipment.html', equipment_list=equipment_list)
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # 限制每页显示条数的范围
+    if per_page not in [10, 20, 50, 100]:
+        per_page = 10
+    
+    # 获取所有设备信息,并关联会议室信息，支持分页
+    equipment_pagination = db.session.query(Equipment, Room).join(Room)\
+        .order_by(Equipment.EquipmentName, Room.RoomName)\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    # 获取统计数据
+    total_equipment = db.session.query(Equipment).count()
+    total_quantity = db.session.query(db.func.sum(Equipment.Quantity)).scalar() or 0
+    total_rooms = db.session.query(Equipment.RoomID).distinct().count()
+    total_types = db.session.query(Equipment.EquipmentName).distinct().count()
+    
+    return render_template('admin_equipment.html', 
+                         equipment_list=equipment_pagination.items,
+                         pagination=equipment_pagination,
+                         current_per_page=per_page,
+                         total_equipment=total_equipment,
+                         total_quantity=total_quantity,
+                         total_rooms=total_rooms,
+                         total_types=total_types)
 
 @app.route('/admin/equipment/add', methods=['GET', 'POST'])
 @login_required
@@ -2922,10 +2946,23 @@ def admin_maintenance():
     # 先更新已过期的维护记录状态
     update_room_status_after_maintenance()
     
-    # 获取所有维护记录,并关联会议室信息
-    maintenance_list = db.session.query(Maintenance, Room).join(Room)\
-        .order_by(Maintenance.MaintenanceDate.desc()).all()
-    return render_template('admin_maintenance.html', maintenance_list=maintenance_list)
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # 限制每页显示条数的范围
+    if per_page not in [10, 20, 50, 100]:
+        per_page = 10
+    
+    # 获取所有维护记录,并关联会议室信息，支持分页
+    maintenance_pagination = db.session.query(Maintenance, Room).join(Room)\
+        .order_by(Maintenance.MaintenanceDate.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template('admin_maintenance.html', 
+                         maintenance_list=maintenance_pagination.items,
+                         pagination=maintenance_pagination,
+                         current_per_page=per_page)
 
 @app.route('/admin/maintenance/add', methods=['GET', 'POST'])
 @login_required
