@@ -102,13 +102,15 @@ import re
 import atexit
 import config
 from dotenv import load_dotenv
-from file_utils import secure_filename, AvatarHandler, is_allowed_file, get_file_extension
+from file_utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
+from send_email import init_email_service, send_email,  generate_confirmation_token, confirm_token, send_email_async
+
 
 # 创建 Flask 应用实例
 app = Flask(__name__)
@@ -162,7 +164,7 @@ def load_config(app):
         print("从环境变量加载配置完成")
 
 load_config(app)
-# 添加内置类型到模板全局变量
+# 内置类型到模板全局变量
 app.jinja_env.globals['int'] = int
 app.jinja_env.globals['str'] = str
 app.jinja_env.globals['float'] = float
@@ -182,9 +184,9 @@ executors = {
     'default': ThreadPoolExecutor(20), 
 }
 job_defaults = {
-    'coalesce': False,        # 不合并任务
-    'max_instances': 3,       # 每个任务最多实例数
-    'misfire_grace_time': 30  # 超时宽限时间30秒
+    'coalesce': False,       
+    'max_instances': 3,      # 最大并发实例数
+    'misfire_grace_time': 30 # 任务错过执行的最大宽限时间,单位为秒
 }
 scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults)
 scheduler.start()
@@ -195,7 +197,7 @@ atexit.register(lambda: scheduler.shutdown())
 load_dotenv()
 
 # 初始化邮件服务
-from send_email import init_email_service, send_email, send_email_async, generate_confirmation_token, confirm_token
+
 
 # 初始化邮件服务
 email_service = init_email_service(app.config['SECRET_KEY'])
@@ -789,23 +791,23 @@ def login():
     if request.method == 'POST':
         username_or_email = request.form.get('username')  # 现在可以是用户名或邮箱
         password = request.form.get('password')
-        print(f"\u8bf7求数据: 用户名或邮箱={username_or_email}")
+        print(f"请求数据: 用户名或邮箱={username_or_email}")
         
         # 尝试查询用户 - 同时支持用户名和邮箱登录
         user = User.query.filter((User.UserName == username_or_email) | 
                                (User.Email == username_or_email)).first()
-        print(f"\u67e5询结果: 用户={'存在' if user else '不存在'}")
+        print(f"查询结果: 用户={'存在' if user else '不存在'}")
         
         if user:
             # 打印用户存在时的信息
             import hashlib
             input_password_hash = hashlib.md5(password.encode()).hexdigest()
-            print(f"\u7528户ID: {user.UserID}")
-            print(f"\u7528户角色: {user.Role}")
-            print(f"\u8f93入密码哈希: {input_password_hash}")
-            print(f"\u6570据库密码哈希: {user.Password}")
-            print(f"\u5bc6码比较结果: {input_password_hash == user.Password}")
-            print(f"\u90ae箱验证状态: {user.EmailVerified}")
+            print(f"用户ID: {user.UserID}")
+            print(f"用户角色: {user.Role}")
+            print(f"输入密码哈希: {input_password_hash}")
+            print(f"数据库密码哈希: {user.Password}")
+            print(f"密码比较结果: {input_password_hash == user.Password}")
+            print(f"邮箱验证状态: {user.EmailVerified}")
         
         if user and user.check_password(password):
             # 检查邮箱验证状态
@@ -813,16 +815,16 @@ def login():
                 flash('请先验证您的邮箱,验证链接已发送到您的邮箱。')
                 return render_template('shared/login.html')
                 
-            print("\u8ba4证成功,正在登录用户...")
+            print("认证成功,正在登录用户...")
             login_user(user)
             
             # 记录登录日志
             create_log('登录', f'用户 {user.UserName} 登录成功', user.UserID)
             
-            print("\u767b录成功,重定向到仪表盘")
+            print("登录成功,重定向到仪表盘")
             return redirect(url_for('dashboard'))
             
-        print("\u8ba4证失败,显示错误消息")
+        print("认证失败,显示错误消息")
         # 记录登录失败日志
         if user:
             create_log('登录失败', f'用户 {user.UserName} 登录失败：密码错误', user.UserID)
@@ -1893,19 +1895,23 @@ def admin_upload_user_avatar(user_id):
             
         file = request.files['avatar']
         
-        # 使用AvatarHandler保存头像
-        success, filename, error_message = avatar_handler.save_avatar(file, user.UserID)
+        # 检查文件名
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '未选择文件'}), 400
+            
+        # 检查文件类型
+        if not allowed_image_file(file.filename):
+            return jsonify({'success': False, 'message': '不支持的文件格式'}), 400
+            
+        # 生成安全的文件名（使用用户ID和时间戳,避免文件名冲突）
+        filename = f"avatar_{user.UserID}_{int(datetime.now().timestamp())}.{file.filename.rsplit('.', 1)[1].lower()}"
+        file_path = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
         
-        if not success:
-            return jsonify({'success': False, 'message': error_message}), 400
-        
-        # 删除旧头像（如果存在）
-        if user.Avatar and user.Avatar.startswith('/static/uploads/avatars/'):
-            old_filename = user.Avatar.replace('/static/uploads/avatars/', '')
-            avatar_handler.delete_avatar(old_filename)
+        # 保存文件
+        file.save(file_path)
         
         # 更新用户头像路径
-        avatar_url = avatar_handler.get_avatar_url(filename)
+        avatar_url = f'/static/uploads/avatars/{filename}'
         user.Avatar = avatar_url
         db.session.commit()
         
@@ -2096,9 +2102,16 @@ def user_profile():
     """
     return render_template('shared/user_profile.html')
     
-# 初始化头像处理器
+# 创建头像上传目录
 AVATAR_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), app.config.get('UPLOAD_FOLDER_AVATARS', 'static/uploads/avatars'))
-avatar_handler = AvatarHandler(AVATAR_UPLOAD_FOLDER)
+os.makedirs(AVATAR_UPLOAD_FOLDER, exist_ok=True)
+
+# 允许的图片类型
+ALLOWED_IMAGE_EXTENSIONS = app.config.get('ALLOWED_IMAGE_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif'})
+
+def allowed_image_file(filename):
+    """检查文件是否为允许的图片格式"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 @app.route('/upload_avatar', methods=['POST'])
 @login_required
@@ -2114,19 +2127,23 @@ def upload_avatar():
             
         file = request.files['avatar']
         
-        # 使用AvatarHandler保存头像
-        success, filename, error_message = avatar_handler.save_avatar(file, current_user.UserID)
+        # 检查文件名
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '未选择文件'}), 400
+            
+        # 检查文件类型
+        if not allowed_image_file(file.filename):
+            return jsonify({'success': False, 'message': '不支持的文件格式'}), 400
+            
+        # 生成安全的文件名（使用用户ID和时间戳,避免文件名冲突）
+        filename = f"avatar_{current_user.UserID}_{int(datetime.now().timestamp())}.{file.filename.rsplit('.', 1)[1].lower()}"
+        file_path = os.path.join(AVATAR_UPLOAD_FOLDER, filename)
         
-        if not success:
-            return jsonify({'success': False, 'message': error_message}), 400
-        
-        # 删除旧头像（如果存在）
-        if current_user.Avatar and current_user.Avatar.startswith('/static/uploads/avatars/'):
-            old_filename = current_user.Avatar.replace('/static/uploads/avatars/', '')
-            avatar_handler.delete_avatar(old_filename)
+        # 保存文件
+        file.save(file_path)
         
         # 更新用户头像路径
-        avatar_url = avatar_handler.get_avatar_url(filename)
+        avatar_url = f'/static/uploads/avatars/{filename}'
         current_user.Avatar = avatar_url
         db.session.commit()
         
@@ -3986,27 +4003,21 @@ def check_room_availability_route():
 
 @app.template_filter('today')
 def today_filter(reservations):
-    """
-    自定义过滤器：筛选今天的预订
-    """
+    """筛选今天的预订"""
     today = datetime.now().date()
     return [r for r in reservations if r.StartTime.date() == today]
 
 
 @app.template_filter('expired')
 def expired_filter(reservations):
-    """
-    自定义过滤器：筛选过期的预订
-    """
+    """自定义过滤器：筛选过期的预订"""
     now = datetime.now()
     return [r for r in reservations if r.EndTime < now]
 
 
 @app.template_filter('days_since')
 def days_since_filter(end_time):
-    """
-    自定义过滤器：计算距离结束时间的天数
-    """
+    """自定义过滤器：计算距离结束时间的天数"""
     now = datetime.now()
     if end_time < now:
         return (now - end_time).days
@@ -4016,107 +4027,102 @@ def days_since_filter(end_time):
 
 @app.template_filter('active')
 def active_filter(reservations):
-    """
-    Jinja2 自定义过滤器：筛选未过期的预订
-    """
+    """筛选未过期的预订"""
     now = datetime.now()
     return [r for r in reservations if r.EndTime >= now]
 
 
-@app.route('/admin/debug_auto_confirmation')
-@login_required
-def debug_auto_confirmation():
-    """
-    调试自动确认功能,检查调度器状态和数据库状态的一致性
-    """
-    if not current_user.is_admin:
-        return jsonify({'error': '需要管理员权限'}), 403
+# @app.route('/admin/debug_auto_confirmation')
+# @login_required
+# def debug_auto_confirmation():
+#     """调试自动确认功能,检查调度器状态和数据库状态的一致性"""
+#     if not current_user.is_admin:
+#         return jsonify({'error': '需要管理员权限'}), 403
+#     debug_info = {
+#         'scheduler_jobs': [],
+#         'pending_reservations': [],
+#         'missing_jobs': [],
+#         'orphaned_jobs': []
+#     }
     
-    debug_info = {
-        'scheduler_jobs': [],
-        'pending_reservations': [],
-        'missing_jobs': [],
-        'orphaned_jobs': []
-    }
-    
-    try:
-        # 1. 获取调度器中的所有自动确认任务
-        scheduler_jobs = []
-        for job in scheduler.get_jobs():
-            if job.id.startswith('auto_confirm_'):
-                reservation_id = job.id.replace('auto_confirm_', '')
-                scheduler_jobs.append({
-                    'job_id': job.id,
-                    'reservation_id': reservation_id,
-                    'scheduled_time': job.next_run_time.isoformat() if job.next_run_time else None,
-                    'function': job.func.__name__
-                })
-        debug_info['scheduler_jobs'] = scheduler_jobs
+#     try:
+#         # 1. 获取调度器中的所有自动确认任务
+#         scheduler_jobs = []
+#         for job in scheduler.get_jobs():
+#             if job.id.startswith('auto_confirm_'):
+#                 reservation_id = job.id.replace('auto_confirm_', '')
+#                 scheduler_jobs.append({
+#                     'job_id': job.id,
+#                     'reservation_id': reservation_id,
+#                     'scheduled_time': job.next_run_time.isoformat() if job.next_run_time else None,
+#                     'function': job.func.__name__
+#                 })
+#         debug_info['scheduler_jobs'] = scheduler_jobs
         
-        # 2. 获取数据库中的待确认预订
-        pending_reservations = Reservation.query.filter_by(Status='Pending').all()
-        pending_data = []
-        for reservation in pending_reservations:
-            pending_data.append({
-                'id': reservation.ID,
-                'room_name': reservation.room.RoomName,
-                'user_name': reservation.user.UserName,
-                'title': reservation.Title,
-                'start_time': reservation.StartTime.isoformat(),
-                'created_time': reservation.CreateTime.isoformat() if hasattr(reservation, 'CreateTime') else 'N/A'
-            })
-        debug_info['pending_reservations'] = pending_data
+#         # 2. 获取数据库中的待确认预订
+#         pending_reservations = Reservation.query.filter_by(Status='Pending').all()
+#         pending_data = []
+#         for reservation in pending_reservations:
+#             pending_data.append({
+#                 'id': reservation.ID,
+#                 'room_name': reservation.room.RoomName,
+#                 'user_name': reservation.user.UserName,
+#                 'title': reservation.Title,
+#                 'start_time': reservation.StartTime.isoformat(),
+#                 'created_time': reservation.CreateTime.isoformat() if hasattr(reservation, 'CreateTime') else 'N/A'
+#             })
+#         debug_info['pending_reservations'] = pending_data
         
-        # 3. 找出没有对应调度任务的待确认预订
-        scheduler_reservation_ids = [job['reservation_id'] for job in scheduler_jobs]
-        missing_jobs = []
-        for reservation in pending_reservations:
-            if str(reservation.ID) not in scheduler_reservation_ids:
-                missing_jobs.append({
-                    'reservation_id': reservation.ID,
-                    'room_name': reservation.room.RoomName,
-                    'user_name': reservation.user.UserName,
-                    'title': reservation.Title
-                })
-        debug_info['missing_jobs'] = missing_jobs
+#         # 3. 找出没有对应调度任务的待确认预订
+#         scheduler_reservation_ids = [job['reservation_id'] for job in scheduler_jobs]
+#         missing_jobs = []
+#         for reservation in pending_reservations:
+#             if str(reservation.ID) not in scheduler_reservation_ids:
+#                 missing_jobs.append({
+#                     'reservation_id': reservation.ID,
+#                     'room_name': reservation.room.RoomName,
+#                     'user_name': reservation.user.UserName,
+#                     'title': reservation.Title
+#                 })
+#         debug_info['missing_jobs'] = missing_jobs
         
-        # 4. 找出没有对应预订的调度任务
-        orphaned_jobs = []
-        for job in scheduler_jobs:
-            reservation = Reservation.query.get(int(job['reservation_id']))
+#         # 4. 找出没有对应预订的调度任务
+#         orphaned_jobs = []
+#         for job in scheduler_jobs:
+#             reservation = Reservation.query.get(int(job['reservation_id']))
             
-            if not reservation or reservation.Status != 'Pending':
-                orphaned_jobs.append({
-                    'job_id': job['job_id'],
-                    'reservation_id': job['reservation_id'],
-                    'scheduled_time': job['scheduled_time'],
-                    'status': reservation.Status if reservation else 'NOT_FOUND'
-                })
-        debug_info['orphaned_jobs'] = orphaned_jobs
+#             if not reservation or reservation.Status != 'Pending':
+#                 orphaned_jobs.append({
+#                     'job_id': job['job_id'],
+#                     'reservation_id': job['reservation_id'],
+#                     'scheduled_time': job['scheduled_time'],
+#                     'status': reservation.Status if reservation else 'NOT_FOUND'
+#                 })
+#         debug_info['orphaned_jobs'] = orphaned_jobs
         
-        # 5. 汇总统计
-        debug_info['summary'] = {
-            'total_scheduler_jobs': len(scheduler_jobs),
-            'total_pending_reservations': len(pending_reservations),
-            'missing_jobs_count': len(missing_jobs),
-            'orphaned_jobs_count': len(orphaned_jobs),
-            'scheduler_running': scheduler.running
-        }
+#         # 5. 汇总统计
+#         debug_info['summary'] = {
+#             'total_scheduler_jobs': len(scheduler_jobs),
+#             'total_pending_reservations': len(pending_reservations),
+#             'missing_jobs_count': len(missing_jobs),
+#             'orphaned_jobs_count': len(orphaned_jobs),
+#             'scheduler_running': scheduler.running
+#         }
         
-        return jsonify(debug_info)
+#         return jsonify(debug_info)
         
-    except Exception as e:
-        return jsonify({
-            'error': f'调试失败: {str(e)}',
-            'debug_info': debug_info
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             'error': f'调试失败: {str(e)}',
+#             'debug_info': debug_info
+#         }), 500
 
 
 @app.route('/admin/fix_auto_confirmation')
 @login_required
 def fix_auto_confirmation():
     """
-    修复自动确认功能,为没有调度任务的待确认预订重新创建任务
+    自动确认功能,为没有调度任务的待确认预订重新创建任务
     """
     if not current_user.is_admin:
         return jsonify({'error': '需要管理员权限'}), 403
