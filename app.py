@@ -1708,16 +1708,42 @@ def admin_users():
     管理员查看所有用户的路由。
     该函数执行以下操作：
     1. 检查当前用户是否为管理员,如果不是则提示需要管理员权限。
-    2. 查询所有用户信息。
-    3. 渲染管理员用户管理页面,并传递用户信息。
+    2. 查询所有用户信息并支持分页。
+    3. 渲染管理员用户管理页面,并传递用户信息和分页对象。
     返回:
         werkzeug.wrappers.Response: 渲染管理员用户管理页面的响应对象。
     """
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
-    users = User.query.all()
-    return render_template('admin_users.html', users=users)
+    
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # 限制每页显示条数的范围
+    if per_page not in [10, 20, 50, 100]:
+        per_page = 10
+    
+    # 查询用户并分页
+    users_pagination = User.query.paginate(
+        page=page, 
+        per_page=per_page,
+        error_out=False
+    )
+    
+    # 获取统计数据
+    total_users = User.query.count()
+    admin_users = User.query.filter(User.is_admin == True).count()
+    normal_users = User.query.filter(User.is_admin == False).count()
+    
+    return render_template('admin_users.html', 
+                         users=users_pagination.items,
+                         pagination=users_pagination,
+                         current_per_page=per_page,
+                         total_users=total_users,
+                         admin_users=admin_users,
+                         normal_users=normal_users)
 
 # 管理员添加用户的路由。
 @app.route('/admin/users/add', methods=['GET', 'POST'])
@@ -3138,7 +3164,7 @@ class MeetingMaterials(db.Model):
     """
     __tablename__ = 'MeetingMaterials'
     ID = db.Column(db.Integer, primary_key=True)
-    BookingID = db.Column(db.Integer, db.ForeignKey('Booking.ID'), nullable=False)  # 修改这里,使用正确的外键列名
+    BookingID = db.Column(db.Integer, db.ForeignKey('Booking.ID'), nullable=False)
     UserID = db.Column(db.Integer, db.ForeignKey('User.UserID'), nullable=False)
     Title = db.Column(db.String(200), nullable=False)
     FilePath = db.Column(db.String(500), nullable=False)
@@ -3150,14 +3176,12 @@ class MeetingMaterials(db.Model):
     Description = db.Column(db.Text)
 
     # 修改关系定义,使用正确的模型类名
-    booking = db.relationship('Reservation', backref=db.backref('materials', lazy=True))  # 修改这里,使用 'Reservation' 而不是 'Booking'
+    booking = db.relationship('Reservation', backref=db.backref('materials', lazy=True)) 
     user = db.relationship('User', backref=db.backref('uploaded_materials', lazy=True))
 
 # 配置文件上传
-# 使用绝对路径
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), app.config.get('UPLOAD_FOLDER_MATERIALS', 'static/uploads/meeting_materials'))
 ALLOWED_EXTENSIONS = app.config.get('ALLOWED_EXTENSIONS', {'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt'})
-
 # 确保上传目录存在
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -3167,7 +3191,7 @@ def allowed_file(filename):
 @app.route('/booking/<int:booking_id>/materials')
 @login_required
 def meeting_materials(booking_id):
-    booking = db.get_or_404(Reservation, booking_id)  # 修改这里,使用 Reservation 而不是 Booking
+    booking = db.get_or_404(Reservation, booking_id)  
     materials = MeetingMaterials.query.filter_by(BookingID=booking_id, Status='Active').all()
     return render_template('meeting_materials.html', booking=booking, materials=materials)
 
@@ -3882,10 +3906,10 @@ def check_room_availability_route():
         except (ValueError, TypeError):
             return jsonify({'error': '时间格式错误'}), 400
         
-        # 获取会议类型过滤参数（可选）
+        # 获取会议类型过滤参数
         meeting_type = data.get('meeting_type')
         
-        # 获取参会人数参数（可选）
+        # 获取参会人数参数
         attendees = data.get('attendees', 0)
         if attendees:
             attendees = int(attendees)
@@ -3941,7 +3965,7 @@ def check_room_availability_route():
 @app.template_filter('today')
 def today_filter(reservations):
     """
-    Jinja2 自定义过滤器：筛选今天的预订
+    自定义过滤器：筛选今天的预订
     """
     today = datetime.now().date()
     return [r for r in reservations if r.StartTime.date() == today]
@@ -3950,7 +3974,7 @@ def today_filter(reservations):
 @app.template_filter('expired')
 def expired_filter(reservations):
     """
-    Jinja2 自定义过滤器：筛选过期的预订
+    自定义过滤器：筛选过期的预订
     """
     now = datetime.now()
     return [r for r in reservations if r.EndTime < now]
@@ -3959,7 +3983,7 @@ def expired_filter(reservations):
 @app.template_filter('days_since')
 def days_since_filter(end_time):
     """
-    Jinja2 自定义过滤器：计算距离结束时间的天数
+    自定义过滤器：计算距离结束时间的天数
     """
     now = datetime.now()
     if end_time < now:

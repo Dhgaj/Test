@@ -104,7 +104,6 @@ class EmailService:
             return None
 
 
-# 为了保持向后兼容性，提供全局函数接口
 _email_service = None
 
 def init_email_service(secret_key):
