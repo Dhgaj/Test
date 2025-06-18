@@ -392,11 +392,15 @@
     }
     
     .user-list-container {
-      max-height: 250px !important;
+      height: 300px !important;
+      min-height: 300px !important;
+      max-height: 300px !important;
     }
     
     .selected-users-container {
-      min-height: 200px !important;
+      height: 300px !important;
+      min-height: 300px !important;
+      max-height: 300px !important;
       margin-top: 1rem;
     }
   }
@@ -412,6 +416,18 @@
     
     .stat-number {
       font-size: 1.5rem;
+    }
+    
+    .user-list-container {
+      height: 250px !important;
+      min-height: 250px !important;
+      max-height: 250px !important;
+    }
+    
+    .selected-users-container {
+      height: 250px !important;
+      min-height: 250px !important;
+      max-height: 250px !important;
     }
   }
 
@@ -595,9 +611,25 @@
     background: linear-gradient(135deg, #f8f9fa, #e9ecef);
     border: 2px dashed #dee2e6 !important;
     transition: var(--transition);
+    height: 400px;
+    min-height: 400px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
-  .selected-users-container:hover {
+  .user-list-container {
+    background: white;
+    border: 2px solid #dee2e6 !important;
+    transition: var(--transition);
+    height: 400px;
+    min-height: 400px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .user-list-container:hover {
     border-color: #667eea !important;
   }
 
@@ -978,7 +1010,7 @@
             <div class="row">
               <div class="col-md-8">
                 <!-- 用户列表显示区域 -->
-                <div class="user-list-container border rounded p-3" style="max-height: 350px; overflow-y: auto; background: white;">
+                <div class="user-list-container border rounded p-3">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="mb-0">
                       <i class="fas fa-list me-2"></i>用户列表
@@ -993,7 +1025,7 @@
               
               <div class="col-md-4">
                 <!-- 已选择用户显示区域 -->
-                <div class="selected-users-container border rounded p-3" style="min-height: 350px; overflow-y: auto; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+                <div class="selected-users-container border rounded p-3">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 text-muted">
                       <i class="fas fa-check-circle me-2"></i>已选择的用户
