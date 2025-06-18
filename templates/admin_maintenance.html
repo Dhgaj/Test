@@ -299,6 +299,13 @@
   }
 
   /* 维护记录表格圆角样式 */
+  .card {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+
   .card .table-responsive {
     border-bottom-left-radius: 1rem !important;
     border-bottom-right-radius: 1rem !important;
@@ -309,6 +316,15 @@
     border-bottom-left-radius: 1rem !important;
     border-bottom-right-radius: 1rem !important;
     margin-bottom: 0 !important;
+  }
+
+  /* 表格头部圆角样式 */
+  .table thead th:first-child {
+    border-top-left-radius: 1rem !important;
+  }
+
+  .table thead th:last-child {
+    border-top-right-radius: 1rem !important;
   }
 
   .card .table tbody tr:last-child td {
