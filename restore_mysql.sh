@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 云服务器MySQL数据库恢复脚本
+# Linux服务器专用数据库恢复脚本
 # 会议室智控系统 - 从最新备份中导入数据库
 
 # 颜色定义
@@ -28,19 +28,11 @@ if [ ! -d "$BACKUP_DIR" ]; then
     exit 1
 fi
 
-# 查找最新的备份文件
+# 查找最新的备份文件（Linux版本）
 echo -e "${BLUE}🔍 正在查找最新的备份文件...${NC}"
+LATEST_BACKUP=$(find $BACKUP_DIR -name "meeting_room_backup_*.sql.gz" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
 
-# 兼容macOS和Linux的方式查找最新备份文件
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    LATEST_BACKUP=$(find $BACKUP_DIR -name "meeting_room_backup_*.sql.gz" -type f -exec stat -f "%m %N" {} \; 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-else
-    # Linux
-    LATEST_BACKUP=$(find $BACKUP_DIR -name "meeting_room_backup_*.sql.gz" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-fi
-
-# 如果上面的方法失败，使用更通用的方法
+# 备用方法
 if [ -z "$LATEST_BACKUP" ]; then
     LATEST_BACKUP=$(ls -t $BACKUP_DIR/meeting_room_backup_*.sql.gz 2>/dev/null | head -1)
 fi
@@ -48,12 +40,14 @@ fi
 if [ -z "$LATEST_BACKUP" ]; then
     echo -e "${RED}❌ 未找到任何备份文件！${NC}"
     echo -e "${YELLOW}请确保 $BACKUP_DIR 目录中存在 meeting_room_backup_*.sql.gz 文件${NC}"
+    echo -e "${BLUE}当前目录内容:${NC}"
+    ls -la $BACKUP_DIR/ 2>/dev/null || echo "目录为空或不存在"
     exit 1
 fi
 
 echo -e "${GREEN}✅ 找到最新备份文件: $LATEST_BACKUP${NC}"
 echo -e "${BLUE}备份文件大小: $(du -h "$LATEST_BACKUP" | cut -f1)${NC}"
-echo -e "${BLUE}备份创建时间: $(stat -c %y "$LATEST_BACKUP" 2>/dev/null || stat -f %Sm "$LATEST_BACKUP" 2>/dev/null)${NC}"
+echo -e "${BLUE}备份创建时间: $(stat -c %y "$LATEST_BACKUP" 2>/dev/null)${NC}"
 
 # 确认恢复操作
 echo
@@ -97,6 +91,7 @@ fi
 
 echo -e "${GREEN}✅ 数据库连接正常${NC}"
 
+# 创建恢复前的快速备份（可选）
 echo
 read -p "是否在恢复前创建当前数据库的快速备份？(y/N): " CREATE_BACKUP
 if [[ $CREATE_BACKUP =~ ^[Yy]$ ]]; then
@@ -123,7 +118,7 @@ fi
 echo
 echo -e "${BLUE}🔄 开始恢复数据库...${NC}"
 echo -e "${BLUE}恢复时间: $(date)${NC}"
-echo "=" | head -c 50; echo
+echo "================================================================"
 
 # 执行恢复
 mysql -h $DB_HOST \
@@ -173,4 +168,6 @@ rm -f "$TEMP_SQL_FILE"
 echo -e "${GREEN}✅ 临时文件已清理${NC}"
 
 echo
+echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}恢复操作完成！请重启应用服务以确保所有缓存都已刷新。${NC}"
+echo -e "${GREEN}================================================================${NC}"
