@@ -28,4 +28,6 @@ app/
 
 test_*
 
+.env
+
 backups/

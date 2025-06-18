@@ -37,7 +37,7 @@
           <div class="text-primary mb-3">
             <i class="fas fa-calendar-check fa-3x"></i>
           </div>
-          <h4 class="fw-bold">{{ current_user.reservations|active|length }}</h4>
+          <h4 class="fw-bold">{{ active_count|default(0) }}</h4>
           <p class="text-muted mb-0">我的预订</p>
         </div>
       </div>
@@ -48,9 +48,7 @@
           <div class="text-success mb-3">
             <i class="fas fa-clock fa-3x"></i>
           </div>
-          <h4 class="fw-bold">
-            {{ current_user.reservations|active|selectattr("Status", "equalto", "Confirmed")|list|length }}
-          </h4>
+          <h4 class="fw-bold">{{ confirmed_count|default(0) }}</h4>
           <p class="text-muted mb-0">已确认</p>
         </div>
       </div>
@@ -61,9 +59,7 @@
           <div class="text-warning mb-3">
             <i class="fas fa-hourglass-half fa-3x"></i>
           </div>
-          <h4 class="fw-bold">
-            {{ current_user.reservations|active|selectattr("Status", "equalto", "Pending")|list|length }}
-          </h4>
+          <h4 class="fw-bold">{{ pending_count|default(0) }}</h4>
           <p class="text-muted mb-0">待确认</p>
         </div>
       </div>
@@ -74,9 +70,7 @@
           <div class="text-danger mb-3">
             <i class="fas fa-times-circle fa-3x"></i>
           </div>
-          <h4 class="fw-bold">
-            {{ current_user.reservations|selectattr("Status", "equalto", "Cancelled")|list|length }}
-          </h4>
+          <h4 class="fw-bold">{{ cancelled_count|default(0) }}</h4>
           <p class="text-muted mb-0">已取消</p>
         </div>
       </div>
@@ -87,7 +81,7 @@
           <div class="text-danger mb-3">
             <i class="fas fa-calendar-times fa-3x"></i>
           </div>
-          <h4 class="fw-bold">{{ current_user.reservations|expired|length }}</h4>
+          <h4 class="fw-bold">{{ expired_count|default(0) }}</h4>
           <p class="text-muted mb-0">过期会议</p>
         </div>
       </div>
@@ -98,8 +92,7 @@
           <div class="text-info mb-3">
             <i class="fas fa-file-alt fa-3x"></i>
           </div>
-          {% set user_materials_count = current_user.uploaded_materials|length %}
-          <h4 class="fw-bold">{{ user_materials_count }}</h4>
+          <h4 class="fw-bold">{{ user_materials_count|default(0) }}</h4>
           <p class="text-muted mb-0">会议资料</p>
         </div>
       </div>
@@ -172,12 +165,11 @@
               </h6>
             </div>
             <div class="col-auto">
-              <span class="badge bg-primary" id="todayBadge"></span>
+              <span class="badge bg-primary" id="todayBadge">{{ today_count|default(0) }}</span>
             </div>
           </div>
         </div>
         <div class="card-body p-0">
-          {% set today_reservations = current_user.reservations|active|today %}
           {% if today_reservations %}
           <div class="list-group list-group-flush">
             {% for reservation in today_reservations[:3] %}
@@ -212,7 +204,7 @@
           </div>
           {% if today_reservations|length > 3 %}
           <div class="card-footer bg-light text-center">
-            <a href="{{ url_for('view_all_reservations') }}" class="btn btn-sm btn-outline-primary">
+            <a href="{{ url_for('all_reservations') }}" class="btn btn-sm btn-outline-primary">
               查看全部 {{ today_reservations|length }} 个会议
             </a>
           </div>
@@ -240,13 +232,11 @@
               </h5>
             </div>
             <div class="col-auto">
-              {% set active_reservations_count = current_user.reservations|active|length %}
-              <span class="badge bg-primary" id="materialsCount">{{ active_reservations_count }}</span>
+              <span class="badge bg-primary" id="materialsCount">{{ active_count|default(0) }}</span>
             </div>
           </div>
         </div>
         <div class="card-body p-0 my-reservations-body">
-          {% set active_reservations = current_user.reservations|active %}
           {% if active_reservations %}
           <div class="table-responsive">
             <table class="table table-hover mb-0">
