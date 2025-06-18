@@ -3366,7 +3366,6 @@ def delete_material(material_id):
 # 添加到应用配置中
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# 其他功能路由和初始化...
 
 @app.route('/admin/send_notification', methods=['GET', 'POST'])
 @login_required
