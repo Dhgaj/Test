@@ -677,7 +677,7 @@
         <div class="icon">
           <i class="fas fa-door-open fa-3x"></i>
         </div>
-        <h4>{{ rooms|length }}</h4>
+        <h4>{{ stats.total_rooms|default(0) }}</h4>
         <p>总会议室</p>
       </div>
     </div>
@@ -686,7 +686,7 @@
         <div class="icon">
           <i class="fas fa-laptop fa-3x"></i>
         </div>
-        <h4>{{ rooms|selectattr('RoomType', 'equalto', 'Online')|list|length }}</h4>
+        <h4>{{ stats.online_rooms|default(0) }}</h4>
         <p>线上会议室</p>
       </div>
     </div>
@@ -695,7 +695,7 @@
         <div class="icon">
           <i class="fas fa-building fa-3x"></i>
         </div>
-        <h4>{{ rooms|selectattr('RoomType', 'equalto', 'Offline')|list|length }}</h4>
+        <h4>{{ stats.offline_rooms|default(0) }}</h4>
         <p>线下会议室</p>
       </div>
     </div>

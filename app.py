@@ -1480,25 +1480,45 @@ def admin_reservations():
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
+    
     # 获取分页参数
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     # 限制每页最大显示条数
     if per_page > 100:
         per_page = 100
+    
     # 查询预订信息并分页
     reservations_pagination = Reservation.query.order_by(
         Reservation.StartTime.desc()).paginate(
         page=page, per_page=per_page, error_out=False)
     reservations = reservations_pagination.items
-    # 获取今天的日期用于今日预订统计
+    
+    # 计算全部统计数据（不受分页影响）
+    all_reservations = Reservation.query.all()
+    total_reservations = len(all_reservations)
+    offline_count = len([r for r in all_reservations if r.room and r.room.RoomType == 'Offline'])
+    online_count = len([r for r in all_reservations if r.room and r.room.RoomType == 'Online'])
+    pending_count = len([r for r in all_reservations if r.Status == 'Pending'])
+    confirmed_count = len([r for r in all_reservations if r.Status == 'Confirmed'])
+    
+    # 计算今日预订数
     today = datetime.now().date()
+    today_count = len([r for r in all_reservations if r.StartTime.date() == today])
+    
     return render_template('admin_reservations.html',
                            reservations=reservations,
                            pagination=reservations_pagination,
                            admin_view=True,
                            today=today,
-                           current_per_page=per_page)
+                           current_per_page=per_page,
+                           # 添加统计数据
+                           total_reservations=total_reservations,
+                           offline_count=offline_count,
+                           online_count=online_count,
+                           pending_count=pending_count,
+                           confirmed_count=confirmed_count,
+                           today_count=today_count)
 
 # 查看所有预订情况的路由。
 @app.route('/all_reservations')
@@ -1613,8 +1633,8 @@ def admin_users():
     )
     # 获取统计数据
     total_users = User.query.count()
-    admin_users = User.query.filter(User.is_admin == True).count()
-    normal_users = User.query.filter(User.is_admin == False).count()
+    admin_users = User.query.filter(User.Role == 'admin').count()
+    normal_users = User.query.filter(User.Role != 'admin').count()
     return render_template('admin_users.html',
                            users=users_pagination.items,
                            pagination=users_pagination,
@@ -2836,10 +2856,24 @@ def admin_maintenance():
         .order_by(Maintenance.MaintenanceDate.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
 
+    # 计算统计数据（不受分页影响）
+    all_maintenance = Maintenance.query.all()
+    total_maintenance = len(all_maintenance)
+    scheduled_count = len([m for m in all_maintenance if m.Status == 'Scheduled'])
+    in_progress_count = len([m for m in all_maintenance if m.Status == 'In Progress'])
+    completed_count = len([m for m in all_maintenance if m.Status == 'Completed'])
+    cancelled_count = len([m for m in all_maintenance if m.Status == 'Cancelled'])
+
     return render_template('admin_maintenance.html',
                            maintenance_list=maintenance_pagination.items,
                            pagination=maintenance_pagination,
-                           current_per_page=per_page)
+                           current_per_page=per_page,
+                           # 添加统计数据
+                           total_maintenance=total_maintenance,
+                           scheduled_count=scheduled_count,
+                           in_progress_count=in_progress_count,
+                           completed_count=completed_count,
+                           cancelled_count=cancelled_count)
 
 
 @app.route('/admin/maintenance/add', methods=['GET', 'POST'])
