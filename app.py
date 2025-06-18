@@ -3599,6 +3599,13 @@ def statistics():
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
+    
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    if per_page not in [10, 20, 50, 100]:
+        per_page = 10
+    
     # 1. 获取基本统计数据
     total_bookings = Reservation.query.count()
     active_users = db.session.query(db.func.count(db.distinct(Reservation.UserID))).scalar()
@@ -3659,15 +3666,21 @@ def statistics():
         ).count()
         daily_bookings_data.append(count)
     
-    # 5. 获取用户预订排名
+    # 5. 获取用户预订排名（支持分页）
     top_users_query = db.session.query(
         User.UserName.label('username'),
         db.func.count(Reservation.ID).label('booking_count')
     ).join(Reservation).group_by(User.UserID).order_by(
         db.func.count(Reservation.ID).desc()
-    ).limit(10).all()
+    )
     
-    top_users = [{'username': user.username, 'booking_count': user.booking_count} for user in top_users_query]
+    # 分页处理
+    pagination = top_users_query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    top_users = [{'username': user.username, 'booking_count': user.booking_count} 
+                 for user in pagination.items]
     
     # 6. 会议室容量利用率
     capacity_labels = ['小型会议室(≤8人)', '中型会议室(9-15人)', '大型会议室(≥16人)']
@@ -3687,6 +3700,8 @@ def statistics():
         date_labels=json.dumps(date_labels),
         daily_bookings_data=json.dumps(daily_bookings_data),
         top_users=top_users,
+        pagination=pagination,
+        current_per_page=per_page,
         capacity_labels=json.dumps(capacity_labels),
         capacity_data=json.dumps(capacity_data)
     )

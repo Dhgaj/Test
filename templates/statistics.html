@@ -3,44 +3,387 @@
 {% block title %}数据统计{% endblock %}
 
 {% block content %}
+<style>
+  /* 统计卡片样式 */
+  .stat-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0.8rem 2.5rem rgba(0,0,0,0.15) !important;
+  }
+  
+  .stat-card:active {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 0.3rem 1rem rgba(0,0,0,0.1) !important;
+  }
+  
+  /* 统计卡片左边框颜色 */
+  .col-lg-3:nth-child(1) .stat-card {
+    border-left-color: #007bff;
+  }
+  
+  .col-lg-3:nth-child(2) .stat-card {
+    border-left-color: #28a745;
+  }
+  
+  .col-lg-3:nth-child(3) .stat-card {
+    border-left-color: #17a2b8;
+  }
+  
+  .col-lg-3:nth-child(4) .stat-card {
+    border-left-color: #ffc107;
+  }
+  
+  .col-lg-3 .stat-card:hover {
+    border-left-width: 6px;
+    margin-left: -2px;
+  }
+  
+  /* 图标样式增强 */
+  .stat-card .fa-3x {
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover .fa-3x {
+    transform: scale(1.1) rotate(5deg);
+  }
+  
+  /* 排名表格增强样式 */
+  .ranking-row {
+    transition: all 0.3s ease;
+  }
+  
+  .ranking-row:hover {
+    background-color: rgba(102, 126, 234, 0.08) !important;
+    transform: translateX(5px);
+    border-left: 3px solid #667eea !important;
+  }
+  
+  /* 排名徽章样式 */
+  .ranking-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 1rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .ranking-1 {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #8b6914;
+  }
+  
+  .ranking-2 {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    color: #666;
+  }
+  
+  .ranking-3 {
+    background: linear-gradient(135deg, #cd7f32 0%, #deb887 100%);
+    color: #8b4513;
+  }
+  
+  .ranking-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    background: #f8f9fa;
+    border-radius: 50%;
+    font-weight: bold;
+    color: #6c757d;
+  }
+  
+  /* 用户信息样式 */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* 计数徽章样式 */
+  .count-badge {
+    transition: all 0.3s ease;
+  }
+  
+  .ranking-row:hover .count-badge {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+  }
+  
+  /* 表头图标样式 */
+  .ranking-icon {
+    background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+  }
+  
+  .stats-icon {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+  }
+  
+  /* 图表卡片样式 */
+  .card.h-100 {
+    transition: all 0.3s ease;
+  }
+  
+  .card.h-100:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.6rem 2rem rgba(0,0,0,0.12) !important;
+  }
+  
+  /* 分页样式增强 */
+  .pagination {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .page-link {
+    border: none;
+    padding: 0.5rem 0.75rem;
+    color: #667eea;
+    background: white;
+    transition: all 0.3s ease;
+  }
+  
+  .page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  }
+  
+  .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .page-item.disabled .page-link {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+  }
+  
+  /* 表格样式增强 */
+  .table {
+    border-radius: 0;
+    overflow: hidden;
+  }
+  
+  .table thead th {
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 1rem;
+    position: relative;
+  }
+  
+  .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* 表格底部圆角 */
+  .table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem;
+  }
+  
+  .table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem;
+  }
+  
+  /* 确保卡片本身也有圆角 */
+  .card {
+    border-radius: 1rem !important;
+    overflow: hidden;
+  }
+  
+  /* 用户统计徽章 */
+  .badge.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* 统计页面头部样式 */
+  .statistics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
+    border-radius: 1rem !important;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .statistics-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="30" cy="5" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="15" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="8" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="12" r="1" fill="white" opacity="0.1"/></svg>') repeat;
+    pointer-events: none;
+  }
+  
+  .statistics-header .card-body {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .statistics-header h2 {
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .statistics-header .btn-light {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .statistics-header .btn-light:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    color: #667eea;
+  }
+  
+  .statistics-header .btn-light i {
+    transition: all 0.3s ease;
+  }
+  
+  .statistics-header .btn-light:hover i {
+    transform: translateX(-2px);
+  }
+  
+  /* 动画效果 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .stat-card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .row .col-lg-3:nth-child(1) .stat-card { animation-delay: 0.1s; }
+  .row .col-lg-3:nth-child(2) .stat-card { animation-delay: 0.2s; }
+  .row .col-lg-3:nth-child(3) .stat-card { animation-delay: 0.3s; }
+  .row .col-lg-3:nth-child(4) .stat-card { animation-delay: 0.4s; }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .stat-card:hover {
+      transform: translateY(-2px);
+      margin-left: 0;
+      border-left-width: 4px;
+    }
+    
+    .ranking-row:hover {
+      transform: none;
+    }
+    
+    .header-text {
+      display: none;
+    }
+  }
+</style>
+
 <div class="container-fluid py-4">
+  <!-- 页面头部 Banner -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient border-0 statistics-header">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-2 text-white">
+                <i class="fas fa-chart-bar me-3"></i>数据统计
+              </h2>
+              <p class="mb-0 text-white-50">
+                查看系统使用情况和用户活跃度统计分析
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-arrow-left me-2"></i>返回控制面板
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-12">
-      <h2><i class="fas fa-chart-bar me-2"></i>数据统计</h2>
     </div>
   </div>
 
   <!-- 基本统计数据 -->
   <div class="row mb-4">
     <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card">
+      <div class="card border-0 shadow-sm h-100 stat-card">
         <div class="card-body text-center">
-          <h5 class="card-title">总预订数</h5>
-          <h3 class="text-primary">{{ total_bookings }}</h3>
+          <div class="text-primary mb-3">
+            <i class="fas fa-calendar-check fa-3x"></i>
+          </div>
+          <h3 class="text-primary fw-bold">{{ total_bookings }}</h3>
+          <h5 class="card-title text-muted mb-0">总预订数</h5>
         </div>
       </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card">
+      <div class="card border-0 shadow-sm h-100 stat-card">
         <div class="card-body text-center">
-          <h5 class="card-title">活跃用户</h5>
-          <h3 class="text-success">{{ active_users }}</h3>
+          <div class="text-success mb-3">
+            <i class="fas fa-users fa-3x"></i>
+          </div>
+          <h3 class="text-success fw-bold">{{ active_users }}</h3>
+          <h5 class="card-title text-muted mb-0">活跃用户</h5>
         </div>
       </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card">
+      <div class="card border-0 shadow-sm h-100 stat-card">
         <div class="card-body text-center">
-          <h5 class="card-title">会议室总数</h5>
-          <h3 class="text-info">{{ total_rooms }}</h3>
+          <div class="text-info mb-3">
+            <i class="fas fa-door-open fa-3x"></i>
+          </div>
+          <h3 class="text-info fw-bold">{{ total_rooms }}</h3>
+          <h5 class="card-title text-muted mb-0">会议室总数</h5>
         </div>
       </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card">
+      <div class="card border-0 shadow-sm h-100 stat-card">
         <div class="card-body text-center">
-          <h5 class="card-title">平均时长</h5>
-          <h3 class="text-warning">{{ avg_duration }}小时</h3>
+          <div class="text-warning mb-3">
+            <i class="fas fa-clock fa-3x"></i>
+          </div>
+          <h3 class="text-warning fw-bold">{{ avg_duration }}小时</h3>
+          <h5 class="card-title text-muted mb-0">平均时长</h5>
         </div>
       </div>
     </div>
@@ -49,9 +392,11 @@
   <!-- 简单图表 -->
   <div class="row">
     <div class="col-lg-6 mb-4">
-      <div class="card">
-        <div class="card-header">
-          <h5>会议室使用率</h5>
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-bar me-2 text-primary"></i>会议室使用率
+          </h5>
         </div>
         <div class="card-body">
           <canvas id="roomUsageChart" width="400" height="200"></canvas>
@@ -59,9 +404,11 @@
       </div>
     </div>
     <div class="col-lg-6 mb-4">
-      <div class="card">
-        <div class="card-header">
-          <h5>未来一周预订趋势</h5>
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2 text-success"></i>未来一周预订趋势
+          </h5>
         </div>
         <div class="card-body">
           <canvas id="dailyBookingsChart" width="400" height="200"></canvas>
@@ -73,28 +420,73 @@
   <!-- 用户排名 -->
   <div class="row">
     <div class="col-12">
-      <div class="card" style="height: 450px;">
-        <div class="card-header py-2" style="height: 55px;">
-          <h5 class="mb-0">用户预订排名</h5>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-trophy me-2 text-warning"></i>用户预订排名
+              </h5>
+            </div>
+            <div class="col-auto">
+              <span class="badge bg-primary">共 {{ pagination.total }} 位用户</span>
+            </div>
+          </div>
         </div>
-        <div class="card-body p-0" style="height: 400px; overflow-y: auto;">
+        <div class="card-body p-0">
           {% if top_users %}
-          <div class="table-responsive h-100">
+          <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
-              <thead class="table-dark sticky-top">
-                <tr style="height: 50px;">
-                  <th class="text-center align-middle" style="width: 15%;">排名</th>
-                  <th class="align-middle" style="width: 55%;">用户名</th>
-                  <th class="text-center align-middle" style="width: 30%;">预订次数</th>
+              <thead class="table-dark">
+                <tr>
+                  <th class="text-center align-middle" style="width: 15%;">
+                    <div class="header-content">
+                      <div class="header-icon ranking-icon">
+                        <i class="fas fa-medal"></i>
+                      </div>
+                      <span class="header-text">排名</span>
+                    </div>
+                  </th>
+                  <th class="align-middle" style="width: 55%;">
+                    <div class="header-content">
+                      <div class="header-icon user-icon">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      <span class="header-text">用户名</span>
+                    </div>
+                  </th>
+                  <th class="text-center align-middle" style="width: 30%;">
+                    <div class="header-content">
+                      <div class="header-icon stats-icon">
+                        <i class="fas fa-chart-bar"></i>
+                      </div>
+                      <span class="header-text">预订次数</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {% for user in top_users %}
-                <tr style="height: 60px;">
-                  <td class="text-center fw-bold align-middle">{{ loop.index }}</td>
-                  <td class="fw-medium align-middle">{{ user.username }}</td>
+                <tr class="ranking-row">
+                  <td class="text-center fw-bold align-middle">
+                    {% set global_rank = (pagination.page - 1) * pagination.per_page + loop.index %}
+                    {% if global_rank <= 3 and pagination.page == 1 %}
+                      <span class="ranking-badge ranking-{{ global_rank }}">
+                        {% if global_rank == 1 %}🥇{% elif global_rank == 2 %}🥈{% else %}🥉{% endif %}
+                        {{ global_rank }}
+                      </span>
+                    {% else %}
+                      <span class="ranking-number">{{ global_rank }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="fw-medium align-middle">
+                    <div class="user-info">
+                      <i class="fas fa-user-circle me-2 text-primary"></i>
+                      {{ user.username }}
+                    </div>
+                  </td>
                   <td class="text-center align-middle">
-                    <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{ user.booking_count }}</span>
+                    <span class="badge bg-primary rounded-pill fs-6 px-3 py-2 count-badge">{{ user.booking_count }}</span>
                   </td>
                 </tr>
                 {% endfor %}
@@ -102,14 +494,131 @@
             </table>
           </div>
           {% else %}
-          <div class="h-100 d-flex align-items-center justify-content-center">
-            <p class="text-muted text-center mb-0">暂无数据</p>
+          <div class="py-5 text-center">
+            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">暂无数据</p>
           </div>
           {% endif %}
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- 分页信息和导航 -->
+{% if pagination.pages > 1 or pagination.total > 0 %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="mt-4">
+        <!-- 分页信息和每页显示控件 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <span class="text-muted">
+              显示第 {{ (pagination.page - 1) * pagination.per_page + 1 }} - 
+              {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }} 条，
+              共 {{ pagination.total }} 条记录
+            </span>
+          </div>
+          
+          <!-- 每页显示条数选择 -->
+          <div class="d-flex align-items-center">
+            <span class="text-muted me-2">每页显示：</span>
+            <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+              <option value="10" {% if current_per_page == 10 %}selected{% endif %}>10</option>
+              <option value="20" {% if current_per_page == 20 %}selected{% endif %}>20</option>
+              <option value="50" {% if current_per_page == 50 %}selected{% endif %}>50</option>
+              <option value="100" {% if current_per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- 分页导航 -->
+        {% if pagination.pages > 1 %}
+        <div class="d-flex justify-content-center">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <!-- 首页 -->
+              {% if pagination.has_prev %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('statistics', page=1, per_page=current_per_page) }}">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <!-- 上一页 -->
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('statistics', page=pagination.prev_num, per_page=current_per_page) }}">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-double-left"></i>
+                </span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-left"></i>
+                </span>
+              </li>
+              {% endif %}
+              
+              <!-- 页码 -->
+              {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                  {% if page_num != pagination.page %}
+                  <li class="page-item">
+                    <a class="page-link" href="{{ url_for('statistics', page=page_num, per_page=current_per_page) }}">
+                      {{ page_num }}
+                    </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                  </li>
+                  {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                  <span class="page-link">…</span>
+                </li>
+                {% endif %}
+              {% endfor %}
+              
+              <!-- 下一页 -->
+              {% if pagination.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('statistics', page=pagination.next_num, per_page=current_per_page) }}">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <!-- 末页 -->
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('statistics', page=pagination.pages, per_page=current_per_page) }}">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">
+                  <i class="fas fa-angle-double-right"></i>
+                </span>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 </div>
 {% endblock %}
 
@@ -186,5 +695,64 @@
       }
     }
   });
+</script>
+
+<script>
+// 改变每页显示数量的函数
+function changePerPage(perPage) {
+  const url = new URL(window.location);
+  url.searchParams.set('per_page', perPage);
+  url.searchParams.set('page', 1); // 重置到第一页
+  window.location.href = url.toString();
+}
+
+// 页面加载完成后的初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 添加分页链接的平滑滚动
+  const paginationLinks = document.querySelectorAll('.pagination .page-link');
+  paginationLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      // 添加加载效果
+      if (!this.closest('.page-item').classList.contains('active') && 
+          !this.closest('.page-item').classList.contains('disabled')) {
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      }
+    });
+  });
+  
+  // 为每页显示选择框添加样式
+  const perPageSelect = document.querySelector('select[onchange="changePerPage(this.value)"]');
+  if (perPageSelect) {
+    perPageSelect.style.cursor = 'pointer';
+    perPageSelect.addEventListener('change', function() {
+      this.style.opacity = '0.7';
+    });
+  }
+  
+  // 添加页面头部动画效果
+  const headerCard = document.querySelector('.statistics-header');
+  if (headerCard) {
+    headerCard.style.transform = 'translateY(-20px)';
+    headerCard.style.opacity = '0';
+    
+    setTimeout(() => {
+      headerCard.style.transition = 'all 0.6s ease';
+      headerCard.style.transform = 'translateY(0)';
+      headerCard.style.opacity = '1';
+    }, 100);
+  }
+  
+  // 为返回按钮添加悬停效果
+  const backBtn = document.querySelector('a[href*="dashboard"]');
+  if (backBtn) {
+    backBtn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+    });
+    
+    backBtn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+    });
+  }
+});
 </script>
 {% endblock %}
