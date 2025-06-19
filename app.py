@@ -106,13 +106,12 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from file_utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 from send_email import init_email_service, send_email,  generate_confirmation_token, confirm_token, send_email_async
-from flask_login import current_user
+
 
 # 创建 Flask 应用实例
 app = Flask(__name__)
@@ -141,17 +140,17 @@ def load_config(app):
         # DB_HOST = os.environ.get('DB_HOST', '8.134.119.146')
         # DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
         # 本地测试环境
-        DB_USERNAME = os.environ.get("DB_USERNAME", "root")
-        DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-        DB_HOST = os.environ.get("DB_HOST", "localhost")
-        DB_NAME = os.environ.get("DB_NAME", "test_meeting_rooms")
-        DB_PORT = os.environ.get("DB_PORT", "3306")
+        # DB_USERNAME = os.environ.get("DB_USERNAME", "root")
+        # DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+        # DB_HOST = os.environ.get("DB_HOST", "localhost")
+        # DB_NAME = os.environ.get("DB_NAME", "test_meeting_rooms")
+        # DB_PORT = os.environ.get("DB_PORT", "3306")
         # PythonAnywhere
-        # DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
-        # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-        # DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
-        # DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS ')
-        # DB_PORT = int(os.environ.get('DB_PORT', 3306))
+        DB_USERNAME = os.environ.get('DB_USERNAME', 'ICCS')
+        DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+        DB_HOST     = os.environ.get('DB_HOST', 'ICCS.mysql.pythonanywhere-services.com')
+        DB_NAME     = os.environ.get('DB_NAME', 'ICCS$iccs')
+        DB_PORT = int(os.environ.get('DB_PORT', 3306))
 
         if not DB_PASSWORD:
             print("警告: 数据库密码未设置,请设置 DB_PASSWORD 环境变量")
@@ -899,10 +898,10 @@ def dashboard():
         # 获取当前用户的所有预订,按开始时间排序
         user_reservations = Reservation.query.filter_by(UserID=current_user.UserID)\
             .order_by(Reservation.StartTime.desc()).all()
-        
+
         # 获取所有会议室
         rooms = Room.query.all()
-        
+
         # 获取用户的会议资料数量和详细信息
         user_materials_count = MeetingMaterials.query.filter_by(
             UserID=current_user.UserID,
@@ -912,11 +911,11 @@ def dashboard():
             UserID=current_user.UserID,
             Status='Active'
         ).order_by(MeetingMaterials.UploadTime.desc()).all()
-        
+
         # 计算统计数据
         now = datetime.now()
         today = now.date()
-        
+
         # 分别计算各种状态的预订数量
         active_reservations = [r for r in user_reservations if r.EndTime >= now]
         confirmed_reservations = [r for r in active_reservations if r.Status == 'Confirmed']
@@ -924,7 +923,7 @@ def dashboard():
         cancelled_reservations = [r for r in user_reservations if r.Status == 'Cancelled']
         expired_reservations = [r for r in user_reservations if r.EndTime < now]
         today_reservations = [r for r in active_reservations if r.StartTime.date() == today]
-        
+
         return render_template('dashboard.html',
                                rooms=rooms,
                                user_reservations=user_reservations,
@@ -944,7 +943,7 @@ def dashboard():
         print(f"仪表盘视图出错: {str(e)}")
         flash(f'加载仪表盘时出错: {str(e)}')
         return render_template('shared/error.html', error=str(e))
-    
+
 # 添加会议室
 @app.route('/room/add', methods=['GET', 'POST'])
 @login_required
@@ -985,7 +984,7 @@ def add_room():
         # 根据房间类型设置相应的字段
         if room_type == 'Offline':
             meeting_link = None
-        else:  
+        else:
             location = None
             floor = None
             building = None
@@ -1480,20 +1479,20 @@ def admin_reservations():
     if not current_user.is_admin:
         flash('需要管理员权限')
         return redirect(url_for('dashboard'))
-    
+
     # 获取分页参数
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     # 限制每页最大显示条数
     if per_page > 100:
         per_page = 100
-    
+
     # 查询预订信息并分页
     reservations_pagination = Reservation.query.order_by(
         Reservation.StartTime.desc()).paginate(
         page=page, per_page=per_page, error_out=False)
     reservations = reservations_pagination.items
-    
+
     # 计算全部统计数据（不受分页影响）
     all_reservations = Reservation.query.all()
     total_reservations = len(all_reservations)
@@ -1501,11 +1500,11 @@ def admin_reservations():
     online_count = len([r for r in all_reservations if r.room and r.room.RoomType == 'Online'])
     pending_count = len([r for r in all_reservations if r.Status == 'Pending'])
     confirmed_count = len([r for r in all_reservations if r.Status == 'Confirmed'])
-    
+
     # 计算今日预订数
     today = datetime.now().date()
     today_count = len([r for r in all_reservations if r.StartTime.date() == today])
-    
+
     return render_template('admin_reservations.html',
                            reservations=reservations,
                            pagination=reservations_pagination,
@@ -3462,7 +3461,7 @@ def view_room_status():
         maintenance = Maintenance.query.filter(
             Maintenance.RoomID == room.RoomID,
             Maintenance.Status.in_(['Scheduled', 'In Progress']),
-            Maintenance.EndTime > current_time  
+            Maintenance.EndTime > current_time
         ).first()
 
         room_status.append({
@@ -3586,8 +3585,8 @@ def statistics():
         for res in reservations:
             # 确保只计算工作时间内的预订时间
             start = max(res.StartTime, thirty_days_ago)
-            duration = (res.EndTime - start).total_seconds() / 3600  
-            booked_hours += min(duration, 24)  
+            duration = (res.EndTime - start).total_seconds() / 3600
+            booked_hours += min(duration, 24)
 
         # 计算使用率百分比
         usage_rate = (booked_hours / total_working_hours) * 100
@@ -3858,21 +3857,21 @@ def admin_logs():
 
     # 计算各类型统计（基于实际数据库中的操作类型）
     auth_actions = [
-        '登录', '登出', '用户注册', '密码修改', '登录失败', 
+        '登录', '登出', '用户注册', '密码修改', '登录失败',
         '修改个人信息', '用户上传头像', '密码重置', '邮箱验证',
         '查看个人资料', '更新个人资料'
     ]
-    
+
     booking_actions = [
-        '创建预订', '预订会议室', '取消预订', '编辑预订', 
+        '创建预订', '预订会议室', '取消预订', '编辑预订',
         '查看个人预订', '查看会议室', '查看预订详情',
         '会议签到', '会议签退', '上传会议资料'
     ]
-    
+
     admin_actions = [
         # 用户管理
         '管理员添加用户', '管理员编辑用户', '管理员删除用户', '管理员为用户上传头像',
-        # 会议室管理  
+        # 会议室管理
         '管理员添加会议室', '管理员编辑会议室', '管理员删除会议室', '新增会议室',
         # 预订管理
         '管理员确认预订', '管理员删除预订', '管理员编辑预订', '系统自动确认预订',
@@ -3884,7 +3883,7 @@ def admin_logs():
         '权限变更', '数据导出', '系统维护', '通知发送', '邮件发送', '系统通知',
         '会议室管理', '用户管理', '管理员操作', '系统配置'
     ]
-    
+
     error_actions = ['登录失败', '异常登录', '系统错误', '访问被拒绝', '操作失败']
 
     action_stats = {

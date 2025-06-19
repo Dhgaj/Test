@@ -8,11 +8,11 @@ load_dotenv()
 SECRET_KEY = os.environ.get('SECRET_KEY', 'soYNJPrRb_S_PmkJqXYNo8qXZAvXepuQLBJ1JNCtqrYTOK-O_qeJN9ExCEY1aENhT4U')
 
 # 远程数据库配置
-# DB_USERNAME = os.environ.get('DB_USERNAME', 'LianSifanTest')
-# DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
-# DB_HOST     = os.environ.get('DB_HOST', 'LianSifanTest.mysql.pythonanywhere-services.com')
-# DB_NAME     = os.environ.get('DB_NAME', 'LianSifanTest$ICCS')
-# DB_PORT = int(os.environ.get('DB_PORT', 3306))
+DB_USERNAME = os.environ.get('DB_USERNAME', 'ICCS')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
+DB_HOST     = os.environ.get('DB_HOST', 'ICCS.mysql.pythonanywhere-services.com')
+DB_NAME     = os.environ.get('DB_NAME', 'ICCS$iccs')
+DB_PORT = int(os.environ.get('DB_PORT', 3306))
 
 # DB_USERNAME = os.environ.get('DB_USERNAME', 'meetingroom')
 # DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Meeting-room0')
@@ -21,10 +21,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'soYNJPrRb_S_PmkJqXYNo8qXZAvXepuQLBJ1J
 
 # 本地数据库配置
 # 测试环境数据库配置
-DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'root')
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
+# DB_USERNAME = os.environ.get('DB_USERNAME', 'root')
+# DB_PASSWORD = os.environ.get('DB_PASSWORD', 'root')
+# DB_HOST = os.environ.get('DB_HOST', 'localhost')
+# DB_NAME = os.environ.get('DB_NAME', 'test_meeting_rooms')
 
 
 # 构建数据库URI
