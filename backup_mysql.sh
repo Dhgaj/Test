@@ -12,7 +12,7 @@ mkdir -p "$BACKUP_DIR"
 echo "🗄️  开始备份MySQL数据库..."
 echo "备份时间: $(date)"
 echo "备份文件: $BACKUP_FILE"
-printf '=%.0s' {1..50}; echo   # ✅ 正确输出 50 个等号
+printf '=%.0s' {1..50}; echo   
 # 执行备份
 MYSQL_PWD="$DB_PASSWORD" mysqldump -h "$DB_HOST" \
           -u "$DB_USERNAME" \
